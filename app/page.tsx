@@ -46,21 +46,26 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sent, setSent] = useState(false);
   const [testModalOpen, setTestModalOpen] = useState(false);
+  const [counselingModalOpen, setCounselingModalOpen] = useState(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [activeTestCategory, setActiveTestCategory] = useState(0);
 
   useEffect(() => {
-    if (!testModalOpen) return;
+    if (!testModalOpen && !counselingModalOpen && !privacyModalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setTestModalOpen(false);
+      if (event.key !== "Escape") return;
+      setTestModalOpen(false);
+      setCounselingModalOpen(false);
+      setPrivacyModalOpen(false);
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [testModalOpen]);
+  }, [testModalOpen, counselingModalOpen, privacyModalOpen]);
 
   function submitStory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -98,7 +103,7 @@ export default function Home() {
           <h1>말하는 순간,<br />이야기는 달라지기<br />시작합니다.</h1>
           <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
           <div className="heroActions">
-            <a className="primaryButton" href="#story">사연 보내기 <ArrowIcon /></a>
+            <a className="primaryButton" href="#story">익명으로 사연 보내기 <ArrowIcon /></a>
           </div>
           <a className="counselingGuide" href="#counseling">
             <span>상담을 원하신다면</span>
@@ -138,7 +143,7 @@ export default function Home() {
         </div>
 
         <div className="counselingCta">
-          <a className="outlineButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 상담 문의")}`}>상담 문의하기 <ArrowIcon /></a>
+          <button className="outlineButton" type="button" onClick={() => setCounselingModalOpen(true)}>상담 신청하기 <ArrowIcon /></button>
         </div>
       </section>
 
@@ -151,7 +156,8 @@ export default function Home() {
           <p>상담은 누군가가 정답을 알려주는 시간이 아니라, 미처 알아보지 못했던 나의 힘과 선택 가능성을 발견하는 과정이라고 믿습니다.</p>
           <dl>
             <div><dt>학력</dt><dd>상담심리학 석사</dd></div>
-            <div><dt>자격</dt><dd>전문상담교사 1급<br />상담심리사 2급 (한국상담심리학회)</dd></div>
+            <div><dt>활동</dt><dd>대학상담센터 상담자</dd></div>
+            <div><dt>자격</dt><dd>전문상담교사 1급<br />상담심리사 2급 (한국상담심리학회)<br />청소년상담사 2급 (여성가족부)</dd></div>
             <div><dt>관점</dt><dd>아들러 심리학 · 내러티브 상담</dd></div>
           </dl>
         </div>
@@ -162,17 +168,58 @@ export default function Home() {
           <p className="sectionNumber">04 / SEND YOUR STORY</p>
           <h2>마음에 걸린 이야기를<br />보내주세요.</h2>
           <p>잘 정리된 글이 아니어도 괜찮습니다. 요즘 자꾸 떠오르는 장면이나 아무에게도 하지 못했던 질문을 편한 말로 적어주세요.</p>
+          <p className="storyBoundary">사연 보내기는 상담 신청과 별도로 운영됩니다. 상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
           <p className="notice">※ 사연 접수는 상담을 대체하지 않으며, 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
         </div>
         <form className="storyForm" onSubmit={submitStory}>
           <label>닉네임<input name="nickname" placeholder="익명도 괜찮아요" /></label>
           <label>당신의 이야기<textarea name="story" required rows={8} placeholder="어떤 이야기를 나누고 싶으신가요?" /></label>
           <label className="check"><input type="checkbox" name="contentConsent" /><span>개인정보를 알 수 없도록 수정한 뒤 콘텐츠에서 사연을 소개하는 것에 동의합니다. (선택)</span></label>
-          <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 개인정보 처리 안내를 확인했습니다. (필수)</span></label>
+          <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
           <button className="submitButton" type="submit">이야기 보내기 <ArrowIcon /></button>
           {sent && <p className="success" role="status">이메일 작성 창이 열립니다. 내용을 확인한 뒤 전송해 주세요.</p>}
         </form>
       </section>
+
+      {counselingModalOpen && (
+        <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCounselingModalOpen(false); }}>
+          <section className="testModal counselingModal" role="dialog" aria-modal="true" aria-labelledby="counseling-modal-title">
+            <button className="testModalClose" type="button" onClick={() => setCounselingModalOpen(false)} aria-label="상담 신청 안내 닫기">×</button>
+            <p className="testModalEyebrow">COUNSELING REQUEST</p>
+            <h2 id="counseling-modal-title">상담을 시작하는<br />첫 번째 단계</h2>
+            <p className="testModalLead">신청만으로 상담이 바로 확정되지는 않습니다. 간단한 내용을 보내주시면 가능한 일정과 비용, 진행 방법을 개별적으로 안내드립니다.</p>
+            <ol className="requestSteps" aria-label="상담 신청 절차">
+              <li><span>01</span><strong>상담 신청</strong><p>기본 정보와 상담받고 싶은 내용을 간단히 남깁니다.</p></li>
+              <li><span>02</span><strong>개별 안내</strong><p>가능한 일정, 상담료, 진행 방식과 취소·환불 규정을 안내받습니다.</p></li>
+              <li><span>03</span><strong>상담 확정</strong><p>안내 내용을 확인하고 동의한 뒤 첫 상담을 확정합니다.</p></li>
+            </ol>
+            <div className="requestNotice">
+              <strong>신청 전 확인해 주세요</strong>
+              <p>아직 상담료와 취소 규정에 동의한 상태가 아니며, 개별 안내를 확인한 후 진행 여부를 결정할 수 있습니다. 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
+            </div>
+            <a className="submitButton requestMailButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 상담 신청")}`}>이메일로 상담 신청하기 <ArrowIcon /></a>
+            <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
+          </section>
+        </div>
+      )}
+
+      {privacyModalOpen && (
+        <div className="testModalBackdrop privacyBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setPrivacyModalOpen(false); }}>
+          <section className="testModal privacyModal" role="dialog" aria-modal="true" aria-labelledby="privacy-modal-title">
+            <button className="testModalClose" type="button" onClick={() => setPrivacyModalOpen(false)} aria-label="개인정보 처리 안내 닫기">×</button>
+            <p className="testModalEyebrow">PRIVACY</p>
+            <h2 id="privacy-modal-title">개인정보 처리 안내</h2>
+            <div className="privacyCopy">
+              <p><strong>수집 항목</strong><span>이메일을 통해 이용자가 직접 제공한 이름·연락처·상담 또는 사연 내용</span></p>
+              <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변</span></p>
+              <p><strong>보유 기간</strong><span>이용 목적 달성 후 지체 없이 파기합니다. 관계 법령에 따라 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</span></p>
+              <p><strong>동의 거부</strong><span>개인정보 제공에 동의하지 않을 수 있으나, 접수와 답변이 제한될 수 있습니다.</span></p>
+            </div>
+            <p className="privacyFootnote">사연의 콘텐츠 활용은 별도 선택 동의를 받은 경우에만 진행하며, 개인을 알아볼 수 없도록 수정합니다. 정식 운영 전 실제 연락처와 개인정보 관리 정보를 추가합니다.</p>
+            <button className="submitButton" type="button" onClick={() => setPrivacyModalOpen(false)}>확인했습니다</button>
+          </section>
+        </div>
+      )}
 
       {testModalOpen && (
         <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTestModalOpen(false); }}>
@@ -204,7 +251,7 @@ export default function Home() {
 
       <footer>
         <div className="footerBrand"><strong>AUDE</strong><span>아우데 심리상담</span></div>
-        <div><p>온라인 심리상담</p><a href={`mailto:${contactEmail}`}>{contactEmail}</a></div>
+        <div><p>온라인 심리상담</p><a href={`mailto:${contactEmail}`}>{contactEmail}</a><button className="footerPrivacy" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button></div>
         <div><p>© {new Date().getFullYear()} AUDE COUNSELING</p><p>본 사이트의 내용은 의료적 진단이나 치료를 대체하지 않습니다.</p></div>
       </footer>
     </main>
