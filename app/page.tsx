@@ -49,8 +49,11 @@ export default function Home() {
           <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
           <div className="heroActions">
             <a className="primaryButton" href="#story">사연 보내기 <ArrowIcon /></a>
-            <a className="textLink" href="#counseling">온라인 상담 알아보기</a>
           </div>
+          <a className="counselingGuide" href="#counseling">
+            <span>상담을 원하신다면</span>
+            <strong>온라인 상담 알아보기 <ArrowIcon /></strong>
+          </a>
         </div>
         <div className="heroArt" aria-hidden="true">
           <div className="halo" />
