@@ -103,8 +103,12 @@ export default function Home() {
           <h1>말하는 순간,<br />이야기는 달라지기<br />시작합니다.</h1>
           <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
           <div className="heroActions">
-            <a className="primaryButton heroChoice" href="#story">익명으로 사연 보내기 <ArrowIcon /></a>
-            <a className="secondaryButton heroChoice" href="#counseling">온라인 상담 신청하기 <ArrowIcon /></a>
+            <a className="primaryButton heroChoice" href="#story">
+              <span className="heroChoiceCopy"><small>STORY</small><strong>익명으로 사연 보내기</strong></span><ArrowIcon />
+            </a>
+            <a className="secondaryButton heroChoice" href="#counseling">
+              <span className="heroChoiceCopy"><small>COUNSELING</small><strong>온라인 상담 신청하기</strong></span><ArrowIcon />
+            </a>
           </div>
         </div>
         <div className="heroArt" aria-hidden="true">
@@ -140,7 +144,10 @@ export default function Home() {
         </div>
 
         <div className="counselingCta">
-          <button className="outlineButton" type="button" onClick={() => setCounselingModalOpen(true)}>상담 신청하기 <ArrowIcon /></button>
+          <div className="counselingCtaInner">
+            <p><span>상담을 시작하고 싶다면</span><strong>비용과 진행 절차를 확인해 보세요.</strong></p>
+            <button className="counselingApplyButton" type="button" onClick={() => setCounselingModalOpen(true)}>상담 신청하기 <ArrowIcon /></button>
+          </div>
         </div>
       </section>
 
