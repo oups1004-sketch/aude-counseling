@@ -84,9 +84,46 @@ export default function Home() {
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분</strong></article>
           <article><span>02</span><h3>부부·가족상담</h3><p>누가 옳은지를 가리기보다 서로 다른 이야기가 만날 수 있는 대화를 만듭니다.</p><strong>온라인 · 별도 문의</strong></article>
-          <article><span>03</span><h3>청소년상담</h3><p>학업과 진로, 또래와 가족관계 속에서 청소년이 자기 목소리를 찾도록 돕습니다.</p><strong>온라인 · 60분</strong></article>
+          <article><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong>검사 실시 · 해석상담 별도 안내</strong></article>
         </div>
-        <a className="outlineButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 온라인 상담 문의")}`}>상담 가능 시간 문의하기 <ArrowIcon /></a>
+
+        <details className="testExplorer">
+          <summary><span>검사 종류 살펴보기</span><b aria-hidden="true">＋</b></summary>
+          <div className="testExplorerIntro">
+            <p>상담을 시작하지 않아도 심리검사와 해석상담만 별도로 신청할 수 있습니다. 검사에 따라 진행 방식과 소요 시간이 달라질 수 있습니다.</p>
+          </div>
+          <div className="testGroups">
+            <section>
+              <p className="testCategory">기질·성격</p>
+              <details><summary>TCI</summary><p>타고난 기질과 성장하며 형성된 성격 특성을 살펴봅니다.</p></details>
+              <details><summary>MBTI</summary><p>에너지를 얻고 정보를 받아들이며 판단하고 생활하는 선호 방식을 알아봅니다.</p></details>
+              <details><summary>NEO-PI</summary><p>성격을 다섯 가지 주요 특성과 세부 특성으로 나누어 폭넓게 이해합니다.</p></details>
+            </section>
+            <section>
+              <p className="testCategory">정서·심리 상태</p>
+              <details><summary>MMPI</summary><p>현재의 정서 상태와 심리적 어려움, 성격적 특징을 폭넓게 이해합니다.</p></details>
+              <details><summary>SCT</summary><p>미완성 문장을 완성하며 자신과 관계, 가족, 미래에 관한 생각을 살펴봅니다.</p></details>
+            </section>
+            <section>
+              <p className="testCategory">진로·학습</p>
+              <details><summary>Strong</summary><p>다양한 활동과 직업에 대한 흥미를 살펴보고 진로 탐색의 방향을 찾습니다.</p></details>
+              <details><summary>U&amp;I</summary><p>학습 과정에서 나타나는 성격과 행동 특성, 공부 방법을 살펴봅니다.</p></details>
+            </section>
+            <section>
+              <p className="testCategory">심층·투사검사</p>
+              <details><summary>TAT</summary><p>그림을 보고 만든 이야기를 통해 관계 경험과 내면의 욕구·갈등을 탐색합니다.</p></details>
+              <details><summary>Rorschach</summary><p>잉크반점에 대한 반응을 바탕으로 사고와 정서, 현실을 경험하는 방식을 종합적으로 살펴봅니다.</p></details>
+              <details><summary>HTP</summary><p>집·나무·사람 그림을 통해 자기상과 관계 경험, 정서적 특징을 탐색합니다.</p></details>
+              <details><summary>KFD</summary><p>가족이 무언가를 하는 그림을 통해 가족관계에 대한 개인의 경험과 인식을 살펴봅니다.</p></details>
+              <p className="testNote">투사검사는 진행 방식과 실시 환경을 별도로 협의합니다.</p>
+            </section>
+          </div>
+        </details>
+
+        <div className="counselingCta">
+          <p>어떤 상담이나 검사가 맞을지 모르겠다면</p>
+          <a className="outlineButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 상담 문의")}`}>상담 문의하기 <ArrowIcon /></a>
+        </div>
       </section>
 
       <section className="counselor section" id="counselor">
