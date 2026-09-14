@@ -161,3 +161,88 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .counselingCtaInner p strong{font-size:18px}
   .counselingApplyButton{width:100%}
 }
+
+
+/* Mobile composition: intentionally designed rather than proportionally reduced */
+@media(max-width:560px){
+  body{font-size:15px;line-height:1.75}
+  .header{height:70px;padding:0 20px}
+  .brand{gap:10px;font-size:14px}
+  .brandMark{width:36px;height:36px;font-size:19px}
+  .menuButton{margin-right:-8px}
+
+  .hero{display:block;height:auto;min-height:720px;padding:112px 20px 68px}
+  .heroCopy{align-self:auto;margin-top:0}
+  .eyebrow{margin:0 0 22px;font-size:11px;letter-spacing:.14em}
+  h1{font-size:clamp(39px,11.2vw,46px);line-height:1.24;letter-spacing:-.055em}
+  .heroText{max-width:340px;margin:25px 0 27px;color:rgba(244,240,231,.7);font-size:14px;line-height:1.85}
+  .heroActions{position:relative;z-index:3;width:100%;gap:10px}
+  .heroChoice{width:100%;max-width:360px;min-height:68px;padding:12px 17px 12px 19px;border-radius:18px}
+  .heroChoiceCopy strong{font-size:13px}
+  .heroArt{width:390px;right:-220px;bottom:-110px;opacity:.28}
+  .heroArt p,.courageLine span{display:none}
+  .scrollHint{display:none}
+
+  .section{padding:68px 20px}
+  .sectionNumber{margin-bottom:28px;font-size:11px}
+  .intro,.counselor,.story{gap:42px}
+  .intro h2,.sectionHeadingRow h2,.story h2,.profile h2{font-size:34px;line-height:1.3}
+  .introBody .lead{margin-bottom:28px;font-size:23px;line-height:1.55}
+  .introBody>p:not(.lead){margin:0 0 16px}
+
+  .sectionHeadingRow{gap:24px}
+  .sectionHeadingRow>p{font-size:14px}
+  .serviceGrid{display:flex;margin:42px 0 30px;flex-direction:column;gap:12px;border-top:0}
+  .serviceGrid article,.serviceGrid article+article{min-height:0;padding:23px;border:1px solid rgba(244,240,231,.17);border-radius:18px;background:rgba(244,240,231,.035)}
+  .serviceGrid>article>span{font-size:42px}
+  .serviceGrid h3{margin:18px 0 12px;font-size:25px}
+  .serviceGrid p{margin:0;font-size:14px}
+  .serviceGrid strong{margin-top:20px}
+  .testModalTrigger{margin-top:20px;padding-top:16px}
+  .counselingCta{margin-top:42px;padding-top:36px}
+  .counselingCtaInner p{margin-bottom:18px}
+  .counselingCtaInner p strong{font-size:17px}
+  .counselingApplyButton{min-height:58px;padding:15px 18px 15px 22px;font-size:16px}
+
+  .counselor{display:flex;flex-direction:column}
+  .profile{order:1}
+  .portraitPlaceholder{order:2;min-height:320px;padding:28px;border-radius:18px}
+  .portraitPlaceholder p{max-width:250px;font-size:22px}
+  .profileLead{margin:25px 0;font-size:19px}
+  .profile dl{margin-top:30px}
+  .profile dl div{grid-template-columns:68px 1fr;gap:10px;padding:16px 0}
+  .profile dt{font-size:12px}
+  .profile dd{font-size:14px;line-height:1.8}
+
+  .storyIntro>p:not(.sectionNumber):not(.notice):not(.storyBoundary){margin-top:24px}
+  .storyBoundary{margin-top:20px;padding:14px 15px}
+  .notice{margin-top:22px;font-size:11px}
+  .storyForm{margin-top:0}
+  .storyForm>label:not(.check){padding-top:20px}
+  .storyForm textarea{min-height:150px}
+  .check{font-size:12px;line-height:1.65}
+  .submitButton{min-height:56px}
+
+  .testModalBackdrop{padding:0}
+  .testModal{max-height:91dvh;padding:46px 20px 30px;border-radius:22px 22px 0 0}
+  .testModal h2{font-size:34px;line-height:1.3}
+  .testModalLead{margin:18px 0 26px;line-height:1.75}
+  .testModalClose{position:sticky;z-index:2;top:0;float:right;margin:-32px -8px 0 0;border-radius:50%;background:rgba(244,240,231,.92)}
+  .requestPrices{margin-top:28px}
+  .requestPrices article{padding:14px 0}
+  .requestSteps{margin-top:26px}
+  .requestNotice{padding:17px}
+  .privacyCopy{margin-top:26px}
+  .privacyCopy p{padding:15px 0}
+  .requestMailButton{min-height:56px}
+
+  footer{padding:48px 20px;gap:22px}
+}
+
+@media(max-width:380px){
+  h1{font-size:37px}
+  .hero{padding-left:17px;padding-right:17px}
+  .section{padding-left:17px;padding-right:17px}
+  .intro h2,.sectionHeadingRow h2,.story h2,.profile h2{font-size:31px}
+  .heroChoiceCopy strong{font-size:12px}
+}
