@@ -23,7 +23,8 @@ h1 { font-size:clamp(52px,6vw,92px); }
 .heroActions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .primaryButton,.secondaryButton,.outlineButton,.submitButton { display:inline-flex; align-items:center; justify-content:space-between; gap:40px; border-radius:999px; }
 .primaryButton { background:var(--paper); color:var(--ink); padding:15px 18px 15px 25px; min-width:190px; }
-.secondaryButton{border:1px solid #ad7550;background:#a2673f;color:var(--paper);padding:15px 18px 15px 25px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.12)}
+.secondaryButton{border:1px solid var(--paper);background:var(--paper);color:var(--ink);padding:15px 18px 15px 25px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.16)}
+.secondaryButton svg{color:var(--copper)}
 .heroChoice{width:245px;min-height:56px;font-size:15px;font-weight:500}
 .primaryButton,.secondaryButton,.outlineButton,.submitButton,.navCta { transition:transform .3s ease,background-color .3s ease,color .3s ease,border-color .3s ease,box-shadow .3s ease; }
 .primaryButton svg,.secondaryButton svg,.outlineButton svg,.submitButton svg,.counselingGuide svg { transition:transform .3s ease; }
@@ -78,7 +79,7 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .primaryButton:hover,.secondaryButton:hover,.submitButton:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(0,0,0,.16); }
   .primaryButton:hover { background:#e8dfd1; }
   .primaryButton:hover svg,.secondaryButton:hover svg,.submitButton:hover svg,.outlineButton:hover svg,.counselingGuide:hover svg,.testModalTrigger:hover svg { transform:translateX(5px); }
-  .secondaryButton:hover{background:#b1744c;border-color:#c58b64;box-shadow:0 12px 30px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.16)}
+  .secondaryButton:hover{background:#e8dfd1;border-color:#e8dfd1;box-shadow:0 12px 30px rgba(0,0,0,.22)}
   .testModalTrigger:hover{color:var(--paper);border-color:#d6aa84}
   .outlineButton:hover { transform:translateY(-2px); background:var(--paper); color:var(--ink); border-color:var(--paper); }
   .submitButton:hover { background:#2b2d29; }
@@ -87,7 +88,7 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 }
 @media(pointer:coarse){
   .primaryButton:active,.outlineButton:active,.submitButton:active,.navCta:active { transform:scale(.98); }
-  .secondaryButton:active{transform:scale(.965);background:#875233;box-shadow:0 3px 10px rgba(0,0,0,.2),inset 0 2px 5px rgba(0,0,0,.15)}
+  .secondaryButton:active{transform:scale(.965);background:#d9cfc0;box-shadow:0 3px 10px rgba(0,0,0,.2),inset 0 2px 5px rgba(0,0,0,.1)}
   .counselingGuide:active strong { opacity:.7; }
 }
 @media(prefers-reduced-motion:reduce){
@@ -137,4 +138,9 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .requestPrices article+article{padding-left:0;border-left:0;border-top:1px solid var(--line)}
   .requestPrices strong{margin-top:9px}
   .requestPriceNote{text-align:left}
+}
+
+@media(max-width:800px){
+  .heroActions{align-items:flex-start;flex-direction:column;gap:12px}
+  .heroChoice{width:min(100%,305px)}
 }
