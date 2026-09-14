@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@example.com";
 
@@ -8,9 +8,59 @@ function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 }
 
+const testCategories = [
+  {
+    name: "기질·성격",
+    tests: [
+      ["TCI", "타고난 기질과 성장하며 형성된 성격 특성을 살펴봅니다."],
+      ["MBTI", "에너지를 얻고 정보를 받아들이며 판단하고 생활하는 선호 방식을 알아봅니다."],
+      ["NEO-PI", "성격을 다섯 가지 주요 특성과 세부 특성으로 나누어 폭넓게 이해합니다."],
+    ],
+  },
+  {
+    name: "정서·심리",
+    tests: [
+      ["MMPI", "현재의 정서 상태와 심리적 어려움, 성격적 특징을 폭넓게 이해합니다."],
+      ["SCT", "미완성 문장을 완성하며 자신과 관계, 가족, 미래에 관한 생각을 살펴봅니다."],
+    ],
+  },
+  {
+    name: "진로·학습",
+    tests: [
+      ["Strong", "다양한 활동과 직업에 대한 흥미를 살펴보고 진로 탐색의 방향을 찾습니다."],
+      ["U&I", "학습 과정에서 나타나는 성격과 행동 특성, 공부 방법을 살펴봅니다."],
+    ],
+  },
+  {
+    name: "심층·투사",
+    tests: [
+      ["TAT", "그림을 보고 만든 이야기를 통해 관계 경험과 내면의 욕구·갈등을 탐색합니다."],
+      ["Rorschach", "잉크반점에 대한 반응을 바탕으로 사고와 정서, 현실을 경험하는 방식을 종합적으로 살펴봅니다."],
+      ["HTP", "집·나무·사람 그림을 통해 자기상과 관계 경험, 정서적 특징을 탐색합니다."],
+      ["KFD", "가족이 무언가를 하는 그림을 통해 가족관계에 대한 개인의 경험과 인식을 살펴봅니다."],
+    ],
+  },
+] as const;
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [activeTestCategory, setActiveTestCategory] = useState(0);
+
+  useEffect(() => {
+    if (!testModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setTestModalOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [testModalOpen]);
 
   function submitStory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,44 +134,10 @@ export default function Home() {
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분</strong></article>
           <article><span>02</span><h3>부부·가족상담</h3><p>누가 옳은지를 가리기보다 서로 다른 이야기가 만날 수 있는 대화를 만듭니다.</p><strong>온라인 · 별도 문의</strong></article>
-          <article><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong>검사 실시 · 해석상담 별도 안내</strong></article>
+          <article className="assessmentService"><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
-        <details className="testExplorer">
-          <summary><span>검사 종류 살펴보기</span><b aria-hidden="true">＋</b></summary>
-          <div className="testExplorerIntro">
-            <p>상담을 시작하지 않아도 심리검사와 해석상담만 별도로 신청할 수 있습니다. 검사에 따라 진행 방식과 소요 시간이 달라질 수 있습니다.</p>
-          </div>
-          <div className="testGroups">
-            <section>
-              <p className="testCategory">기질·성격</p>
-              <details><summary>TCI</summary><p>타고난 기질과 성장하며 형성된 성격 특성을 살펴봅니다.</p></details>
-              <details><summary>MBTI</summary><p>에너지를 얻고 정보를 받아들이며 판단하고 생활하는 선호 방식을 알아봅니다.</p></details>
-              <details><summary>NEO-PI</summary><p>성격을 다섯 가지 주요 특성과 세부 특성으로 나누어 폭넓게 이해합니다.</p></details>
-            </section>
-            <section>
-              <p className="testCategory">정서·심리 상태</p>
-              <details><summary>MMPI</summary><p>현재의 정서 상태와 심리적 어려움, 성격적 특징을 폭넓게 이해합니다.</p></details>
-              <details><summary>SCT</summary><p>미완성 문장을 완성하며 자신과 관계, 가족, 미래에 관한 생각을 살펴봅니다.</p></details>
-            </section>
-            <section>
-              <p className="testCategory">진로·학습</p>
-              <details><summary>Strong</summary><p>다양한 활동과 직업에 대한 흥미를 살펴보고 진로 탐색의 방향을 찾습니다.</p></details>
-              <details><summary>U&amp;I</summary><p>학습 과정에서 나타나는 성격과 행동 특성, 공부 방법을 살펴봅니다.</p></details>
-            </section>
-            <section>
-              <p className="testCategory">심층·투사검사</p>
-              <details><summary>TAT</summary><p>그림을 보고 만든 이야기를 통해 관계 경험과 내면의 욕구·갈등을 탐색합니다.</p></details>
-              <details><summary>Rorschach</summary><p>잉크반점에 대한 반응을 바탕으로 사고와 정서, 현실을 경험하는 방식을 종합적으로 살펴봅니다.</p></details>
-              <details><summary>HTP</summary><p>집·나무·사람 그림을 통해 자기상과 관계 경험, 정서적 특징을 탐색합니다.</p></details>
-              <details><summary>KFD</summary><p>가족이 무언가를 하는 그림을 통해 가족관계에 대한 개인의 경험과 인식을 살펴봅니다.</p></details>
-              <p className="testNote">투사검사는 진행 방식과 실시 환경을 별도로 협의합니다.</p>
-            </section>
-          </div>
-        </details>
-
         <div className="counselingCta">
-          <p>어떤 상담이나 검사가 맞을지 모르겠다면</p>
           <a className="outlineButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 상담 문의")}`}>상담 문의하기 <ArrowIcon /></a>
         </div>
       </section>
@@ -157,6 +173,34 @@ export default function Home() {
           {sent && <p className="success" role="status">이메일 작성 창이 열립니다. 내용을 확인한 뒤 전송해 주세요.</p>}
         </form>
       </section>
+
+      {testModalOpen && (
+        <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTestModalOpen(false); }}>
+          <section className="testModal" role="dialog" aria-modal="true" aria-labelledby="test-modal-title">
+            <button className="testModalClose" type="button" onClick={() => setTestModalOpen(false)} aria-label="검사 안내 닫기">×</button>
+            <p className="testModalEyebrow">PSYCHOLOGICAL TESTS</p>
+            <h2 id="test-modal-title">나를 이해하는<br />여러 가지 방법</h2>
+            <p className="testModalLead">상담을 시작하지 않아도 심리검사와 해석상담만 별도로 신청할 수 있습니다.</p>
+            <div className="testTabs" role="tablist" aria-label="심리검사 영역">
+              {testCategories.map((category, index) => (
+                <button key={category.name} type="button" role="tab" aria-selected={activeTestCategory === index} className={activeTestCategory === index ? "active" : ""} onClick={() => setActiveTestCategory(index)}>
+                  {category.name}
+                </button>
+              ))}
+            </div>
+            <div className="testModalList" role="tabpanel">
+              {testCategories[activeTestCategory].tests.map(([name, description]) => (
+                <details key={name}>
+                  <summary><strong>{name}</strong><span aria-hidden="true">＋</span></summary>
+                  <p>{description}</p>
+                </details>
+              ))}
+            </div>
+            {activeTestCategory === 3 && <p className="testModalNote">투사검사는 진행 방식과 실시 환경을 별도로 협의합니다.</p>}
+            <p className="testModalFootnote">검사에 따라 진행 방식과 소요 시간이 달라질 수 있습니다.</p>
+          </section>
+        </div>
+      )}
 
       <footer>
         <div className="footerBrand"><strong>AUDE</strong><span>아우데 심리상담</span></div>
