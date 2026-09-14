@@ -104,7 +104,7 @@ export default function Home() {
           <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
           <div className="heroActions">
             <a className="primaryButton heroChoice" href="#story">익명으로 사연 보내기 <ArrowIcon /></a>
-            <button className="secondaryButton heroChoice" type="button" onClick={() => setCounselingModalOpen(true)}>온라인 상담 신청하기 <ArrowIcon /></button>
+            <a className="secondaryButton heroChoice" href="#counseling">온라인 상담 신청하기 <ArrowIcon /></a>
           </div>
         </div>
         <div className="heroArt" aria-hidden="true">
