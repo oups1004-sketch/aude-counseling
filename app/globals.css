@@ -119,3 +119,18 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .requestSteps span{margin-bottom:8px}
   .privacyCopy p{grid-template-columns:1fr;gap:5px}
 }
+
+.requestPrices{display:grid;grid-template-columns:repeat(3,1fr);margin:34px 0 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
+.requestPrices article{display:flex;min-height:150px;padding:22px 20px 20px 0;flex-direction:column}
+.requestPrices article+article{padding-left:20px;border-left:1px solid var(--line)}
+.requestPrices span{color:#66675f;font-size:13px}
+.requestPrices strong{margin-top:auto;font:500 22px 'DM Sans';letter-spacing:-.03em}
+.requestPrices small{margin-top:4px;color:#888980;font-size:11px}
+.requestPriceNote{margin:11px 0 32px;color:#77786f;font-size:11px;text-align:right}
+@media(max-width:700px){
+  .requestPrices{grid-template-columns:1fr}
+  .requestPrices article{min-height:0;padding:16px 0}
+  .requestPrices article+article{padding-left:0;border-left:0;border-top:1px solid var(--line)}
+  .requestPrices strong{margin-top:9px}
+  .requestPriceNote{text-align:left}
+}
