@@ -28,12 +28,12 @@ h1 { font-size:clamp(52px,6vw,92px); }
 .counselingGuide svg { width:15px; }
 .heroArt { align-self:center; aspect-ratio:1; max-width:570px; position:relative; display:grid; place-items:center; }
 .halo { position:absolute; width:70%; height:70%; border-radius:50%; background:radial-gradient(circle at 42% 40%, #d9bea2 0, #8b5a3e 20%, #2f2924 52%, transparent 70%); filter:blur(3px); opacity:.8; box-shadow:0 0 130px rgba(184,128,84,.18); }
-.courageLine { position:absolute; inset:14%; border:1px solid rgba(244,240,231,.22); border-radius:50%; animation:float 8s ease-in-out infinite; }
+.courageLine { position:absolute; inset:14%; border:1px solid rgba(244,240,231,.22); border-radius:50%; animation:orbit 32s linear infinite; will-change:transform; transform-origin:center; }
 .courageLine:after { content:""; position:absolute; inset:14%; border:1px solid rgba(244,240,231,.13); border-radius:50%; }
 .courageLine span { position:absolute; top:47%; left:-6%; font-family:'DM Sans'; font-size:11px; letter-spacing:.3em; transform:rotate(-90deg); }
 .heroArt p { z-index:1; font-family:'Noto Serif KR'; text-align:center; font-size:20px; line-height:1.8; }
 .scrollHint { position:absolute; bottom:35px; right:4vw; font-family:'DM Sans'; font-size:10px; letter-spacing:.2em; opacity:.5; }
-@keyframes float{50%{transform:rotate(3deg) scale(1.03)}}
+@keyframes orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .section { padding:130px 7vw; }
 .sectionNumber { color:var(--copper); margin:0 0 45px; }
 .intro { display:grid; grid-template-columns:1fr 1fr; gap:10vw; }
