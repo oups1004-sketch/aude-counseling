@@ -156,7 +156,7 @@ export default function Home() {
           <p>상담은 누군가가 정답을 알려주는 시간이 아니라, 미처 알아보지 못했던 나의 힘과 선택 가능성을 발견하는 과정이라고 믿습니다.</p>
           <dl>
             <div><dt>학력</dt><dd>상담심리학 석사</dd></div>
-            <div><dt>활동</dt><dd>대학상담센터 상담자</dd></div>
+            <div><dt>활동</dt><dd>대학상담센터 상담자<br />고등학교 진로·진학상담부장</dd></div>
             <div><dt>자격</dt><dd>전문상담교사 1급<br />상담심리사 2급 (한국상담심리학회)<br />청소년상담사 2급 (여성가족부)</dd></div>
             <div><dt>관점</dt><dd>아들러 심리학 · 내러티브 상담</dd></div>
           </dl>
@@ -188,6 +188,12 @@ export default function Home() {
             <p className="testModalEyebrow">COUNSELING REQUEST</p>
             <h2 id="counseling-modal-title">상담을 시작하는<br />첫 번째 단계</h2>
             <p className="testModalLead">신청만으로 상담이 바로 확정되지는 않습니다. 간단한 내용을 보내주시면 가능한 일정과 비용, 진행 방법을 개별적으로 안내드립니다.</p>
+            <div className="requestPrices" aria-label="상담 비용">
+              <article><span>개인상담</span><strong>65,000원</strong><small>온라인 · 60분</small></article>
+              <article><span>커플·부부상담</span><strong>110,000원</strong><small>온라인 · 80분</small></article>
+              <article><span>심리검사·해석상담</span><strong>70,000원부터</strong><small>검사 종류에 따라 상이</small></article>
+            </div>
+            <p className="requestPriceNote">3인 이상 가족상담과 심층검사는 별도로 안내드립니다.</p>
             <ol className="requestSteps" aria-label="상담 신청 절차">
               <li><span>01</span><strong>상담 신청</strong><p>기본 정보와 상담받고 싶은 내용을 간단히 남깁니다.</p></li>
               <li><span>02</span><strong>개별 안내</strong><p>가능한 일정, 상담료, 진행 방식과 취소·환불 규정을 안내받습니다.</p></li>
