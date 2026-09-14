@@ -44,7 +44,7 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="heroCopy">
-          <p className="eyebrow">AUDE · 용기를 내라</p>
+          <p className="eyebrow">AUDE · 용기를 내다</p>
           <h1>말하는 순간,<br />이야기는 달라지기<br />시작합니다.</h1>
           <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
           <div className="heroActions">
@@ -63,12 +63,12 @@ export default function Home() {
       <section className="intro section" id="about">
         <div>
           <p className="sectionNumber">01 / ABOUT AUDE</p>
-          <h2>용기는 두려움이<br />없는 상태가 아닙니다.</h2>
+          <h2>당신의 이야기가,<br />지금의 어려움보다 크다고 믿습니다.</h2>
         </div>
         <div className="introBody">
-          <p className="lead">아우데는 라틴어로<br /><em>“용기를 내라”</em>는 뜻입니다.</p>
-          <p>삶이 꼬였다고 느끼는 순간에도 우리는 이미 나름의 방식으로 버티고, 선택하며, 이야기를 이어왔습니다. 아우데 심리상담은 그 과정에 숨어 있던 힘을 발견하고 다음 장면을 함께 만들어갑니다.</p>
-          <p>아들러 심리학의 용기와 공동체 감각, 내러티브 상담의 이야기 관점을 바탕으로 당신을 문제와 동일시하지 않는 상담을 지향합니다.</p>
+          <p className="lead">아우데는 라틴어로<br /><em>“용기를 내다”</em>라는 뜻입니다.</p>
+          <p>누구에게나 삶의 방향을 잃고, 자신마저 낯설게 느껴지는 순간이 있습니다. 그러나 지금 겪고 있는 문제가 당신의 모든 모습을 설명할 수는 없습니다.</p>
+          <p>아우데 심리상담은 당신이 지나온 이야기를 함께 들여다보고, 그 안에 이미 존재해 온 힘과 새로운 가능성을 발견하는 공간입니다.</p>
         </div>
       </section>
 
