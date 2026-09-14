@@ -58,7 +58,7 @@ export default function Home() {
         <div className="heroArt" aria-hidden="true">
           <div className="halo" />
           <div className="courageLine"><span>AUDE</span></div>
-          <p>“당신의 이야기는<br />아직 끝나지 않았습니다.”</p>
+          <p>당신이 다시<br />당신의 편이 되도록.</p>
         </div>
         <p className="scrollHint">SCROLL TO LISTEN</p>
       </section>
@@ -90,14 +90,14 @@ export default function Home() {
       </section>
 
       <section className="counselor section" id="counselor">
-        <div className="portraitPlaceholder" aria-label="상담자 사진 영역"><span>AUDE</span><p>당신이 다시<br />자기 편이 되도록.</p></div>
+        <div className="portraitPlaceholder" aria-label="상담자를 상징하는 실루엣 이미지"><span>AUDE</span><div className="counselorSilhouette" aria-hidden="true" /><p>오래 기다린 사람처럼,<br />당신의 이야기를 맞이합니다.</p></div>
         <div className="profile">
           <p className="sectionNumber">03 / COUNSELOR</p>
           <h2>이성민 상담자</h2>
           <p className="profileLead">“사람은 고쳐져야 할 문제가 아니라,<br />이해받아야 할 이야기를 가진 존재입니다.”</p>
           <p>상담은 누군가가 정답을 알려주는 시간이 아니라, 미처 알아보지 못했던 나의 힘과 선택 가능성을 발견하는 과정이라고 믿습니다.</p>
           <dl>
-            <div><dt>학력</dt><dd>한국교원대학교 상담심리 석사</dd></div>
+            <div><dt>학력</dt><dd>상담심리학 석사</dd></div>
             <div><dt>자격</dt><dd>전문상담교사 1급<br />상담심리사 2급 (한국상담심리학회)</dd></div>
             <div><dt>관점</dt><dd>아들러 심리학 · 내러티브 상담</dd></div>
           </dl>
