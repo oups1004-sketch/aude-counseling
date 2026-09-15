@@ -22,6 +22,9 @@ function stringValue(value: unknown) {
 
 function storyItem(row: DbRow) {
   const data = row.data || {};
+  const ageGroup = stringValue(data.ageGroup);
+  const gender = stringValue(data.gender);
+  const storyProfile = [ageGroup, gender].filter(Boolean).join(" · ");
   return {
     id: `story:${row.id}`,
     reference_code: `STORY-${row.id.slice(0, 8).toUpperCase()}`,
@@ -30,7 +33,7 @@ function storyItem(row: DbRow) {
     created_at: row.created_at,
     name: null,
     nickname: stringValue(data.nickname) || "익명",
-    age_group: null,
+    age_group: storyProfile || null,
     contact: null,
     service: null,
     preferred_time: null,
