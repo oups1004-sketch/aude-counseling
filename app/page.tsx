@@ -187,14 +187,14 @@ export default function Home() {
           <p>익숙하고 편안한 공간에서 화상으로 만납니다. 관계, 진로, 가족, 감정의 어려움을 혼자 정리하기 벅찰 때 함께할 수 있습니다.</p>
         </div>
         <div className="serviceGrid">
-          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분</strong></article>
-          <article><span>02</span><h3>부부·가족상담</h3><p>누가 옳은지를 가리기보다 서로 다른 이야기가 만날 수 있는 대화를 만듭니다.</p><strong>온라인 · 별도 문의</strong></article>
-          <article className="assessmentService"><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 65,000원</strong></article>
+          <article><span>02</span><h3>부부·가족상담</h3><p>누가 옳은지를 가리기보다 서로 다른 이야기가 만날 수 있는 대화를 만듭니다.</p><strong>온라인 · 80분 · 110,000원</strong></article>
+          <article className="assessmentService"><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 검사에 따라 상이</strong><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
           <div className="counselingCtaInner">
-            <p><span>상담을 시작하고 싶다면</span><strong>비용과 진행 절차를 확인해 보세요.</strong></p>
+            <p><span>신청만으로 바로 결제되거나 상담이 확정되지는 않습니다.</span><strong>신청 → 일정·비용 안내 → 확인 후 상담 확정</strong></p>
             <button className="counselingApplyButton" type="button" onClick={() => setCounselingModalOpen(true)}>상담 신청하기 <ArrowIcon /></button>
           </div>
         </div>
@@ -236,8 +236,8 @@ export default function Home() {
         ) : (
           <form className="storyForm" onSubmit={submitStory}>
             <label className="storyField"><span className="fieldEyebrow">FROM</span><span className="fieldLabel">닉네임</span><input name="nickname" maxLength={40} placeholder="익명도 괜찮아요" /></label>
-            <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><input name="ageGroup" maxLength={20} placeholder="예: 34세 또는 30대" /></label>
-            <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><input name="gender" maxLength={20} placeholder="예: 여성 / 남성" /></label>
+            <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><select name="ageGroup" defaultValue=""><option value="">선택하지 않음</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
+            <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><select name="gender" defaultValue=""><option value="">선택하지 않음</option><option>여성</option><option>남성</option><option>기타</option></select></label>
             <label className="storyField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
             <label className="check"><input type="checkbox" name="contentConsent" required /><span>보내주신 사연이 개인정보를 알아볼 수 없도록 수정·각색된 뒤, ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있음에 동의합니다. (필수)</span></label>
             <p className="notice">※ 이름, 지역, 직장 등 개인을 특정할 수 있는 정보는 삭제하거나 변경합니다.</p>
