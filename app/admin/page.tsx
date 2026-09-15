@@ -13,6 +13,7 @@ type Submission = {
   name: string | null;
   nickname: string | null;
   age_group: string | null;
+  gender: string | null;
   contact: string | null;
   service: string | null;
   preferred_time: string | null;
@@ -109,14 +110,14 @@ export default function AdminPage() {
     return items.filter((item) => {
       if (activeTab !== "all" && item.kind !== activeTab) return false;
       if (!needle) return true;
-      return [item.reference_code, item.name, item.nickname, item.contact, item.service, item.message]
+      return [item.reference_code, item.name, item.nickname, item.age_group, item.gender, item.contact, item.service, item.message]
         .some((value) => value?.toLowerCase().includes(needle));
     });
   }, [activeTab, items, query]);
 
   function exportCsv() {
     const rows = [
-      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모"],
+      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "성별", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모"],
       ...filtered.map((item) => [
         item.reference_code,
         item.created_at,
@@ -124,6 +125,7 @@ export default function AdminPage() {
         item.status,
         item.name || item.nickname || "",
         item.age_group || "",
+        item.gender || "",
         item.contact || "",
         item.service || "",
         item.preferred_time || "",
@@ -186,21 +188,27 @@ export default function AdminPage() {
             ))}
           </div>
           <div className="adminActions">
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름·연락처·내용 검색" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름·연령·성별·내용 검색" />
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
 
         <div className="adminList">
           {filtered.length === 0 && <div className="adminEmpty">아직 표시할 접수가 없습니다.</div>}
-          {filtered.map((item) => (
-            <button className="submissionRow" key={item.id} onClick={() => setSelected(item)}>
-              <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
-              <span className="submissionMain"><strong>{item.name || item.nickname || "익명"}</strong><small>{item.message || "신청 내용 없음"}</small></span>
-              <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
-              <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
-            </button>
-          ))}
+          {filtered.map((item) => {
+            const storyMeta = item.kind === "story" ? [item.age_group, item.gender].filter(Boolean).join(" · ") : "";
+            return (
+              <button className="submissionRow" key={item.id} onClick={() => setSelected(item)}>
+                <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
+                <span className="submissionMain">
+                  <strong>{item.name || item.nickname || "익명"}</strong>
+                  <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
+                </span>
+                <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
+                <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -229,6 +237,7 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete }: {
           <Detail label="구분" value={kindLabel[item.kind]} />
           <Detail label="접수일시" value={new Date(item.created_at).toLocaleString("ko-KR")} />
           <Detail label="연령대" value={item.age_group} />
+          {item.kind === "story" && <Detail label="성별" value={item.gender} />}
           <Detail label="연락처" value={item.contact} />
           <Detail label="상담 유형" value={item.service} />
           <Detail label="희망 시간" value={item.preferred_time} />
