@@ -35,6 +35,10 @@ const kindLabel: Record<Kind, string> = {
   story: "사연",
 };
 
+function displayName(item: Submission) {
+  return item.name || item.nickname || "익명";
+}
+
 export default function AdminPage() {
   const [items, setItems] = useState<Submission[]>([]);
   const [auth, setAuth] = useState<"checking" | "login" | "ready">("checking");
@@ -43,6 +47,7 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState("");
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Submission | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/submissions", { cache: "no-store" });
@@ -81,6 +86,7 @@ export default function AdminPage() {
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     setItems([]);
+    setSelectedIds(new Set());
     setAuth("login");
   }
 
@@ -98,10 +104,15 @@ export default function AdminPage() {
   }
 
   async function remove(item: Submission) {
-    if (!confirm(`${item.reference_code} 접수를 영구 삭제할까요? 삭제 후 복구할 수 없습니다.`)) return;
+    if (!confirm(`${displayName(item)} 접수를 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`)) return;
     const response = await fetch(`/api/admin/submissions?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
     if (!response.ok) return alert("삭제하지 못했습니다.");
     setSelected(null);
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      next.delete(item.id);
+      return next;
+    });
     await load();
   }
 
@@ -114,6 +125,63 @@ export default function AdminPage() {
         .some((value) => value?.toLowerCase().includes(needle));
     });
   }, [activeTab, items, query]);
+
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedIds.has(item.id)),
+    [items, selectedIds],
+  );
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every((item) => selectedIds.has(item.id));
+
+  function toggleSelected(id: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllFiltered() {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (allFilteredSelected) filtered.forEach((item) => next.delete(item.id));
+      else filtered.forEach((item) => next.add(item.id));
+      return next;
+    });
+  }
+
+  async function removeSelected() {
+    if (selectedItems.length === 0 || busy) return;
+
+    const first = selectedItems[0];
+    const message = selectedItems.length === 1
+      ? `${displayName(first)} 접수를 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`
+      : `${displayName(first)} 외 ${selectedItems.length - 1}건을 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`;
+
+    if (!confirm(message)) return;
+
+    setBusy(true);
+    const results = await Promise.all(
+      selectedItems.map(async (item) => {
+        try {
+          const response = await fetch(`/api/admin/submissions?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
+          return { id: item.id, ok: response.ok };
+        } catch {
+          return { id: item.id, ok: false };
+        }
+      }),
+    );
+    setBusy(false);
+
+    const failedIds = new Set(results.filter((result) => !result.ok).map((result) => result.id));
+    setSelectedIds(failedIds);
+    await load();
+
+    if (failedIds.size > 0) {
+      alert(`${selectedItems.length - failedIds.size}건은 삭제했지만 ${failedIds.size}건은 삭제하지 못했습니다. 다시 시도해 주세요.`);
+    }
+  }
 
   function exportCsv() {
     const rows = [
@@ -193,20 +261,43 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {filtered.length > 0 && (
+          <div className="bulkBar">
+            <label className="bulkSelectAll">
+              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAllFiltered} />
+              <span>{allFilteredSelected ? "현재 목록 선택 해제" : "현재 목록 전체 선택"}</span>
+            </label>
+            <div className="bulkBarActions">
+              {selectedIds.size > 0 && <strong>{selectedIds.size}건 선택</strong>}
+              {selectedIds.size > 0 && <button type="button" onClick={() => setSelectedIds(new Set())}>선택 해제</button>}
+              <button className="bulkDelete" type="button" disabled={selectedIds.size === 0 || busy} onClick={removeSelected}>
+                {busy && selectedIds.size > 0 ? "삭제 중…" : "선택 삭제"}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="adminList">
           {filtered.length === 0 && <div className="adminEmpty">아직 표시할 접수가 없습니다.</div>}
           {filtered.map((item) => {
             const storyMeta = item.kind === "story" ? [item.age_group, item.gender].filter(Boolean).join(" · ") : "";
+            const isChecked = selectedIds.has(item.id);
             return (
-              <button className="submissionRow" key={item.id} onClick={() => setSelected(item)}>
-                <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
-                <span className="submissionMain">
-                  <strong>{item.name || item.nickname || "익명"}</strong>
-                  <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
-                </span>
-                <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
-                <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
-              </button>
+              <div className={isChecked ? "submissionRow submissionRowSelected" : "submissionRow"} key={item.id}>
+                <label className="submissionSelect" title={`${displayName(item)} 선택`}>
+                  <input type="checkbox" checked={isChecked} onChange={() => toggleSelected(item.id)} />
+                  <span aria-hidden="true" />
+                </label>
+                <button className="submissionOpen" type="button" onClick={() => setSelected(item)}>
+                  <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
+                  <span className="submissionMain">
+                    <strong>{displayName(item)}</strong>
+                    <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
+                  </span>
+                  <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
+                  <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
+                </button>
+              </div>
             );
           })}
         </div>
@@ -232,7 +323,7 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete }: {
       <section className="adminModal" role="dialog" aria-modal="true" aria-label="접수 상세">
         <button className="adminModalClose" onClick={onClose} aria-label="닫기">×</button>
         <p className="sectionNumber">{item.reference_code}</p>
-        <h2>{item.name || item.nickname || "익명"}</h2>
+        <h2>{displayName(item)}</h2>
         <div className="submissionDetails">
           <Detail label="구분" value={kindLabel[item.kind]} />
           <Detail label="접수일시" value={new Date(item.created_at).toLocaleString("ko-KR")} />
