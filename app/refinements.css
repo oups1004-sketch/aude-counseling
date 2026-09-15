@@ -1,0 +1,134 @@
+/* AUDE UX refinements: clearer counseling decisions, faster mobile forms, and a unified doorway/light visual language. */
+
+/* Counseling information should be visible before the application modal opens. */
+.serviceGrid article > strong.servicePrice,
+.serviceGrid article > strong {
+  color: var(--paper);
+}
+
+.counselingCtaInner p span {
+  margin-bottom: 6px;
+}
+
+.counselingCtaInner p strong {
+  line-height: 1.55;
+}
+
+/* Story form: selection fields are faster than free typing for age/gender. */
+.storyForm select {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 14px;
+  border: 1px solid rgba(23,24,22,.16);
+  border-radius: 12px;
+  background: rgba(244,240,231,.78);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+}
+
+.storyForm select:focus {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 3px rgba(162,103,63,.09);
+}
+
+/* Hero: turn the previous orbit motif into AUDE's doorway-and-light motif. */
+.heroArt {
+  isolation: isolate;
+}
+
+.heroArt .halo {
+  position: absolute;
+  width: 42%;
+  height: 62%;
+  border-radius: 48% 48% 3px 3px / 28% 28% 3px 3px;
+  background:
+    linear-gradient(180deg, rgba(239,205,170,.96) 0%, rgba(172,112,70,.68) 38%, rgba(63,48,38,.28) 76%, rgba(23,24,22,.08) 100%);
+  filter: none;
+  opacity: .96;
+  box-shadow:
+    0 0 0 1px rgba(244,240,231,.13),
+    0 0 80px rgba(197,131,81,.2),
+    inset 0 0 46px rgba(255,229,199,.14);
+}
+
+.heroArt .halo::before {
+  content: "";
+  position: absolute;
+  inset: 8% 13% 0;
+  border-radius: 48% 48% 2px 2px / 26% 26% 2px 2px;
+  background: linear-gradient(180deg, rgba(244,223,199,.3), rgba(37,31,27,.78));
+  border: 1px solid rgba(244,240,231,.16);
+}
+
+.heroArt .halo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 88%;
+  width: 190%;
+  height: 58%;
+  transform: translateX(-50%);
+  clip-path: polygon(38% 0,62% 0,90% 100%,10% 100%);
+  background: linear-gradient(180deg, rgba(228,178,131,.22), rgba(228,178,131,0));
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+.heroArt .courageLine {
+  position: absolute;
+  inset: auto;
+  width: 56%;
+  height: 74%;
+  border: 1px solid rgba(244,240,231,.16);
+  border-radius: 48% 48% 3px 3px / 28% 28% 3px 3px;
+  animation: none;
+  transform: none;
+}
+
+.heroArt .courageLine::after {
+  inset: 8%;
+  border-radius: 48% 48% 2px 2px / 28% 28% 2px 2px;
+  border-color: rgba(244,240,231,.09);
+}
+
+.heroArt .courageLine span {
+  display: none;
+}
+
+.heroArt > p {
+  transform: translateY(118px);
+  font-size: 18px;
+  color: rgba(244,240,231,.88);
+  text-shadow: 0 2px 18px rgba(0,0,0,.24);
+}
+
+@media (max-width: 760px) {
+  .heroArt .halo { width: 40%; height: 58%; }
+  .heroArt .courageLine { width: 54%; height: 70%; }
+  .heroArt > p { transform: translateY(88px); font-size: 16px; }
+}
+
+/* Keep the application sheet short on phones; prices and steps are already visible on the page. */
+@media (max-width: 560px) {
+  .counselingModal .requestPrices,
+  .counselingModal .requestPriceNote,
+  .counselingModal .requestSteps {
+    display: none;
+  }
+
+  .counselingModal .testModalLead {
+    margin-bottom: 18px;
+  }
+
+  .counselingModal .requestNotice {
+    margin: 14px 0 18px;
+    padding: 14px 15px;
+  }
+
+  .counselingModal .requestForm {
+    margin-top: 18px;
+    padding-top: 18px;
+  }
+}
