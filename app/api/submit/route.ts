@@ -72,6 +72,9 @@ export async function POST(request: Request) {
       if (!clean.story) {
         return NextResponse.json({ error: "Story is required." }, { status: 400 });
       }
+      if (clean.contentConsent !== "동의") {
+        return NextResponse.json({ error: "Content consent is required." }, { status: 400 });
+      }
 
       await insertSubmission("story_submissions", {
         type: "story",
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
         ageGroup: clean.ageGroup,
         gender: clean.gender,
         story: clean.story,
-        contentConsent: clean.contentConsent === "동의",
+        contentConsent: true,
         privacyVersion: "2026-09",
       });
     } else {
