@@ -221,7 +221,7 @@ export default function Home() {
           <p className="sectionNumber">04 / SEND YOUR STORY</p>
           <h2>마음에 걸린 이야기를<br />보내주세요.</h2>
           <p><span className="desktopStoryText">잘 정리된 글이 아니어도 괜찮습니다. 요즘 자꾸 떠오르는 장면이나 아무에게도 하지 못했던 질문을 편한 말로 적어주세요.</span><span className="mobileStoryText">잘 정리된 글이 아니어도 괜찮습니다.<br />지금 떠오르는 말부터 시작해 보세요.</span></p>
-          <p className="storyBoundary">사연 보내기는 상담 신청과 별도로 운영되며, 접수된 사연은 개인정보를 알아볼 수 없도록 수정·각색한 뒤 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있습니다. 상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
+          <p className="storyBoundary">사연 보내기는 상담 신청과 별도로 운영되며, 접수된 사연은 개인정보를 알아볼 수 없도록 수정·각색한 뒤 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있습니다. 개인상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
           <p className="notice">※ 사연 접수는 상담을 대체하지 않으며, 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
         </div>
         {storyStatus === "sent" ? (
