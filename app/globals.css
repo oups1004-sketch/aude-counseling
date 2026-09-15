@@ -278,3 +278,28 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .storyForm .submitButton{min-height:58px;margin-top:18px;border-radius:14px}
   .storyForm .success{margin:13px 2px 0}
 }
+
+
+.honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.submitButton:disabled{cursor:wait;opacity:.7}
+.requestForm{margin-top:28px;padding-top:26px;border-top:1px solid var(--line)}
+.requestFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.requestForm label{display:block;margin-bottom:17px}
+.requestForm label>span{display:flex;justify-content:space-between;margin-bottom:7px;color:#55564f;font-size:12px;font-weight:600}
+.requestForm label>span small{color:#8b8c84;font-size:10px;font-weight:400}
+.requestForm input:not([type=checkbox]),.requestForm select,.requestForm textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;outline:0;background:rgba(255,255,255,.28);color:var(--ink);font:inherit;font-size:13px}
+.requestForm textarea{resize:vertical}
+.requestForm input:focus,.requestForm select:focus,.requestForm textarea:focus{border-color:var(--copper);box-shadow:0 0 0 3px rgba(162,103,63,.09)}
+.requestForm .check{display:flex;margin:8px 0 18px}
+.requestForm .check>span{display:inline;margin:0;color:#666;font-weight:400}
+.requestSuccess{margin-top:28px;padding:27px;border:1px solid rgba(73,97,66,.22);background:rgba(73,97,66,.07);text-align:center}
+.requestSuccess span,.requestSuccess strong{display:block}
+.requestSuccess span{color:#496142;font-size:13px}
+.requestSuccess strong{margin-top:7px;font:500 18px 'Noto Serif KR'}
+@media(max-width:560px){
+  .requestFormGrid{grid-template-columns:1fr;gap:0}
+  .requestForm{margin-top:24px;padding-top:22px}
+  .requestForm input:not([type=checkbox]),.requestForm select,.requestForm textarea{min-height:47px;font-size:14px}
+  .requestForm textarea{min-height:100px}
+  .requestSuccess{padding:23px 18px}
+}
