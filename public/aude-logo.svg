@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" role="img" aria-labelledby="title desc">
+  <title id="title">AUDE</title>
+  <desc id="desc">Bronze A arch symbol with AUDE wordmark</desc>
+  <defs>
+    <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d7a163"/>
+      <stop offset="0.52" stop-color="#b3743f"/>
+      <stop offset="1" stop-color="#82502f"/>
+    </linearGradient>
+    <linearGradient id="doorLight" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#fff7e8"/>
+      <stop offset="0.55" stop-color="#f1d7b9"/>
+      <stop offset="1" stop-color="#c99767"/>
+    </linearGradient>
+  </defs>
+
+  <!-- AUDE's A: a restrained architectural arch / doorway -->
+  <path fill="url(#bronze)" fill-rule="evenodd" d="
+    M22 130
+    C45 130 59 122 72 102
+    L126 22
+    C129 17 133 17 136 22
+    L190 102
+    C203 122 217 130 240 130
+    L240 136 L22 136 Z
+
+    M104 136
+    L104 93
+    C104 71 116 60 131 60
+    C146 60 158 71 158 93
+    L158 136 Z
+  "/>
+
+  <!-- subtle lit reveal inside the doorway -->
+  <path d="M111 136V94C111 78 119 68 131 68C143 68 151 78 151 94V136Z" fill="url(#doorLight)" opacity=".84"/>
+  <path d="M151 136L177 146H125L111 136Z" fill="#d8a46f" opacity=".24"/>
+
+  <!-- wordmark -->
+  <text x="285" y="118" fill="#2b241f" font-family="Georgia, 'Times New Roman', serif" font-size="82" font-weight="400" letter-spacing="17">AUDE</text>
+</svg>
