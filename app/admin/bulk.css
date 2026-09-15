@@ -1,0 +1,21 @@
+.bulkBar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:8px 0 14px;padding:12px 14px;border:1px solid #cfc6b7;border-radius:14px;background:rgba(248,244,236,.72)}
+.bulkSelectAll{display:flex;align-items:center;gap:9px;color:#5e574f;font-size:.84rem;cursor:pointer;user-select:none}
+.bulkSelectAll input,.submissionSelect input{accent-color:#8a5c42}
+.bulkBarActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.bulkBarActions strong{color:#5f574e;font-size:.82rem;font-weight:600}
+.bulkBarActions button{border:1px solid #c2b7a7;border-radius:999px;background:transparent;padding:8px 13px;color:#5c554c;cursor:pointer}
+.bulkBarActions .bulkDelete{border-color:#a8583f;background:#a8583f;color:#fff}
+.bulkBarActions .bulkDelete:disabled{cursor:not-allowed;opacity:.4}
+.adminList .submissionRow{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:6px;width:100%;padding:0 4px;border:0;border-bottom:1px solid #cfc6b7;background:transparent}
+.adminList .submissionRow:hover{background:rgba(255,255,255,.28)}
+.adminList .submissionRowSelected{background:rgba(162,103,63,.08)}
+.submissionSelect{display:grid;place-items:center;width:30px;height:100%;min-height:74px;cursor:pointer}
+.submissionSelect input{width:16px;height:16px;cursor:pointer}
+.submissionOpen{width:100%;display:grid;grid-template-columns:90px minmax(0,1fr) 150px 90px;align-items:center;gap:18px;border:0;background:transparent;padding:20px 0;text-align:left;color:inherit;cursor:pointer}
+@media(max-width:720px){
+  .bulkBar{align-items:flex-start;flex-direction:column}
+  .bulkBarActions{width:100%;justify-content:flex-start}
+  .adminList .submissionRow{grid-template-columns:28px minmax(0,1fr);gap:4px}
+  .submissionSelect{width:26px;min-height:66px}
+  .submissionOpen{grid-template-columns:72px minmax(0,1fr) 70px;gap:10px;padding:16px 0}
+}
