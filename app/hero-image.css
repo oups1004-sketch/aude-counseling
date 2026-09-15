@@ -1,0 +1,82 @@
+/* Photographic AUDE hero — keeps all copy, buttons, and navigation as live HTML. */
+.hero{
+  grid-template-columns:56% 44%;
+  padding:0;
+  min-height:790px;
+  height:100dvh;
+  max-height:980px;
+  background-image:url('/api/hero-image');
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-color:#efe8de;
+  color:var(--ink);
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(250,247,241,.08) 0%,rgba(250,247,241,.03) 47%,rgba(37,29,24,.03) 60%,rgba(17,14,12,.12) 100%);
+  opacity:1;
+}
+.heroCopy{
+  align-self:center;
+  z-index:2;
+  margin:0;
+  padding:132px 5vw 72px 7vw;
+  max-width:900px;
+}
+.hero .eyebrow{margin-bottom:31px;color:#9b633f;letter-spacing:.2em}
+.hero h1{max-width:690px;color:#26231f;font-size:clamp(52px,4.65vw,76px);line-height:1.18}
+.heroText{max-width:555px;margin:30px 0 34px;color:#6a665f;font-size:15px;line-height:1.9}
+.heroActions{gap:14px;flex-wrap:nowrap}
+.heroChoice{width:auto;min-width:250px;min-height:66px;padding:15px 20px 15px 24px;border-radius:3px;box-shadow:none}
+.heroChoiceCopy small{display:none}
+.heroChoiceCopy strong{font-size:14px;font-weight:500}
+.hero .primaryButton{border:1px solid #a56b42;background:linear-gradient(135deg,#b27a50,#965d39);color:#fffaf2}
+.hero .primaryButton svg{color:#fffaf2}
+.hero .secondaryButton{border:1px solid rgba(133,88,57,.48);background:rgba(249,245,238,.28);color:#6f4931;box-shadow:none;backdrop-filter:blur(4px)}
+.hero .secondaryButton svg{color:#9d6742}
+.heroArt{position:relative;align-self:stretch;width:100%;max-width:none;aspect-ratio:auto;opacity:1}
+.heroArt::before,.heroArt .halo,.heroArt .courageLine{display:none!important}
+.heroArt>p{position:absolute;z-index:4;right:11%;top:43%;margin:0;transform:none;color:rgba(239,216,194,.92);font-family:'Noto Serif KR',serif;font-size:clamp(17px,1.3vw,21px);font-weight:500;line-height:1.95;letter-spacing:.06em;text-align:left;text-shadow:0 2px 18px rgba(0,0,0,.24)}
+.heroArt>p::after{content:"";display:block;width:42px;margin-top:22px;border-top:1px solid rgba(229,183,145,.68)}
+.header{height:96px;padding:0 5vw;border-bottom:0;color:var(--paper)}
+.header .brand{color:var(--ink)}
+.header .brand>span:last-child{color:#25231f}
+.header .nav{color:rgba(247,240,232,.92)}
+.header .navCta{border-color:rgba(231,193,160,.68);color:#f1d7bf;background:rgba(49,37,30,.16)}
+.scrollHint{right:3vw;bottom:26px;color:rgba(244,240,231,.62);opacity:.65}
+@media(min-width:768px) and (max-width:1199px){
+  .hero{display:grid;grid-template-columns:58% 42%;min-height:800px;height:auto;max-height:none;background-position:57% center}
+  .heroCopy{padding:122px 4vw 66px 6vw}
+  .hero h1{font-size:clamp(47px,5.8vw,67px)}
+  .heroArt{position:relative;right:auto;bottom:auto;width:100%}
+  .heroArt>p{right:7%;top:44%;font-size:15px}
+  .heroActions{flex-direction:column;align-items:flex-start}
+  .heroChoice{width:min(100%,310px)}
+}
+@media(max-width:767px){
+  .header{height:72px;padding:0 20px;border-bottom:1px solid rgba(244,240,231,.08)}
+  .header .brand,.header .brand>span:last-child{color:var(--paper)}
+  .menuButton span{border-color:var(--paper)}
+  .nav,.nav.open{background:rgba(30,24,20,.97);color:var(--paper)}
+  .hero{display:block;min-height:790px;height:auto;max-height:none;padding:104px 20px 62px;background-size:auto 100%;background-position:67% center;color:var(--paper)}
+  .hero::before{background:linear-gradient(180deg,rgba(25,20,16,.64) 0%,rgba(25,20,16,.6) 48%,rgba(18,15,12,.48) 100%)}
+  .heroCopy{position:relative;z-index:4;margin:0;padding:0;max-width:100%}
+  .hero .eyebrow{margin-bottom:22px;color:#d4a77f}
+  .hero h1{max-width:520px;color:var(--paper);font-size:clamp(39px,11.2vw,54px);line-height:1.22}
+  .heroText{max-width:355px;margin:24px 0 27px;color:rgba(244,240,231,.76);font-size:14px;line-height:1.85}
+  .heroActions{position:relative;z-index:6;display:flex;width:100%;flex-direction:column;align-items:stretch;gap:10px}
+  .heroChoice{width:100%;max-width:380px;min-height:60px;padding:14px 17px 14px 19px;border-radius:3px}
+  .hero .secondaryButton{border-color:rgba(244,240,231,.34);background:rgba(32,25,21,.24);color:var(--paper);backdrop-filter:blur(8px)}
+  .hero .secondaryButton svg{color:#d7ac87}
+  .heroArt{display:none}
+  .scrollHint{display:none}
+}
+@media(max-width:380px){
+  .hero{padding-left:17px;padding-right:17px;background-position:65% center}
+  .hero h1{font-size:38px}
+}
