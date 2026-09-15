@@ -82,6 +82,8 @@ export default function Home() {
     const form = event.currentTarget;
     const data = new FormData(form);
     const nickname = String(data.get("nickname") || "익명");
+    const ageGroup = String(data.get("ageGroup") || "");
+    const gender = String(data.get("gender") || "");
     const story = String(data.get("story") || "");
     const consent = data.get("contentConsent") ? "동의" : "동의하지 않음";
     setStoryStatus("sending");
@@ -89,6 +91,8 @@ export default function Home() {
       await sendSubmission({
         type: "story",
         nickname,
+        ageGroup,
+        gender,
         story,
         contentConsent: consent,
         website: String(data.get("website") || ""),
@@ -220,16 +224,29 @@ export default function Home() {
           <p className="storyBoundary">사연 보내기는 상담 신청과 별도로 운영됩니다. 상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
           <p className="notice">※ 사연 접수는 상담을 대체하지 않으며, 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
         </div>
-        <form className="storyForm" onSubmit={submitStory}>
-          <label className="storyField"><span className="fieldEyebrow">FROM</span><span className="fieldLabel">닉네임</span><input name="nickname" placeholder="익명도 괜찮아요" /></label>
-          <label className="storyField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
-          <label className="check"><input type="checkbox" name="contentConsent" /><span>개인정보를 알 수 없도록 수정한 뒤 콘텐츠에서 사연을 소개하는 것에 동의합니다. (선택)</span></label>
-          <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
-          <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-          <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
-          {storyStatus === "sent" && <p className="success" role="status">이야기가 잘 도착했습니다. 보내주셔서 고맙습니다.</p>}
-          {storyStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
-        </form>
+        {storyStatus === "sent" ? (
+          <div className="storyForm">
+            <div className="requestSuccess" role="status">
+              <span>STORY RECEIVED</span>
+              <strong>이야기가 전해졌어요.</strong>
+              <p>쉽지 않은 이야기를 보내주셔서 감사합니다.<br />보내주신 이야기는 천천히 읽어볼게요.</p>
+              <p>콘텐츠 활용에 동의한 사연은 개인정보를 알아볼 수 없도록 수정·각색한 뒤 ‘옆동네 외삼춘’ 유튜브·인스타그램 등에서 소개될 수 있습니다.</p>
+            </div>
+          </div>
+        ) : (
+          <form className="storyForm" onSubmit={submitStory}>
+            <label className="storyField"><span className="fieldEyebrow">FROM</span><span className="fieldLabel">닉네임</span><input name="nickname" maxLength={40} placeholder="익명도 괜찮아요" /></label>
+            <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><input name="ageGroup" maxLength={20} placeholder="예: 34세 또는 30대" /></label>
+            <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><input name="gender" maxLength={20} placeholder="예: 여성 / 남성" /></label>
+            <label className="storyField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
+            <label className="check"><input type="checkbox" name="contentConsent" /><span>보내주신 사연이 개인정보를 알아볼 수 없도록 수정·각색된 뒤, ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있음에 동의합니다. (선택)</span></label>
+            <p className="notice">※ 이름, 지역, 직장 등 개인을 특정할 수 있는 정보는 삭제하거나 변경합니다.</p>
+            <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
+            <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+            <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
+            {storyStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
+          </form>
+        )}
       </section>
 
       {counselingModalOpen && (
@@ -287,13 +304,13 @@ export default function Home() {
             <p className="testModalEyebrow">PRIVACY</p>
             <h2 id="privacy-modal-title">개인정보 처리 안내</h2>
             <div className="privacyCopy">
-              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·연락처·상담 또는 사연 내용</span></p>
+              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·성별·연락처·상담 또는 사연 내용</span></p>
               <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변</span></p>
               <p><strong>보유 기간</strong><span>이용 목적 달성 후 지체 없이 파기합니다. 관계 법령에 따라 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</span></p>
               <p><strong>보관 방식</strong><span>접수 내용은 접근이 제한된 관리 시스템에 보관하며, 상담 진행과 답변을 위한 목적으로만 확인합니다.</span></p>
               <p><strong>동의 거부</strong><span>개인정보 제공에 동의하지 않을 수 있으나, 접수와 답변이 제한될 수 있습니다.</span></p>
             </div>
-            <p className="privacyFootnote">사연의 콘텐츠 활용은 별도 선택 동의를 받은 경우에만 진행하며, 개인을 알아볼 수 없도록 수정합니다. 정식 운영 전 실제 연락처와 개인정보 관리 정보를 추가합니다.</p>
+            <p className="privacyFootnote">사연의 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠 활용은 별도 선택 동의를 받은 경우에만 진행하며, 개인을 알아볼 수 없도록 수정·각색합니다. 정식 운영 전 실제 연락처와 개인정보 관리 정보를 추가합니다.</p>
             <button className="submitButton" type="button" onClick={() => setPrivacyModalOpen(false)}>확인했습니다</button>
           </section>
         </div>
