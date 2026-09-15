@@ -171,7 +171,7 @@ export default function Home() {
       <section className="intro section" id="about">
         <div>
           <p className="sectionNumber">01 / ABOUT AUDE</p>
-          <h2>당신의 이야기가,<br />지금의 어려움보다 크다고 믿습니다.</h2>
+          <h2>용기는,<br />내 이야기를 꺼내는 것에서 시작됩니다.</h2>
         </div>
         <div className="introBody">
           <p className="lead">아우데는 라틴어로<br /><em>“용기를 내다”</em>라는 뜻입니다.</p>
