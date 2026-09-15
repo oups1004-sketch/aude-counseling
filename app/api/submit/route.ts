@@ -8,6 +8,7 @@ const limits: Record<string, number> = {
   contentConsent: 20,
   name: 40,
   ageGroup: 20,
+  gender: 20,
   contact: 80,
   service: 40,
   preferredTime: 100,
@@ -75,6 +76,8 @@ export async function POST(request: Request) {
       await insertSubmission("story_submissions", {
         type: "story",
         nickname: clean.nickname || "익명",
+        ageGroup: clean.ageGroup,
+        gender: clean.gender,
         story: clean.story,
         contentConsent: clean.contentConsent === "동의",
         privacyVersion: "2026-09",
