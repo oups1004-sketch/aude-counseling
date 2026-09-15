@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./logo.css";
 import "./refinements.css";
+import "./hero-image.css";
 
 export const metadata: Metadata = {
   title: "아우데 심리상담 | 용기를 내어, 당신의 이야기를",
@@ -15,4 +16,3 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
-
