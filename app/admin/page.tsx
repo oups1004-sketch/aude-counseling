@@ -23,13 +23,13 @@ type Submission = {
 
 const tabs: Array<{ key: "all" | Kind; label: string }> = [
   { key: "all", label: "전체 접수" },
-  { key: "intake", label: "접수면접" },
+  { key: "intake", label: "상담 신청" },
   { key: "assessment", label: "심리검사" },
   { key: "story", label: "사연" },
 ];
 
 const kindLabel: Record<Kind, string> = {
-  intake: "접수면접",
+  intake: "상담 신청",
   assessment: "심리검사",
   story: "사연",
 };
@@ -66,7 +66,7 @@ export default function AdminPage() {
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: data.get("email"), password: data.get("password") }),
+      body: JSON.stringify({ password: data.get("password") }),
     });
     setBusy(false);
     if (!response.ok) {
@@ -118,10 +118,18 @@ export default function AdminPage() {
     const rows = [
       ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모"],
       ...filtered.map((item) => [
-        item.reference_code, item.created_at, kindLabel[item.kind], item.status,
-        item.name || item.nickname || "", item.age_group || "", item.contact || "",
-        item.service || "", item.preferred_time || "", item.message || "",
-        item.content_consent ? "동의" : "미동의", item.admin_note || "",
+        item.reference_code,
+        item.created_at,
+        kindLabel[item.kind],
+        item.status,
+        item.name || item.nickname || "",
+        item.age_group || "",
+        item.contact || "",
+        item.service || "",
+        item.preferred_time || "",
+        item.message || "",
+        item.content_consent ? "동의" : "미동의",
+        item.admin_note || "",
       ]),
     ];
     const csv = "\uFEFF" + rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -144,10 +152,9 @@ export default function AdminPage() {
           <Link href="/" className="adminBrand">AUDE</Link>
           <p className="sectionNumber">PRIVATE OFFICE</p>
           <h1>관리자 로그인</h1>
-          <p>접수 내용은 승인된 관리자만 확인할 수 있습니다.</p>
+          <p>접수된 사연과 상담 신청은 관리자만 확인할 수 있습니다.</p>
           <form onSubmit={login}>
-            <label>이메일<input name="email" type="email" autoComplete="username" required /></label>
-            <label>비밀번호<input name="password" type="password" autoComplete="current-password" required /></label>
+            <label>관리자 비밀번호<input name="password" type="password" autoComplete="current-password" required autoFocus /></label>
             {loginError && <p className="adminError">{loginError}</p>}
             <button type="submit" disabled={busy}>{busy ? "확인 중…" : "로그인"}</button>
           </form>
@@ -163,11 +170,13 @@ export default function AdminPage() {
         <div><Link href="/" className="adminBrand">AUDE</Link><span>접수 관리</span></div>
         <button onClick={logout}>로그아웃</button>
       </header>
+
       <section className="adminDashboard">
         <div className="adminTitle">
           <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
           <div className="adminStats"><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수</span></div>
         </div>
+
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
@@ -181,6 +190,7 @@ export default function AdminPage() {
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
+
         <div className="adminList">
           {filtered.length === 0 && <div className="adminEmpty">아직 표시할 접수가 없습니다.</div>}
           {filtered.map((item) => (
@@ -193,6 +203,7 @@ export default function AdminPage() {
           ))}
         </div>
       </section>
+
       {selected && <SubmissionModal item={selected} busy={busy} onClose={() => setSelected(null)} onSave={save} onDelete={remove} />}
     </main>
   );
@@ -207,6 +218,7 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete }: {
 }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
+
   return (
     <div className="adminModalBackdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="adminModal" role="dialog" aria-modal="true" aria-label="접수 상세">
