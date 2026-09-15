@@ -1,41 +1,53 @@
-const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { createHash, timingSafeEqual } from "node:crypto";
 
-function config() {
-  if (!url || !serviceKey) throw new Error("Supabase is not configured.");
-  return { url, serviceKey };
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+const secretKey = process.env.SUPABASE_SECRET_KEY;
+const adminPassword = process.env.ADMIN_PASSWORD;
+
+function requireAdminConfig() {
+  if (!url || !secretKey) throw new Error("Supabase admin connection is not configured.");
+  return { url, secretKey };
 }
 
-export async function supabaseServiceRequest(path: string, init: RequestInit = {}) {
-  const current = config();
+function hash(value: string) {
+  return createHash("sha256").update(value).digest();
+}
+
+export function verifyAdminPassword(input: unknown) {
+  if (!adminPassword) return false;
+  const actual = hash(String(input ?? ""));
+  const expected = hash(adminPassword);
+  return timingSafeEqual(actual, expected);
+}
+
+export function adminSessionToken() {
+  if (!adminPassword) throw new Error("Admin password is not configured.");
+  return createHash("sha256").update(`aude-admin-session:${adminPassword}`).digest("hex");
+}
+
+export function verifyAdminSession(value: string | undefined) {
+  if (!value || !adminPassword) return false;
+  const actual = hash(value);
+  const expected = hash(adminSessionToken());
+  return timingSafeEqual(actual, expected);
+}
+
+export async function supabaseAdminRequest(path: string, init: RequestInit = {}) {
+  const current = requireAdminConfig();
   const response = await fetch(current.url + path, {
     ...init,
     cache: "no-store",
     headers: {
-      apikey: current.serviceKey,
-      Authorization: `Bearer ${current.serviceKey}`,
+      apikey: current.secretKey,
       "Content-Type": "application/json",
       ...init.headers,
     },
   });
+
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Supabase request failed (${response.status}): ${detail.slice(0, 300)}`);
+    throw new Error(`Supabase admin request failed (${response.status}): ${detail.slice(0, 400)}`);
   }
-  return response;
-}
 
-export async function verifyAdmin(accessToken: string | undefined) {
-  if (!accessToken || !url || !process.env.SUPABASE_ANON_KEY) return false;
-  const response = await fetch(`${url}/auth/v1/user`, {
-    headers: {
-      apikey: process.env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${accessToken}`,
-    },
-    cache: "no-store",
-  });
-  if (!response.ok) return false;
-  const user = await response.json();
-  const allowed = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  return Boolean(allowed && user.email?.toLowerCase() === allowed);
+  return response;
 }
