@@ -1,0 +1,64 @@
+/* AUDE header identity — compact site-native version of the approved doorway A logo */
+.brand{
+  gap:11px;
+  min-width:max-content;
+  color:var(--paper);
+}
+
+.brandMark{
+  position:relative;
+  width:34px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:0;
+  overflow:visible;
+  font-family:'Noto Serif KR',Georgia,serif;
+  font-size:41px;
+  font-weight:600;
+  line-height:1;
+  letter-spacing:-.08em;
+  background:linear-gradient(145deg,#e1b07d 2%,#b97a4d 48%,#7c472c 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  filter:drop-shadow(0 2px 8px rgba(162,103,63,.16));
+}
+
+/* The small arched opening turns the A into AUDE's 'doorway' symbol. */
+.brandMark::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:5px;
+  width:9px;
+  height:16px;
+  transform:translateX(-50%);
+  border-radius:8px 8px 1px 1px;
+  background:var(--ink);
+  box-shadow:inset 2px 0 0 rgba(214,170,132,.3),0 0 9px rgba(214,170,132,.1);
+}
+
+.brand>span:last-child{
+  display:block;
+  color:var(--paper);
+  font-family:'Noto Serif KR',Georgia,serif;
+  font-size:23px;
+  font-weight:500;
+  line-height:1;
+  letter-spacing:.22em;
+  text-shadow:0 1px 12px rgba(0,0,0,.12);
+}
+
+.brand>span:last-child br,
+.brand>span:last-child small{
+  display:none;
+}
+
+@media(max-width:560px){
+  .brand{gap:9px;}
+  .brandMark{width:30px;height:38px;font-size:36px;}
+  .brandMark::after{bottom:4px;width:8px;height:14px;}
+  .brand>span:last-child{font-size:20px;letter-spacing:.18em;}
+}
