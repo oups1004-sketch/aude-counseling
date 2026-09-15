@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { supabaseServiceRequest } from "../../lib/supabase";
 
 export const runtime = "nodejs";
 
 const limits: Record<string, number> = {
-  type: 20,
   nickname: 40,
   story: 5000,
   contentConsent: 20,
@@ -12,29 +12,23 @@ const limits: Record<string, number> = {
   contact: 80,
   service: 40,
   preferredTime: 100,
-  reason: 200,
+  reason: 500,
 };
+
+function text(value: unknown, max: number) {
+  return String(value ?? "").trim().slice(0, max);
+}
 
 export async function POST(request: Request) {
   try {
-    const endpoint = process.env.GOOGLE_APPS_SCRIPT_URL;
-    const secret = process.env.SUBMISSION_SECRET;
-    if (!endpoint || !secret) {
-      return NextResponse.json({ error: "Submission service is not configured." }, { status: 503 });
-    }
-
     const input = await request.json();
     if (input.website) return NextResponse.json({ ok: true });
 
+    const clean: Record<string, string> = {};
+    for (const [key, max] of Object.entries(limits)) clean[key] = text(input[key], max);
+
     const type = input.type === "story" ? "story" : input.type === "counseling" ? "counseling" : "";
     if (!type) return NextResponse.json({ error: "Invalid submission type." }, { status: 400 });
-
-    const clean: Record<string, string> = { type };
-    for (const [key, max] of Object.entries(limits)) {
-      if (key === "type") continue;
-      if (input[key] !== undefined) clean[key] = String(input[key]).trim().slice(0, max);
-    }
-
     if (type === "story" && !clean.story) {
       return NextResponse.json({ error: "Story is required." }, { status: 400 });
     }
@@ -42,21 +36,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Required fields are missing." }, { status: 400 });
     }
 
-    const forwarded = await fetch(endpoint, {
+    const kind = type === "story"
+      ? "story"
+      : clean.service === "심리검사·해석상담" ? "assessment" : "intake";
+
+    await supabaseServiceRequest("/rest/v1/submissions", {
       method: "POST",
-      redirect: "follow",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ ...clean, secret }),
-      signal: AbortSignal.timeout(10000),
-      cache: "no-store",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        kind,
+        nickname: type === "story" ? clean.nickname || "익명" : null,
+        name: type === "counseling" ? clean.name : null,
+        age_group: type === "counseling" ? clean.ageGroup : null,
+        contact: type === "counseling" ? clean.contact : null,
+        service: type === "counseling" ? clean.service : null,
+        preferred_time: type === "counseling" ? clean.preferredTime : null,
+        message: type === "story" ? clean.story : clean.reason,
+        content_consent: type === "story" && clean.contentConsent === "동의",
+        privacy_version: "2026-09",
+      }),
     });
-
-    if (!forwarded.ok) throw new Error("Google endpoint rejected submission.");
-    const result = await forwarded.json();
-    if (!result.ok) throw new Error("Google endpoint could not save submission.");
-
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("Submission failed", error);
     return NextResponse.json({ error: "Unable to submit." }, { status: 500 });
   }
 }

@@ -44,8 +44,8 @@ const testCategories = [
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent">("idle");
-  const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [counselingModalOpen, setCounselingModalOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
@@ -96,10 +96,7 @@ export default function Home() {
       form.reset();
       setStoryStatus("sent");
     } catch {
-      const subject = encodeURIComponent(`[아우데 사연] ${nickname}님의 이야기`);
-      const body = encodeURIComponent(`닉네임: ${nickname}\n콘텐츠 소개 동의: ${consent}\n\n사연:\n${story}`);
-      setStoryStatus("idle");
-      window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+      setStoryStatus("error");
     }
   }
 
@@ -123,10 +120,7 @@ export default function Home() {
       form.reset();
       setCounselingStatus("sent");
     } catch {
-      const subject = encodeURIComponent("[아우데] 상담 신청");
-      const body = encodeURIComponent(`이름/닉네임: ${payload.name}\n연령대: ${payload.ageGroup}\n연락처: ${payload.contact}\n상담 유형: ${payload.service}\n희망 시간: ${payload.preferredTime}\n\n간단한 신청 이유:\n${payload.reason}`);
-      setCounselingStatus("idle");
-      window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+      setCounselingStatus("error");
     }
   }
 
@@ -234,6 +228,7 @@ export default function Home() {
           <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
           <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
           {storyStatus === "sent" && <p className="success" role="status">이야기가 잘 도착했습니다. 보내주셔서 고맙습니다.</p>}
+          {storyStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
         </form>
       </section>
 
@@ -277,6 +272,7 @@ export default function Home() {
                 <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
                 <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                 <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "상담 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
+                {counselingStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
               </form>
             )}
             <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
@@ -291,9 +287,10 @@ export default function Home() {
             <p className="testModalEyebrow">PRIVACY</p>
             <h2 id="privacy-modal-title">개인정보 처리 안내</h2>
             <div className="privacyCopy">
-              <p><strong>수집 항목</strong><span>이메일을 통해 이용자가 직접 제공한 이름·연락처·상담 또는 사연 내용</span></p>
+              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·연락처·상담 또는 사연 내용</span></p>
               <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변</span></p>
               <p><strong>보유 기간</strong><span>이용 목적 달성 후 지체 없이 파기합니다. 관계 법령에 따라 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</span></p>
+              <p><strong>보관 방식</strong><span>접수 내용은 접근이 제한된 관리 시스템에 보관하며, 상담 진행과 답변을 위한 목적으로만 확인합니다.</span></p>
               <p><strong>동의 거부</strong><span>개인정보 제공에 동의하지 않을 수 있으나, 접수와 답변이 제한될 수 있습니다.</span></p>
             </div>
             <p className="privacyFootnote">사연의 콘텐츠 활용은 별도 선택 동의를 받은 경우에만 진행하며, 개인을 알아볼 수 없도록 수정합니다. 정식 운영 전 실제 연락처와 개인정보 관리 정보를 추가합니다.</p>
