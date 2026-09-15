@@ -44,7 +44,8 @@ const testCategories = [
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [counselingModalOpen, setCounselingModalOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
@@ -67,16 +68,66 @@ export default function Home() {
     };
   }, [testModalOpen, counselingModalOpen, privacyModalOpen]);
 
-  function submitStory(event: FormEvent<HTMLFormElement>) {
+  async function sendSubmission(payload: Record<string, string | boolean>) {
+    const response = await fetch("/api/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error("submission unavailable");
+  }
+
+  async function submitStory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     const nickname = String(data.get("nickname") || "익명");
     const story = String(data.get("story") || "");
     const consent = data.get("contentConsent") ? "동의" : "동의하지 않음";
-    const subject = encodeURIComponent(`[아우데 사연] ${nickname}님의 이야기`);
-    const body = encodeURIComponent(`닉네임: ${nickname}\n콘텐츠 소개 동의: ${consent}\n\n사연:\n${story}`);
-    setSent(true);
-    window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+    setStoryStatus("sending");
+    try {
+      await sendSubmission({
+        type: "story",
+        nickname,
+        story,
+        contentConsent: consent,
+        website: String(data.get("website") || ""),
+      });
+      form.reset();
+      setStoryStatus("sent");
+    } catch {
+      const subject = encodeURIComponent(`[아우데 사연] ${nickname}님의 이야기`);
+      const body = encodeURIComponent(`닉네임: ${nickname}\n콘텐츠 소개 동의: ${consent}\n\n사연:\n${story}`);
+      setStoryStatus("idle");
+      window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+    }
+  }
+
+  async function submitCounseling(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setCounselingStatus("sending");
+    const payload = {
+      type: "counseling",
+      name: String(data.get("name") || ""),
+      ageGroup: String(data.get("ageGroup") || ""),
+      contact: String(data.get("contact") || ""),
+      service: String(data.get("service") || ""),
+      preferredTime: String(data.get("preferredTime") || ""),
+      reason: String(data.get("reason") || ""),
+      website: String(data.get("website") || ""),
+    };
+    try {
+      await sendSubmission(payload);
+      form.reset();
+      setCounselingStatus("sent");
+    } catch {
+      const subject = encodeURIComponent("[아우데] 상담 신청");
+      const body = encodeURIComponent(`이름/닉네임: ${payload.name}\n연령대: ${payload.ageGroup}\n연락처: ${payload.contact}\n상담 유형: ${payload.service}\n희망 시간: ${payload.preferredTime}\n\n간단한 신청 이유:\n${payload.reason}`);
+      setCounselingStatus("idle");
+      window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
+    }
   }
 
   return (
@@ -180,8 +231,9 @@ export default function Home() {
           <label className="storyField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
           <label className="check"><input type="checkbox" name="contentConsent" /><span>개인정보를 알 수 없도록 수정한 뒤 콘텐츠에서 사연을 소개하는 것에 동의합니다. (선택)</span></label>
           <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
-          <button className="submitButton" type="submit">이야기 보내기 <ArrowIcon /></button>
-          {sent && <p className="success" role="status">이메일 작성 창이 열립니다. 내용을 확인한 뒤 전송해 주세요.</p>}
+          <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+          <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
+          {storyStatus === "sent" && <p className="success" role="status">이야기가 잘 도착했습니다. 보내주셔서 고맙습니다.</p>}
         </form>
       </section>
 
@@ -207,7 +259,26 @@ export default function Home() {
               <strong>신청 전 확인해 주세요</strong>
               <p>아직 상담료와 취소 규정에 동의한 상태가 아니며, 개별 안내를 확인한 후 진행 여부를 결정할 수 있습니다. 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
             </div>
-            <a className="submitButton requestMailButton" href={`mailto:${contactEmail}?subject=${encodeURIComponent("[아우데] 상담 신청")}`}>이메일로 상담 신청하기 <ArrowIcon /></a>
+            {counselingStatus === "sent" ? (
+              <div className="requestSuccess" role="status">
+                <span>신청이 접수되었습니다.</span>
+                <strong>확인 후 가능한 일정과 진행 방법을 안내드릴게요.</strong>
+              </div>
+            ) : (
+              <form className="requestForm" onSubmit={submitCounseling}>
+                <div className="requestFormGrid">
+                  <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
+                  <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
+                  <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
+                  <label><span>상담 유형</span><select name="service" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>개인상담</option><option>커플·부부상담</option><option>심리검사·해석상담</option><option>기타 문의</option></select></label>
+                </div>
+                <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 평일 저녁 7시 이후" /></label>
+                <label><span>간단한 신청 이유 <small>선택 · 200자 이내</small></span><textarea name="reason" rows={3} maxLength={200} placeholder="자세한 이야기는 상담에서 안전하게 나눌 수 있어요." /></label>
+                <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
+                <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+                <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "상담 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
+              </form>
+            )}
             <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
           </section>
         </div>
