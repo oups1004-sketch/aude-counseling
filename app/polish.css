@@ -268,3 +268,231 @@ footer a[href="mailto:hello@example.com"] { display: none; }
     font-size: 37px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Story section v2 — stronger visual grouping and a cleaner writing flow.
+   -------------------------------------------------------------------------- */
+.storyMeta {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 14px;
+}
+.storyMeta .storyField,
+.storyMessageField {
+  display: block;
+  min-width: 0;
+}
+.storyMeta .fieldEyebrow,
+.storyMessageField .fieldEyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--copper);
+  font: 600 10px 'DM Sans';
+  letter-spacing: .18em;
+}
+.storyMeta .fieldLabel,
+.storyMessageField .fieldLabel {
+  display: block;
+  color: #4d4e48;
+  font-size: 13px;
+  font-weight: 600;
+}
+.storyMeta input,
+.storyMeta select {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 9px;
+  padding: 10px 12px;
+  border: 1px solid rgba(23,24,22,.14);
+  border-radius: 5px;
+  outline: none;
+  background: rgba(248,244,236,.82);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+.storyMeta input:focus,
+.storyMeta select:focus,
+.storyMessageField textarea:focus {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 3px rgba(162,103,63,.08);
+}
+.storyMessageField {
+  margin-top: 24px;
+  padding: 0 !important;
+  border: 0 !important;
+}
+.storyMessageField textarea {
+  display: block;
+  width: 100%;
+  min-height: 215px;
+  margin-top: 10px;
+  padding: 17px 18px;
+  border: 1px solid rgba(23,24,22,.14) !important;
+  border-radius: 6px;
+  outline: none;
+  background: rgba(248,244,236,.78) !important;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.8;
+  resize: vertical;
+}
+.storyConsent {
+  margin-top: 20px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(23,24,22,.1);
+}
+.storyConsent .check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0;
+  color: #565750;
+  font-size: 13px;
+  line-height: 1.75;
+}
+.storyConsent .check input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin-top: 3px;
+  accent-color: var(--ink);
+}
+.storyConsent .identityNotice {
+  margin: -4px 0 14px 29px;
+  color: #73746c;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.storyGuidance {
+  margin-top: 22px;
+  padding: 18px 20px;
+  border-left: 2px solid var(--copper);
+  background: rgba(162,103,63,.055);
+}
+.storyGuidance strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #383934;
+  font-size: 13px;
+  font-weight: 600;
+}
+.storyGuidance p {
+  margin: 0;
+  color: #62635d;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.storyGuidance .notice {
+  margin-top: 10px;
+  color: #73746c;
+  font-size: 11px;
+}
+
+@media (min-width:901px) {
+  .story {
+    grid-template-columns: minmax(420px,38%) minmax(0,56%);
+    column-gap: 6%;
+    align-items: start;
+  }
+  .storyIntro {
+    display: block;
+    min-width: 0;
+  }
+  .storyIntro .sectionNumber {
+    margin-bottom: 30px;
+  }
+  .storyIntro h2 {
+    max-width: 590px;
+    font-size: clamp(42px,3.15vw,56px);
+    line-height: 1.26;
+    letter-spacing: -.052em;
+    word-break: keep-all;
+  }
+  .storyIntro > p:not(.sectionNumber) {
+    max-width: 470px;
+    margin: 32px 0 0;
+    color: #5c5e57;
+    font-size: 15px;
+    line-height: 1.9;
+  }
+  .storyForm {
+    display: block;
+    margin-top: 42px;
+    padding: 30px;
+    border: 1px solid rgba(23,24,22,.12);
+    border-radius: 8px;
+    background: rgba(255,255,255,.18);
+  }
+  .storyForm > .requestSuccess {
+    margin-top: 0;
+  }
+  .storyForm > .submitButton {
+    width: 100%;
+    min-height: 58px;
+    margin-top: 28px;
+  }
+  .storyForm > .formError {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width:1100px) and (min-width:901px) {
+  .story {
+    grid-template-columns: minmax(390px,40%) minmax(0,54%);
+    column-gap: 6%;
+  }
+  .storyIntro h2 {
+    font-size: clamp(40px,4vw,46px);
+  }
+  .storyForm {
+    padding: 26px;
+  }
+}
+
+@media (max-width:900px) {
+  .storyMeta {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+  .storyForm {
+    margin-top: 0;
+  }
+}
+
+@media (max-width:560px) {
+  .storyMeta {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .storyMeta .storyField {
+    padding: 0 0 19px;
+  }
+  .storyMeta .storyField + .storyField {
+    padding-top: 20px;
+    border-top: 1px solid rgba(23,24,22,.11);
+  }
+  .storyMeta input,
+  .storyMeta select {
+    min-height: 48px;
+    font-size: 14px;
+  }
+  .storyMessageField {
+    margin-top: 1px;
+  }
+  .storyMessageField textarea {
+    min-height: 220px;
+    padding: 14px;
+    font-size: 14px;
+  }
+  .storyConsent .check {
+    font-size: 12px;
+  }
+  .storyConsent .identityNotice {
+    margin-left: 29px;
+    font-size: 11px;
+  }
+  .storyGuidance {
+    margin-top: 18px;
+    padding: 15px 16px;
+  }
+}
