@@ -2,6 +2,18 @@
    This file is loaded last on purpose: it resets the older experimental grid placement
    so the intro and form share one row and read as a single composition. */
 
+.storyIntro::after {
+  content: "";
+  display: block;
+  width: min(100%, 560px);
+  aspect-ratio: 3 / 2;
+  margin-top: 38px;
+  background: url('/api/story-image') center center / cover no-repeat;
+  border: 1px solid rgba(23,24,22,.07);
+  border-radius: 4px;
+  box-shadow: 0 22px 48px rgba(53,44,36,.07);
+}
+
 @media (min-width: 901px) {
   .story.section {
     box-sizing: border-box;
@@ -60,5 +72,28 @@
   .storyForm {
     max-width: 720px;
     margin-top: 48px;
+  }
+
+  .storyIntro::after {
+    width: min(100%, 520px);
+    margin-top: 34px;
+  }
+}
+
+@media (max-width: 900px) {
+  .storyIntro::after {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    margin-top: 28px;
+    background-position: center bottom;
+    box-shadow: 0 16px 36px rgba(53,44,36,.06);
+  }
+}
+
+@media (max-width: 560px) {
+  .storyIntro::after {
+    aspect-ratio: 4 / 3;
+    margin-top: 24px;
+    border-radius: 3px;
   }
 }
