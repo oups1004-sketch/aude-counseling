@@ -43,7 +43,7 @@ export default function SiteHeader() {
   return (
     <header className="siteHeader">
       <a className="siteHeaderLogo" href="#top" aria-label="아우데 심리상담 홈">
-        <img src="/aude-logo.webp" alt="AUDE" />
+        <img src="/aude-header-logo.webp" alt="AUDE" />
       </a>
 
       <button
