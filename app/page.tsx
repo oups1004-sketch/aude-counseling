@@ -221,8 +221,6 @@ export default function Home() {
           <p className="sectionNumber">04 / SEND YOUR STORY</p>
           <h2>마음에 걸린 이야기를<br />보내주세요.</h2>
           <p><span className="desktopStoryText">잘 정리된 글이 아니어도 괜찮습니다. 요즘 자꾸 떠오르는 장면이나 아무에게도 하지 못했던 질문을 편한 말로 적어주세요.</span><span className="mobileStoryText">잘 정리된 글이 아니어도 괜찮습니다.<br />지금 떠오르는 말부터 시작해 보세요.</span></p>
-          <p className="storyBoundary">사연 보내기는 상담 신청과 별도로 운영되며, 접수된 사연은 개인정보를 알아볼 수 없도록 수정·각색한 뒤 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있습니다. 개인상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
-          <p className="notice">※ 사연 접수는 상담을 대체하지 않으며, 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
         </div>
         {storyStatus === "sent" ? (
           <div className="storyForm">
@@ -235,13 +233,22 @@ export default function Home() {
           </div>
         ) : (
           <form className="storyForm" onSubmit={submitStory}>
-            <label className="storyField"><span className="fieldEyebrow">FROM</span><span className="fieldLabel">닉네임</span><input name="nickname" maxLength={40} placeholder="익명도 괜찮아요" /></label>
-            <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><select name="ageGroup" defaultValue=""><option value="">선택하지 않음</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
-            <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><select name="gender" defaultValue=""><option value="">선택하지 않음</option><option>여성</option><option>남성</option><option>기타</option></select></label>
-            <label className="storyField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
-            <label className="check"><input type="checkbox" name="contentConsent" required /><span>보내주신 사연이 개인정보를 알아볼 수 없도록 수정·각색된 뒤, ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있음에 동의합니다. (필수)</span></label>
-            <p className="notice">※ 이름, 지역, 직장 등 개인을 특정할 수 있는 정보는 삭제하거나 변경합니다.</p>
-            <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
+            <div className="storyMeta">
+              <label className="storyField"><span className="fieldEyebrow">FROM</span><span className="fieldLabel">닉네임</span><input name="nickname" maxLength={40} placeholder="익명도 괜찮아요" /></label>
+              <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><select name="ageGroup" defaultValue=""><option value="">선택하지 않음</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
+              <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><select name="gender" defaultValue=""><option value="">선택하지 않음</option><option>여성</option><option>남성</option><option>기타</option></select></label>
+            </div>
+            <label className="storyField storyMessageField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
+            <div className="storyConsent">
+              <label className="check"><input type="checkbox" name="contentConsent" required /><span>보내주신 사연이 개인정보를 알아볼 수 없도록 수정·각색된 뒤, ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있음에 동의합니다. (필수)</span></label>
+              <p className="notice identityNotice">※ 이름, 지역, 직장 등 개인을 특정할 수 있는 정보는 삭제하거나 변경합니다.</p>
+              <label className="check"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label>
+            </div>
+            <div className="storyGuidance">
+              <strong>사연 보내기 안내</strong>
+              <p>사연 보내기는 상담 신청과 별도로 운영되며, 접수된 사연은 개인정보를 알아볼 수 없도록 수정·각색한 뒤 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있습니다. 개인상담을 원하시면 위의 ‘상담 신청하기’를 이용해 주세요.</p>
+              <p className="notice">※ 사연 접수는 상담을 대체하지 않으며, 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
+            </div>
             <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
             {storyStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
