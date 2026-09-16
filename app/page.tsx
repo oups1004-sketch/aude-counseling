@@ -149,8 +149,8 @@ export default function Home() {
       <section className="hero" id="top">
         <div className="heroCopy">
           <p className="eyebrow">AUDE · 용기를 내다</p>
-          <h1>말하는 순간,<br />이야기는 달라지기<br />시작합니다.</h1>
-          <p className="heroText">정답을 건네기보다 당신이 살아온 이야기를 함께 읽습니다. 지금의 마음을 안전하게 꺼내어 놓아보세요.</p>
+          <h1>용기는,<br />내 이야기를 꺼내는 데서<br />시작됩니다.</h1>
+          <p className="heroText">정답을 건네기보다, 당신이 살아온 이야기를 함께 읽습니다. 지금의 어려움 속에서도 다시 선택할 수 있는 방향을 함께 찾아갑니다.</p>
           <div className="heroActions">
             <a className="primaryButton heroChoice" href="#story">
               <span className="heroChoiceCopy"><small>STORY</small><strong>익명으로 사연 보내기</strong></span><ArrowIcon />
@@ -163,7 +163,7 @@ export default function Home() {
         <div className="heroArt" aria-hidden="true">
           <div className="halo" />
           <div className="courageLine"><span>AUDE</span></div>
-          <p>당신이 다시<br />당신의 편이 되도록.</p>
+          <p>이해한 뒤에는,<br />다시 선택할 수 있습니다.</p>
         </div>
         <p className="scrollHint">SCROLL TO LISTEN</p>
       </section>
@@ -171,12 +171,12 @@ export default function Home() {
       <section className="intro section" id="about">
         <div>
           <p className="sectionNumber">01 / ABOUT AUDE</p>
-          <h2>용기는,<br />내 이야기를 꺼내는 것에서 시작됩니다.</h2>
+          <h2>말하는 순간,<br />이야기는 달라지기 시작합니다.</h2>
         </div>
         <div className="introBody">
-          <p className="lead">아우데는 라틴어로<br /><em>“용기를 내다”</em>라는 뜻입니다.</p>
-          <p>누구에게나 삶의 방향을 잃고, 자신마저 낯설게 느껴지는 순간이 있습니다. 그러나 지금 겪고 있는 문제가 당신의 모든 모습을 설명할 수는 없습니다.</p>
-          <p>아우데 심리상담은 당신이 지나온 이야기를 함께 들여다보고, 그 안에 이미 존재해 온 힘과 새로운 가능성을 발견하는 공간입니다.</p>
+          <p className="lead">아우데(Aude)는 라틴어로<br /><em>“용기를 내라”</em>는 뜻입니다.</p>
+          <p>누구에게나 삶의 방향을 잃고, 자신마저 낯설게 느껴지는 순간이 있습니다. 하지만 지금 겪고 있는 어려움이 당신의 모든 모습을 설명하지는 않습니다.</p>
+          <p>아우데 심리상담은 무엇이 잘못되었는지를 찾아내는 데 머물기보다, 당신이 지금까지 어떻게 살아왔고 무엇을 중요하게 여겨왔는지를 함께 살펴봅니다. 그리고 그 이야기 안에서 앞으로의 선택을 만들어갈 힘을 찾아갑니다.</p>
         </div>
       </section>
 
@@ -205,8 +205,8 @@ export default function Home() {
         <div className="profile">
           <p className="sectionNumber">03 / COUNSELOR</p>
           <h2>이성민 상담자</h2>
-          <p className="profileLead">“사람은 고쳐져야 할 문제가 아니라,<br />이해받아야 할 이야기를 가진 존재입니다.”</p>
-          <p>상담은 누군가가 정답을 알려주는 시간이 아니라, 미처 알아보지 못했던 나의 힘과 선택 가능성을 발견하는 과정이라고 믿습니다.</p>
+          <p className="profileLead">“사람을 문제로 보지 않습니다.<br />그 사람이 살아온 방식과, 앞으로 가고 싶은 방향을 봅니다.”</p>
+          <p>상담은 누군가가 정답을 알려주는 시간이 아닙니다. 지금까지 내가 어떤 방식으로 살아왔는지를 이해하고, 앞으로 할 수 있는 선택을 조금씩 넓혀가는 과정이라고 생각합니다.</p>
           <dl>
             <div><dt>학력</dt><dd>상담심리학 석사</dd></div>
             <div><dt>활동</dt><dd>대학상담센터 상담자<br />고등학교 진로·진학상담부장</dd></div>
