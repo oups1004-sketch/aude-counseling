@@ -1,15 +1,15 @@
-/* AUDE header identity — use the approved logo artwork itself, not a CSS/vector approximation. */
+/* AUDE header identity — use the approved uploaded logo artwork itself. */
 .brand{
   display:block;
-  width:226px;
-  height:60px;
-  min-width:226px;
-  background:url('/aude-logo.webp') left center/contain no-repeat;
+  width:236px;
+  height:58px;
+  min-width:236px;
+  background:url('/aude-header-logo.webp') left center/contain no-repeat;
   color:transparent;
   overflow:hidden;
 }
 
-/* Keep the original accessible text in the DOM while the approved image carries the visual identity. */
+/* Keep the original brand text available to screen readers. */
 .brand .brandMark,
 .brand>span:last-child{
   position:absolute;
@@ -23,19 +23,18 @@
   border:0;
 }
 
-@media(max-width:767px){
+@media(max-width:900px){
   .brand{
-    width:178px;
-    height:47px;
-    min-width:178px;
-    background-image:url('/aude-logo.webp');
+    width:184px;
+    height:45px;
+    min-width:184px;
   }
 }
 
 @media(max-width:380px){
   .brand{
-    width:160px;
-    height:42px;
-    min-width:160px;
+    width:166px;
+    height:41px;
+    min-width:166px;
   }
 }

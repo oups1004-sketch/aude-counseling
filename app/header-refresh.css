@@ -1,10 +1,10 @@
-/* AUDE header refresh — restrained navigation paired with the approved image logo. */
+/* AUDE header refresh — restrained navigation paired with the uploaded image logo. */
 .header{
   height:92px;
   padding:0 5.5vw;
-  border-bottom:1px solid rgba(68,54,43,.12);
-  background:rgba(250,247,241,.16);
-  backdrop-filter:blur(3px);
+  border-bottom:1px solid rgba(68,54,43,.11);
+  background:rgba(250,247,241,.10);
+  backdrop-filter:blur(2px);
 }
 .header .nav{
   gap:34px;
@@ -42,9 +42,20 @@
   transform:translateY(-1px);
   box-shadow:0 8px 20px rgba(101,68,45,.13);
 }
+
 @media(max-width:900px){
-  .header{height:72px;padding:0 20px;background:rgba(30,24,20,.28);border-bottom-color:rgba(244,240,231,.08)}
-  .header .nav{top:72px;gap:24px;color:var(--paper);background:rgba(29,24,20,.98)}
+  .header{
+    height:72px;
+    padding:0 20px;
+    background:rgba(30,24,20,.28);
+    border-bottom-color:rgba(244,240,231,.08);
+  }
+  .header .nav{
+    top:72px;
+    gap:24px;
+    color:var(--paper);
+    background:rgba(29,24,20,.98);
+  }
   .header .nav a:not(.navCta){padding:5px 0}
   .header .nav a:not(.navCta)::after{display:none}
   .header .navCta{padding:10px 18px}
