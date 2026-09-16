@@ -1,0 +1,158 @@
+/* Final visual polish: hierarchy, responsive rhythm, contrast, and consistency. */
+
+/* Anchor jumps should clear the sticky navigation. */
+#about,
+#counseling,
+#counselor,
+#story {
+  scroll-margin-top: 96px;
+}
+
+/* A lighter, more editorial header. */
+.siteHeader {
+  height: 82px;
+  background: rgba(247,243,236,.985);
+  border-bottom: 1px solid rgba(61,49,39,.11);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.siteHeaderLogo {
+  width: 204px;
+  min-width: 204px;
+  height: 54px;
+}
+.siteNav { gap: 36px; }
+.siteConsultCta {
+  min-height: 44px;
+  border-radius: 5px;
+  box-shadow: none;
+}
+.siteConsultCta:hover { box-shadow: 0 6px 18px rgba(109,73,47,.10); }
+
+/* Give the hero one message only. */
+.heroArt > p { display: none !important; }
+
+/* Keep the desktop title as a deliberate three-line statement. */
+.hero h1 {
+  max-width: 660px;
+  font-size: clamp(48px,4.1vw,64px);
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+/* Unify the AUDE shape language around restrained, lightly squared corners. */
+.counselingApplyButton,
+.submitButton {
+  border-radius: 5px;
+}
+
+/* Improve small-text contrast without making the page visually heavy. */
+.notice,
+.profile dt,
+.testModalNote,
+.testModalFootnote,
+.requestPriceNote,
+.privacyFootnote,
+.footerPrivacy {
+  color: #686960;
+}
+.storyBoundary { color: #585a53; }
+
+/* Do not expose a placeholder email address if production contact is not configured. */
+footer a[href="mailto:hello@example.com"] { display: none; }
+
+/* Remove the development-only sentence from the visible privacy notice. */
+.privacyFootnote {
+  font-size: 0;
+}
+.privacyFootnote::before {
+  content: "사연 보내기는 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있다는 점에 동의한 경우에만 접수됩니다. 소개 시에는 이름, 지역, 직장 등 개인을 알아볼 수 있는 정보는 삭제하거나 변경하고 필요한 범위에서 내용을 수정·각색합니다.";
+  display: block;
+  color: #686960;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+@media (min-width:901px) {
+  .hero {
+    height: calc(100dvh - 82px);
+    min-height: 700px;
+    max-height: 930px;
+  }
+}
+
+@media (max-width:1100px) and (min-width:901px) {
+  .siteHeaderLogo {
+    width: 184px;
+    min-width: 184px;
+    height: 50px;
+  }
+  .siteNav { gap: 25px; }
+  .hero h1 {
+    max-width: 590px;
+    font-size: clamp(47px,4.2vw,56px);
+  }
+}
+
+@media (max-width:900px) {
+  #about,
+  #counseling,
+  #counselor,
+  #story {
+    scroll-margin-top: 84px;
+  }
+
+  .siteHeader {
+    height: 72px;
+    box-shadow: none;
+  }
+  .siteHeaderLogo {
+    width: 160px;
+    min-width: 160px;
+    height: 42px;
+  }
+  .siteNav { top: 72px; }
+  .siteConsultCta { border-radius: 5px; }
+  .hero { min-height: calc(100dvh - 72px); }
+}
+
+@media (max-width:767px) {
+  /* On phones the same sentence is intentionally allowed to become four balanced lines. */
+  .hero h1 {
+    max-width: 280px;
+    font-size: clamp(38px,10.6vw,46px);
+    line-height: 1.24;
+    word-break: keep-all;
+  }
+}
+
+@media (max-width:560px) {
+  .serviceGrid article,
+  .serviceGrid article + article {
+    border-radius: 12px;
+  }
+  .storyForm {
+    border-radius: 12px;
+  }
+  .storyForm .submitButton {
+    border-radius: 5px;
+  }
+  .testModal {
+    border-radius: 16px 16px 0 0;
+  }
+  .portraitPlaceholder {
+    border-radius: 12px;
+  }
+}
+
+@media (max-width:380px) {
+  .siteHeaderLogo {
+    width: 146px;
+    min-width: 146px;
+    height: 39px;
+  }
+  .hero h1 {
+    max-width: 260px;
+    font-size: 37px;
+  }
+}
