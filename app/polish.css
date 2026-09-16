@@ -79,6 +79,114 @@ footer a[href="mailto:hello@example.com"] { display: none; }
     min-height: 700px;
     max-height: 930px;
   }
+
+  /* Desktop story section: copy and action should feel like one composed spread. */
+  .story {
+    grid-template-columns: minmax(0,.78fr) minmax(560px,1.22fr);
+    column-gap: clamp(56px,7vw,120px);
+    row-gap: 0;
+    align-items: start;
+  }
+
+  /* Let the intro pieces participate in the section grid so the form can align to the headline. */
+  .storyIntro { display: contents; }
+  .storyIntro .sectionNumber {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 32px;
+  }
+  .storyIntro h2 {
+    grid-column: 1;
+    grid-row: 2;
+    max-width: 520px;
+  }
+  .storyIntro > p:not(.sectionNumber):not(.notice):not(.storyBoundary) {
+    grid-column: 1;
+    grid-row: 3;
+    max-width: 460px;
+    margin: 30px 0 0;
+  }
+
+  /* The form begins on the headline baseline instead of competing with the section label. */
+  .storyForm {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: start;
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    column-gap: 18px;
+    margin-top: 3px;
+    border-top: 1px solid var(--ink);
+  }
+  .storyForm > .storyField:nth-child(-n+3) {
+    min-width: 0;
+    padding: 20px 0 16px;
+    border-bottom: 0;
+  }
+  .storyForm > .storyField:nth-child(4) {
+    grid-column: 1 / -1;
+    padding: 22px 0 16px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .storyForm .fieldEyebrow {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--copper);
+    font: 600 9px 'DM Sans';
+    letter-spacing: .18em;
+  }
+  .storyForm .fieldLabel {
+    color: #565750;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .storyForm > .storyField:nth-child(-n+3) input:not([type=checkbox]),
+  .storyForm > .storyField:nth-child(-n+3) select {
+    width: 100%;
+    min-width: 0;
+    margin-top: 8px;
+    padding: 10px 0 9px;
+    border: 0;
+    border-bottom: 1px solid rgba(23,24,22,.2);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .storyForm > .storyField:nth-child(-n+3) input:focus,
+  .storyForm > .storyField:nth-child(-n+3) select:focus {
+    border-bottom-color: var(--copper);
+    box-shadow: none;
+    outline: none;
+  }
+  .storyForm > .storyField:nth-child(4) textarea {
+    min-height: 220px;
+    margin-top: 8px;
+  }
+  .storyForm > .check,
+  .storyForm > .notice,
+  .storyForm > .honeypot,
+  .storyForm > .submitButton,
+  .storyForm > .formError,
+  .storyForm > .requestSuccess {
+    grid-column: 1 / -1;
+  }
+  .storyForm > .check { max-width: 720px; }
+
+  /* Operational notes belong visually with the form, not with the emotional headline. */
+  .storyBoundary {
+    grid-column: 2;
+    grid-row: 4;
+    max-width: none;
+    margin: 26px 0 0;
+  }
+  .storyIntro > .notice {
+    grid-column: 2;
+    grid-row: 5;
+    max-width: none;
+    margin: 14px 0 0;
+  }
 }
 
 @media (max-width:1100px) and (min-width:901px) {
@@ -91,6 +199,10 @@ footer a[href="mailto:hello@example.com"] { display: none; }
   .hero h1 {
     max-width: 590px;
     font-size: clamp(47px,4.2vw,56px);
+  }
+  .story {
+    grid-template-columns: minmax(0,.8fr) minmax(500px,1.2fr);
+    column-gap: 52px;
   }
 }
 
