@@ -1,0 +1,40 @@
+/* Desktop story balance: keep the editorial split, but prevent the form from visually swallowing the page. */
+@media (min-width: 901px) {
+  .story.section {
+    box-sizing: border-box;
+    width: min(100%, 1680px);
+    margin-inline: auto;
+  }
+
+  .story {
+    grid-template-columns: minmax(0, 43fr) minmax(0, 51fr);
+    column-gap: 6%;
+  }
+
+  .storyIntro {
+    max-width: 620px;
+  }
+
+  .storyIntro h2 {
+    max-width: 600px;
+  }
+
+  .storyForm {
+    width: 100%;
+    max-width: 800px;
+    justify-self: end;
+    margin-top: 48px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .story {
+    grid-template-columns: minmax(0, 42fr) minmax(0, 52fr);
+    column-gap: 6%;
+  }
+
+  .storyForm {
+    max-width: 720px;
+    margin-top: 40px;
+  }
+}
