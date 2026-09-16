@@ -1,29 +1,53 @@
-/* Desktop story balance: keep the editorial split, but prevent the form from visually swallowing the page. */
+/* Canonical desktop layout for SEND YOUR STORY.
+   This file is loaded last on purpose: it resets the older experimental grid placement
+   so the intro and form share one row and read as a single composition. */
+
 @media (min-width: 901px) {
   .story.section {
     box-sizing: border-box;
-    width: min(100%, 1680px);
+    width: min(100%, 1580px);
     margin-inline: auto;
   }
 
   .story {
     grid-template-columns: minmax(0, 43fr) minmax(0, 51fr);
     column-gap: 6%;
+    grid-auto-rows: auto;
+    align-items: start;
   }
 
+  /* Cancel the old display:contents / explicit grid-row experiment. */
   .storyIntro {
+    display: block;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100%;
     max-width: 620px;
+    min-width: 0;
+    align-self: start;
+  }
+
+  .storyIntro .sectionNumber,
+  .storyIntro h2,
+  .storyIntro > p {
+    grid-column: auto !important;
+    grid-row: auto !important;
   }
 
   .storyIntro h2 {
     max-width: 600px;
   }
 
+  /* One shared row: the form now begins beside the headline, not below the intro block. */
   .storyForm {
-    width: 100%;
-    max-width: 800px;
+    display: block;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start;
     justify-self: end;
-    margin-top: 48px;
+    width: 100%;
+    max-width: 780px;
+    margin-top: 54px;
   }
 }
 
@@ -35,6 +59,6 @@
 
   .storyForm {
     max-width: 720px;
-    margin-top: 40px;
+    margin-top: 48px;
   }
 }
