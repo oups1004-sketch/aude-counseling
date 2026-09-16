@@ -6,6 +6,7 @@ import "./refinements.css";
 import "./hero-image.css";
 import "./header-refresh.css";
 import "./site-header.css";
+import "./polish.css";
 
 export const metadata: Metadata = {
   title: "아우데 심리상담 | 용기를 내어, 당신의 이야기를",
@@ -15,6 +16,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="preload" as="image" href="/api/hero-image" type="image/webp" />
+      </head>
       <body>
         <SiteHeader />
         {children}
