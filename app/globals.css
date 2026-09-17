@@ -355,3 +355,84 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .submissionDetails{grid-template-columns:1fr}.submissionDetails .detailWide{grid-column:auto}
   .adminModal{border-radius:18px;padding:32px 22px}.adminModal h2{font-size:2rem}
 }
+
+
+/* Story intro: blend the supplied books-and-stone image into the editorial layout */
+@media (min-width: 901px){
+  .story{
+    grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);
+    gap:clamp(58px,7vw,112px);
+    align-items:start;
+  }
+  .storyIntro{
+    position:relative;
+    min-height:720px;
+    isolation:isolate;
+  }
+  .storyIntro::before{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    top:210px;
+    right:-2vw;
+    bottom:-40px;
+    left:calc(-1 * clamp(36px,6vw,96px));
+    background:
+      linear-gradient(180deg,
+        var(--paper) 0%,
+        rgba(244,240,231,.96) 12%,
+        rgba(244,240,231,.58) 30%,
+        rgba(244,240,231,.08) 48%,
+        transparent 62%),
+      url("/story-intro.svg") center bottom / cover no-repeat;
+    pointer-events:none;
+  }
+  .storyIntro>*{
+    position:relative;
+    z-index:1;
+  }
+}
+
+@media (max-width: 900px){
+  .storyIntro{
+    position:relative;
+    min-height:470px;
+    isolation:isolate;
+  }
+  .storyIntro::before{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    top:145px;
+    right:calc(-1 * clamp(20px,6vw,52px));
+    bottom:-12px;
+    left:calc(-1 * clamp(20px,6vw,52px));
+    background:
+      linear-gradient(180deg,
+        var(--paper) 0%,
+        rgba(244,240,231,.94) 15%,
+        rgba(244,240,231,.46) 35%,
+        rgba(244,240,231,.04) 58%,
+        transparent 72%),
+      url("/story-intro.svg") center bottom / cover no-repeat;
+    pointer-events:none;
+  }
+  .storyIntro>*{
+    position:relative;
+    z-index:1;
+  }
+}
+
+@media (max-width: 560px){
+  .storyIntro{min-height:395px}
+  .storyIntro::before{
+    top:138px;
+    background:
+      linear-gradient(180deg,
+        var(--paper) 0%,
+        rgba(244,240,231,.94) 18%,
+        rgba(244,240,231,.38) 42%,
+        transparent 72%),
+      url("/story-intro.svg") 45% bottom / cover no-repeat;
+  }
+}
