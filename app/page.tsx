@@ -201,12 +201,11 @@ export default function Home() {
       </section>
 
       <section className="counselor section" id="counselor">
-        <div className="portraitPlaceholder" aria-label="상담자를 상징하는 실루엣 이미지"><span>AUDE</span><div className="counselorSilhouette" aria-hidden="true" /><p>오래 기다린 사람처럼,<br />당신의 이야기를 맞이합니다.</p></div>
+        <div className="portraitPlaceholder" aria-label="아우데 심리상담 상담자 연필 스케치"><span>AUDE</span><div className="counselorSilhouette" aria-hidden="true" /></div>
         <div className="profile">
           <p className="sectionNumber">03 / COUNSELOR</p>
           <h2>상담자 소개</h2>
           <p className="profileLead">“사람을 문제로 보지 않습니다.<br />그 사람이 살아온 방식과, 앞으로 가고 싶은 방향을 봅니다.”</p>
-          <p>상담은 누군가가 정답을 알려주는 시간이 아닙니다. 지금까지 내가 어떤 방식으로 살아왔는지를 이해하고, 앞으로 할 수 있는 선택을 조금씩 넓혀가는 과정이라고 생각합니다.</p>
           <dl>
             <div><dt>학력</dt><dd>상담심리학 석사</dd></div>
             <div><dt>활동</dt><dd>대학상담센터 상담자<br />고등학교 진로·진학상담부장</dd></div>
