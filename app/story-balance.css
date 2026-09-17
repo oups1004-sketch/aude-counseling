@@ -176,8 +176,8 @@
     height: 390px;
     background-size: cover;
     background-position: 59% 54%;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 78%, rgba(0,0,0,.5) 91%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 78%, rgba(0,0,0,.5) 91%, transparent 100%);
   }
 
   .storyIntro::after {
@@ -186,8 +186,8 @@
     right: -8%;
     height: 420px;
     background:
-      linear-gradient(to right, var(--paper) 0, transparent 8%, transparent 88%, var(--paper) 100%),
-      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.68) 17%, transparent 42%);
+      linear-gradient(to right, var(--paper) 0, rgba(244,240,231,.55) 8%, transparent 16%, transparent 82%, rgba(244,240,231,.55) 92%, var(--paper) 100%),
+      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.68) 17%, transparent 42%, transparent 80%, rgba(244,240,231,.7) 94%, var(--paper) 100%);
   }
 
   .storyForm {
@@ -267,8 +267,8 @@
     height: 280px;
     background-size: cover;
     background-position: 59% 54%;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 78%, rgba(0,0,0,.5) 91%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 78%, rgba(0,0,0,.5) 91%, transparent 100%);
   }
 
   .storyIntro::after {
@@ -277,8 +277,8 @@
     right: -5%;
     height: 305px;
     background:
-      linear-gradient(to right, var(--paper) 0, transparent 7%, transparent 93%, var(--paper) 100%),
-      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.58) 18%, transparent 43%);
+      linear-gradient(to right, var(--paper) 0, rgba(244,240,231,.48) 8%, transparent 15%, transparent 85%, rgba(244,240,231,.48) 92%, var(--paper) 100%),
+      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.58) 18%, transparent 43%, transparent 80%, rgba(244,240,231,.72) 94%, var(--paper) 100%);
   }
 
   .storyForm {
