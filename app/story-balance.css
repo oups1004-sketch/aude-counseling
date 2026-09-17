@@ -1,5 +1,6 @@
-/* SEND YOUR STORY — editorial reference pass.
-   On desktop, the copy sits directly over the still-life so the left column reads as one composed scene. */
+/* SEND YOUR STORY — final editorial pass.
+   Keep the copy crisp on a clean field, then let the still-life enter as a separate visual plane.
+   The form stays light and functional without becoming a card. */
 
 .storyIntro {
   position: relative;
@@ -18,7 +19,7 @@
   z-index: 0;
   pointer-events: none;
   background: url('/story-intro.svg') center center / cover no-repeat;
-  filter: saturate(.98) contrast(1.02) brightness(1.01);
+  filter: saturate(.98) contrast(1.025) brightness(1.01);
 }
 
 .storyIntro::after {
@@ -26,7 +27,12 @@
   display: none !important;
 }
 
-/* Keep the form visually open; the left side carries the brand atmosphere. */
+/* Copy: stronger contrast, quieter scale, and more breathing room. */
+.storyIntro > p:not(.sectionNumber) {
+  color: #50524c !important;
+}
+
+/* Form: editorial, not administrative. */
 .storyForm {
   border: 0 !important;
   border-radius: 0 !important;
@@ -34,47 +40,80 @@
   box-shadow: none !important;
 }
 
+.storyMeta {
+  gap: 20px !important;
+}
+
 .storyMeta input,
-.storyMeta select,
-.storyMessageField textarea {
-  background: rgba(250,247,241,.50) !important;
-  border-color: rgba(23,24,22,.115) !important;
+.storyMeta select {
+  min-height: 42px !important;
+  margin-top: 7px !important;
+  padding: 9px 0 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(23,24,22,.16) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
 .storyMeta input:focus,
-.storyMeta select:focus,
-.storyMessageField textarea:focus {
-  border-color: rgba(162,103,63,.60) !important;
-  box-shadow: 0 0 0 3px rgba(162,103,63,.05) !important;
+.storyMeta select:focus {
+  border-bottom-color: rgba(162,103,63,.72) !important;
+  box-shadow: none !important;
+}
+
+.storyMessageField {
+  margin-top: 26px !important;
 }
 
 .storyMessageField textarea {
-  min-height: 198px;
+  min-height: 178px !important;
+  margin-top: 10px !important;
+  padding: 16px 17px !important;
+  border: 1px solid rgba(23,24,22,.13) !important;
+  border-radius: 4px !important;
+  background: rgba(250,247,241,.42) !important;
+  box-shadow: none !important;
+}
+
+.storyMessageField textarea:focus {
+  border-color: rgba(162,103,63,.62) !important;
+  box-shadow: 0 0 0 3px rgba(162,103,63,.045) !important;
 }
 
 .storyConsent {
-  margin-top: 18px;
+  margin-top: 16px !important;
 }
 
 .storyConsent .check {
-  line-height: 1.82;
+  margin: 13px 0 !important;
+  line-height: 1.78 !important;
 }
 
 .storyConsent .identityNotice {
-  line-height: 1.75;
+  margin-top: -2px !important;
+  margin-bottom: 10px !important;
+  line-height: 1.72 !important;
 }
 
 .storyGuidance {
-  margin-top: 18px;
-  padding: 13px 0 13px 16px;
-  border-left: 1px solid rgba(162,103,63,.48);
-  background: rgba(162,103,63,.018);
+  margin-top: 16px !important;
+  padding: 11px 0 11px 15px !important;
+  border-left: 1px solid rgba(162,103,63,.46) !important;
+  background: transparent !important;
 }
 
-.storyGuidance strong { margin-bottom: 4px; }
-.storyGuidance p { line-height: 1.68; }
-.storyGuidance .notice { margin-top: 7px; }
+.storyGuidance strong {
+  margin-bottom: 3px !important;
+}
+
+.storyGuidance p {
+  line-height: 1.64 !important;
+}
+
+.storyGuidance .notice {
+  margin-top: 6px !important;
+}
 
 @media (min-width: 901px) {
   .story.section {
@@ -97,7 +136,7 @@
     width: 100%;
     max-width: 630px;
     min-width: 0;
-    min-height: 640px;
+    min-height: 635px;
     align-self: start;
     padding: 0 34px 0 0;
   }
@@ -118,17 +157,22 @@
   }
 
   .storyIntro > p:not(.sectionNumber) {
-    max-width: 450px;
-    margin-top: 28px !important;
+    max-width: 475px;
+    margin-top: 31px !important;
     font-size: 14px !important;
-    line-height: 1.85 !important;
+    line-height: 1.9 !important;
+    font-weight: 400 !important;
   }
 
-  /* The photo is the entire left composition, like the approved reference. */
+  /* Keep the copy on clean ivory, then introduce the photo with a deliberate pause. */
   .storyIntro::before {
-    inset: 0;
-    background-size: auto 100%;
-    background-position: 50% 50%;
+    top: 320px;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    height: 298px;
+    background-size: cover;
+    background-position: 58% 52%;
   }
 
   .storyForm {
@@ -138,13 +182,13 @@
     align-self: start;
     justify-self: end;
     width: 100%;
-    max-width: 730px;
+    max-width: 710px;
     margin-top: 46px;
     padding: 0 !important;
   }
 
   .storyForm > .submitButton {
-    margin-top: 22px !important;
+    margin-top: 20px !important;
   }
 }
 
@@ -155,7 +199,7 @@
   }
 
   .storyIntro {
-    min-height: 600px;
+    min-height: 605px;
     padding-right: 24px;
   }
 
@@ -164,18 +208,23 @@
     font-size: clamp(38px, 3.4vw, 44px) !important;
   }
 
+  .storyIntro > p:not(.sectionNumber) {
+    max-width: 445px;
+  }
+
   .storyIntro::before {
-    background-size: auto 100%;
-    background-position: 51% 50%;
+    top: 306px;
+    height: 280px;
+    background-position: 58% 52%;
   }
 
   .storyForm {
-    max-width: 690px;
+    max-width: 680px;
     margin-top: 44px;
   }
 }
 
-/* On tablet/mobile, keep the photo below the copy for readability and shorter scroll. */
+/* Tablet/mobile: preserve the same copy → pause → image rhythm. */
 @media (max-width: 900px) {
   .storyIntro {
     min-height: 500px;
@@ -186,42 +235,50 @@
     word-break: keep-all;
   }
 
+  .storyIntro > p:not(.sectionNumber) {
+    color: #50524c !important;
+  }
+
   .storyIntro::before {
-    top: 248px;
+    top: 258px;
     left: 0;
     right: 0;
     bottom: auto;
-    height: 235px;
+    height: 224px;
     background-size: cover;
-    background-position: 56% 50%;
+    background-position: 58% 52%;
   }
 
   .storyForm {
-    margin-top: 22px !important;
+    margin-top: 20px !important;
     padding: 0 !important;
   }
 }
 
 @media (max-width: 560px) {
   .storyIntro {
-    min-height: 445px;
+    min-height: 446px;
   }
 
   .storyIntro::before {
-    top: 238px;
-    height: 190px;
-    background-position: 56% 50%;
+    top: 246px;
+    height: 182px;
+    background-position: 58% 52%;
   }
 
-  .storyForm {
-    margin-top: 18px !important;
+  .storyMeta {
+    gap: 0 !important;
   }
 
   .storyMessageField textarea {
-    min-height: 180px;
+    min-height: 165px !important;
+  }
+
+  .storyForm {
+    margin-top: 16px !important;
   }
 
   .storyGuidance {
-    padding: 12px 0 12px 14px;
+    padding: 10px 0 10px 13px !important;
   }
 }
