@@ -23,8 +23,10 @@
 }
 
 .storyIntro::after {
-  content: none !important;
-  display: none !important;
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* Copy: crisp enough to read instantly, still quiet against the ivory field. */
@@ -164,16 +166,28 @@
     font-weight: 400 !important;
   }
 
-  /* Bring the image closer to the copy and reveal more of the original frame.
-     The taller panel reduces the crop, making the books/stone feel smaller and more editorial. */
+  /* The still life begins behind the last lines of copy, then softly emerges.
+     This removes the visible top edge that previously made it feel like a second card. */
   .storyIntro::before {
-    top: 296px;
-    left: 0;
-    right: 0;
+    top: 238px;
+    left: -5%;
+    right: -7%;
     bottom: auto;
-    height: 318px;
+    height: 390px;
     background-size: cover;
-    background-position: 59% 49%;
+    background-position: 59% 54%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.12) 12%, #000 38%, #000 100%);
+  }
+
+  .storyIntro::after {
+    top: 220px;
+    left: -6%;
+    right: -8%;
+    height: 420px;
+    background:
+      linear-gradient(to right, var(--paper) 0, transparent 8%, transparent 88%, var(--paper) 100%),
+      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.68) 17%, transparent 42%);
   }
 
   .storyForm {
@@ -214,9 +228,14 @@
   }
 
   .storyIntro::before {
-    top: 288px;
-    height: 294px;
-    background-position: 59% 49%;
+    top: 238px;
+    height: 360px;
+    background-position: 59% 54%;
+  }
+
+  .storyIntro::after {
+    top: 220px;
+    height: 390px;
   }
 
   .storyForm {
@@ -241,13 +260,25 @@
   }
 
   .storyIntro::before {
-    top: 246px;
-    left: 0;
-    right: 0;
+    top: 205px;
+    left: -4%;
+    right: -4%;
     bottom: auto;
-    height: 224px;
+    height: 280px;
     background-size: cover;
-    background-position: 59% 50%;
+    background-position: 59% 54%;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, rgba(0,0,0,.18) 14%, #000 42%, #000 100%);
+  }
+
+  .storyIntro::after {
+    top: 192px;
+    left: -5%;
+    right: -5%;
+    height: 305px;
+    background:
+      linear-gradient(to right, var(--paper) 0, transparent 7%, transparent 93%, var(--paper) 100%),
+      linear-gradient(to bottom, var(--paper) 0, rgba(244,240,231,.58) 18%, transparent 43%);
   }
 
   .storyForm {
@@ -262,9 +293,14 @@
   }
 
   .storyIntro::before {
-    top: 234px;
-    height: 180px;
-    background-position: 59% 50%;
+    top: 196px;
+    height: 230px;
+    background-position: 59% 54%;
+  }
+
+  .storyIntro::after {
+    top: 184px;
+    height: 250px;
   }
 
   .storyMeta {
