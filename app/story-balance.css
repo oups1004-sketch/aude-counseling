@@ -1,5 +1,5 @@
 /* Canonical SEND YOUR STORY composition.
-   Keep the copy and form aligned, and let the artwork behave as atmosphere rather than a detached card. */
+   Final editorial pass: soften artwork edges, tighten vertical rhythm, and lighten the form chrome. */
 
 .storyIntro {
   position: relative;
@@ -9,42 +9,106 @@
 
 .storyIntro > * {
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
+/* Artwork layer: visible enough to feel intentional, but still atmospheric. */
 .storyIntro::before {
   content: "";
   position: absolute;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(to bottom,
-      rgba(247,243,236,1) 0%,
-      rgba(247,243,236,.96) 10%,
-      rgba(247,243,236,.62) 26%,
-      rgba(247,243,236,.14) 47%,
-      rgba(247,243,236,0) 68%),
-    url('/story-intro.svg') center bottom / cover no-repeat;
-  filter: saturate(.86) contrast(.96);
-  opacity: .97;
+  background: url('/story-intro.svg') center bottom / cover no-repeat;
+  filter: saturate(.97) contrast(1.06) brightness(1.015);
+  opacity: 1;
 }
 
+/* Dissolve the artwork into the AUDE background instead of showing a hard rectangle. */
 .storyIntro::after {
   content: "";
   position: absolute;
   z-index: 1;
   pointer-events: none;
   inset: 0;
-  background: linear-gradient(90deg,
-    rgba(247,243,236,.24) 0%,
-    rgba(247,243,236,.05) 44%,
-    rgba(247,243,236,0) 72%);
+  background:
+    linear-gradient(to bottom,
+      rgba(247,243,236,1) 0%,
+      rgba(247,243,236,.98) 12%,
+      rgba(247,243,236,.82) 25%,
+      rgba(247,243,236,.42) 39%,
+      rgba(247,243,236,.10) 53%,
+      rgba(247,243,236,0) 66%),
+    linear-gradient(to right,
+      rgba(247,243,236,0) 0%,
+      rgba(247,243,236,0) 60%,
+      rgba(247,243,236,.16) 73%,
+      rgba(247,243,236,.52) 84%,
+      rgba(247,243,236,.86) 94%,
+      rgba(247,243,236,1) 100%),
+    linear-gradient(to top,
+      rgba(247,243,236,1) 0%,
+      rgba(247,243,236,.88) 8%,
+      rgba(247,243,236,.42) 17%,
+      rgba(247,243,236,0) 29%);
+}
+
+/* The form should read as part of the page, not as a heavy admin card. */
+.storyForm {
+  border-color: rgba(23,24,22,.085) !important;
+  background: rgba(255,255,255,.10) !important;
+  box-shadow: none !important;
+}
+
+.storyMeta input,
+.storyMeta select,
+.storyMessageField textarea {
+  background: rgba(250,247,241,.58) !important;
+  border-color: rgba(23,24,22,.11) !important;
+}
+
+.storyMeta input:focus,
+.storyMeta select:focus,
+.storyMessageField textarea:focus {
+  border-color: rgba(162,103,63,.58) !important;
+  box-shadow: 0 0 0 3px rgba(162,103,63,.065) !important;
+}
+
+.storyMessageField textarea {
+  min-height: 200px;
+}
+
+.storyConsent .check {
+  line-height: 1.82;
+}
+
+.storyConsent .identityNotice {
+  line-height: 1.75;
+}
+
+.storyGuidance {
+  margin-top: 20px;
+  padding: 15px 18px;
+  border-left-width: 1px;
+  border-left-color: rgba(162,103,63,.55);
+  background: rgba(162,103,63,.035);
+}
+
+.storyGuidance strong {
+  margin-bottom: 5px;
+}
+
+.storyGuidance p {
+  line-height: 1.7;
+}
+
+.storyGuidance .notice {
+  margin-top: 8px;
 }
 
 @media (min-width: 901px) {
   .story.section {
     box-sizing: border-box;
-    width: min(100%, 1580px);
+    width: min(100%, 1560px);
     margin-inline: auto;
   }
 
@@ -62,9 +126,9 @@
     width: 100%;
     max-width: 620px;
     min-width: 0;
-    min-height: 735px;
+    min-height: 650px;
     align-self: start;
-    padding-bottom: 330px;
+    padding-bottom: 245px;
   }
 
   .storyIntro .sectionNumber,
@@ -83,11 +147,12 @@
   }
 
   .storyIntro::before {
-    top: 210px;
-    left: -42px;
-    right: -34px;
-    bottom: -24px;
-    background-position: 43% 72%;
+    top: 188px;
+    left: -14px;
+    right: -74px;
+    bottom: 12px;
+    background-size: 112% auto;
+    background-position: 39% 72%;
   }
 
   .storyForm {
@@ -97,8 +162,13 @@
     align-self: start;
     justify-self: end;
     width: 100%;
-    max-width: 780px;
-    margin-top: 54px;
+    max-width: 760px;
+    margin-top: 52px;
+    padding: 28px !important;
+  }
+
+  .storyForm > .submitButton {
+    margin-top: 24px !important;
   }
 }
 
@@ -109,56 +179,85 @@
   }
 
   .storyIntro {
-    min-height: 690px;
-    padding-bottom: 300px;
+    min-height: 615px;
+    padding-bottom: 225px;
   }
 
   .storyIntro::before {
-    top: 205px;
-    left: -26px;
-    right: -24px;
-    bottom: -16px;
-    background-position: 45% 72%;
+    top: 184px;
+    left: -10px;
+    right: -56px;
+    bottom: 12px;
+    background-size: 111% auto;
+    background-position: 40% 72%;
   }
 
   .storyForm {
     max-width: 720px;
     margin-top: 48px;
+    padding: 26px !important;
   }
 }
 
 @media (max-width: 900px) {
   .storyIntro {
-    min-height: 610px;
-    padding-bottom: 290px;
+    min-height: 470px;
+    padding-bottom: 175px;
   }
 
   .storyIntro::before {
-    top: 175px;
-    left: -24px;
-    right: -24px;
-    bottom: -8px;
-    background-position: 44% 74%;
+    top: 164px;
+    left: -8px;
+    right: -30px;
+    bottom: 6px;
+    background-size: 110% auto;
+    background-position: 40% 74%;
   }
 
   .storyIntro::after {
-    background: linear-gradient(90deg,
-      rgba(247,243,236,.18) 0%,
-      rgba(247,243,236,0) 64%);
+    background:
+      linear-gradient(to bottom,
+        rgba(247,243,236,1) 0%,
+        rgba(247,243,236,.97) 15%,
+        rgba(247,243,236,.65) 32%,
+        rgba(247,243,236,.12) 52%,
+        rgba(247,243,236,0) 65%),
+      linear-gradient(to right,
+        rgba(247,243,236,0) 0%,
+        rgba(247,243,236,0) 70%,
+        rgba(247,243,236,.45) 88%,
+        rgba(247,243,236,.95) 100%),
+      linear-gradient(to top,
+        rgba(247,243,236,.96) 0%,
+        rgba(247,243,236,.52) 12%,
+        rgba(247,243,236,0) 27%);
+  }
+
+  .storyForm {
+    padding: 24px !important;
   }
 }
 
 @media (max-width: 560px) {
   .storyIntro {
-    min-height: 545px;
-    padding-bottom: 255px;
+    min-height: 410px;
+    padding-bottom: 140px;
   }
 
   .storyIntro::before {
-    top: 185px;
-    left: -18px;
+    top: 168px;
+    left: -6px;
     right: -18px;
-    bottom: 0;
-    background-position: 40% 75%;
+    bottom: 2px;
+    background-size: 106% auto;
+    background-position: 40% 76%;
+  }
+
+  .storyForm {
+    padding: 20px !important;
+  }
+
+  .storyGuidance {
+    padding: 14px 15px;
   }
 }
