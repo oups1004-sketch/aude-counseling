@@ -1,6 +1,6 @@
-/* SEND YOUR STORY — final editorial pass.
-   Keep the copy crisp on a clean field, then let the still-life enter as a separate visual plane.
-   The form stays light and functional without becoming a card. */
+/* SEND YOUR STORY — final editorial polish.
+   Preserve the clean split layout while tightening the last details:
+   slightly smaller still-life objects, a shorter writing field, and denser consent rhythm. */
 
 .storyIntro {
   position: relative;
@@ -27,9 +27,9 @@
   display: none !important;
 }
 
-/* Copy: stronger contrast, quieter scale, and more breathing room. */
+/* Copy: crisp enough to read instantly, still quiet against the ivory field. */
 .storyIntro > p:not(.sectionNumber) {
-  color: #50524c !important;
+  color: #4d504a !important;
 }
 
 /* Form: editorial, not administrative. */
@@ -63,11 +63,11 @@
 }
 
 .storyMessageField {
-  margin-top: 26px !important;
+  margin-top: 24px !important;
 }
 
 .storyMessageField textarea {
-  min-height: 178px !important;
+  min-height: 160px !important;
   margin-top: 10px !important;
   padding: 16px 17px !important;
   border: 1px solid rgba(23,24,22,.13) !important;
@@ -82,23 +82,23 @@
 }
 
 .storyConsent {
-  margin-top: 16px !important;
+  margin-top: 13px !important;
 }
 
 .storyConsent .check {
-  margin: 13px 0 !important;
-  line-height: 1.78 !important;
-}
-
-.storyConsent .identityNotice {
-  margin-top: -2px !important;
-  margin-bottom: 10px !important;
+  margin: 10px 0 !important;
   line-height: 1.72 !important;
 }
 
+.storyConsent .identityNotice {
+  margin-top: -1px !important;
+  margin-bottom: 8px !important;
+  line-height: 1.66 !important;
+}
+
 .storyGuidance {
-  margin-top: 16px !important;
-  padding: 11px 0 11px 15px !important;
+  margin-top: 13px !important;
+  padding: 10px 0 10px 14px !important;
   border-left: 1px solid rgba(162,103,63,.46) !important;
   background: transparent !important;
 }
@@ -108,11 +108,11 @@
 }
 
 .storyGuidance p {
-  line-height: 1.64 !important;
+  line-height: 1.6 !important;
 }
 
 .storyGuidance .notice {
-  margin-top: 6px !important;
+  margin-top: 5px !important;
 }
 
 @media (min-width: 901px) {
@@ -136,7 +136,7 @@
     width: 100%;
     max-width: 630px;
     min-width: 0;
-    min-height: 635px;
+    min-height: 625px;
     align-self: start;
     padding: 0 34px 0 0;
   }
@@ -164,15 +164,16 @@
     font-weight: 400 !important;
   }
 
-  /* Keep the copy on clean ivory, then introduce the photo with a deliberate pause. */
+  /* Bring the image closer to the copy and reveal more of the original frame.
+     The taller panel reduces the crop, making the books/stone feel smaller and more editorial. */
   .storyIntro::before {
-    top: 320px;
+    top: 296px;
     left: 0;
     right: 0;
     bottom: auto;
-    height: 298px;
+    height: 318px;
     background-size: cover;
-    background-position: 58% 52%;
+    background-position: 59% 49%;
   }
 
   .storyForm {
@@ -188,7 +189,7 @@
   }
 
   .storyForm > .submitButton {
-    margin-top: 20px !important;
+    margin-top: 18px !important;
   }
 }
 
@@ -199,7 +200,7 @@
   }
 
   .storyIntro {
-    min-height: 605px;
+    min-height: 595px;
     padding-right: 24px;
   }
 
@@ -213,9 +214,9 @@
   }
 
   .storyIntro::before {
-    top: 306px;
-    height: 280px;
-    background-position: 58% 52%;
+    top: 288px;
+    height: 294px;
+    background-position: 59% 49%;
   }
 
   .storyForm {
@@ -224,10 +225,10 @@
   }
 }
 
-/* Tablet/mobile: preserve the same copy → pause → image rhythm. */
+/* Tablet/mobile: preserve the same copy → pause → image rhythm without overlong scroll. */
 @media (max-width: 900px) {
   .storyIntro {
-    min-height: 500px;
+    min-height: 486px;
     padding-bottom: 0;
   }
 
@@ -236,34 +237,34 @@
   }
 
   .storyIntro > p:not(.sectionNumber) {
-    color: #50524c !important;
+    color: #4d504a !important;
   }
 
   .storyIntro::before {
-    top: 258px;
+    top: 246px;
     left: 0;
     right: 0;
     bottom: auto;
     height: 224px;
     background-size: cover;
-    background-position: 58% 52%;
+    background-position: 59% 50%;
   }
 
   .storyForm {
-    margin-top: 20px !important;
+    margin-top: 18px !important;
     padding: 0 !important;
   }
 }
 
 @media (max-width: 560px) {
   .storyIntro {
-    min-height: 446px;
+    min-height: 430px;
   }
 
   .storyIntro::before {
-    top: 246px;
-    height: 182px;
-    background-position: 58% 52%;
+    top: 234px;
+    height: 180px;
+    background-position: 59% 50%;
   }
 
   .storyMeta {
@@ -271,14 +272,14 @@
   }
 
   .storyMessageField textarea {
-    min-height: 165px !important;
+    min-height: 150px !important;
   }
 
   .storyForm {
-    margin-top: 16px !important;
+    margin-top: 14px !important;
   }
 
   .storyGuidance {
-    padding: 10px 0 10px 13px !important;
+    padding: 9px 0 9px 12px !important;
   }
 }
