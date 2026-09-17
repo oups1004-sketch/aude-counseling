@@ -8,6 +8,7 @@ import "./header-refresh.css";
 import "./site-header.css";
 import "./polish.css";
 import "./story-balance.css";
+import "./counselor-portrait.css";
 
 export const metadata: Metadata = {
   title: "아우데 심리상담 | 용기를 내어, 당신의 이야기를",
