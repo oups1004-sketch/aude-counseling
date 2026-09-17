@@ -1,17 +1,44 @@
-/* Canonical desktop layout for SEND YOUR STORY.
-   This file is loaded last on purpose: it resets the older experimental grid placement
-   so the intro and form share one row and read as a single composition. */
+/* Canonical SEND YOUR STORY composition.
+   Keep the copy and form aligned, and let the artwork behave as atmosphere rather than a detached card. */
+
+.storyIntro {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.storyIntro > * {
+  position: relative;
+  z-index: 2;
+}
+
+.storyIntro::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom,
+      rgba(247,243,236,1) 0%,
+      rgba(247,243,236,.96) 10%,
+      rgba(247,243,236,.62) 26%,
+      rgba(247,243,236,.14) 47%,
+      rgba(247,243,236,0) 68%),
+    url('/story-intro.svg') center bottom / cover no-repeat;
+  filter: saturate(.86) contrast(.96);
+  opacity: .97;
+}
 
 .storyIntro::after {
   content: "";
-  display: block;
-  width: min(100%, 560px);
-  aspect-ratio: 3 / 2;
-  margin-top: 38px;
-  background: url('/api/story-image') center center / cover no-repeat;
-  border: 1px solid rgba(23,24,22,.07);
-  border-radius: 4px;
-  box-shadow: 0 22px 48px rgba(53,44,36,.07);
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(90deg,
+    rgba(247,243,236,.24) 0%,
+    rgba(247,243,236,.05) 44%,
+    rgba(247,243,236,0) 72%);
 }
 
 @media (min-width: 901px) {
@@ -28,7 +55,6 @@
     align-items: start;
   }
 
-  /* Cancel the old display:contents / explicit grid-row experiment. */
   .storyIntro {
     display: block;
     grid-column: 1 !important;
@@ -36,7 +62,9 @@
     width: 100%;
     max-width: 620px;
     min-width: 0;
+    min-height: 735px;
     align-self: start;
+    padding-bottom: 330px;
   }
 
   .storyIntro .sectionNumber,
@@ -50,7 +78,18 @@
     max-width: 600px;
   }
 
-  /* One shared row: the form now begins beside the headline, not below the intro block. */
+  .storyIntro > p:not(.sectionNumber) {
+    max-width: 470px;
+  }
+
+  .storyIntro::before {
+    top: 210px;
+    left: -42px;
+    right: -34px;
+    bottom: -24px;
+    background-position: 43% 72%;
+  }
+
   .storyForm {
     display: block;
     grid-column: 2 !important;
@@ -69,31 +108,57 @@
     column-gap: 6%;
   }
 
+  .storyIntro {
+    min-height: 690px;
+    padding-bottom: 300px;
+  }
+
+  .storyIntro::before {
+    top: 205px;
+    left: -26px;
+    right: -24px;
+    bottom: -16px;
+    background-position: 45% 72%;
+  }
+
   .storyForm {
     max-width: 720px;
     margin-top: 48px;
   }
-
-  .storyIntro::after {
-    width: min(100%, 520px);
-    margin-top: 34px;
-  }
 }
 
 @media (max-width: 900px) {
+  .storyIntro {
+    min-height: 610px;
+    padding-bottom: 290px;
+  }
+
+  .storyIntro::before {
+    top: 175px;
+    left: -24px;
+    right: -24px;
+    bottom: -8px;
+    background-position: 44% 74%;
+  }
+
   .storyIntro::after {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    margin-top: 28px;
-    background-position: center bottom;
-    box-shadow: 0 16px 36px rgba(53,44,36,.06);
+    background: linear-gradient(90deg,
+      rgba(247,243,236,.18) 0%,
+      rgba(247,243,236,0) 64%);
   }
 }
 
 @media (max-width: 560px) {
-  .storyIntro::after {
-    aspect-ratio: 4 / 3;
-    margin-top: 24px;
-    border-radius: 3px;
+  .storyIntro {
+    min-height: 545px;
+    padding-bottom: 255px;
+  }
+
+  .storyIntro::before {
+    top: 185px;
+    left: -18px;
+    right: -18px;
+    bottom: 0;
+    background-position: 40% 75%;
   }
 }
