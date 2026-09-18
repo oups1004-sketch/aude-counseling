@@ -103,6 +103,24 @@ export default function AdminPage() {
     await load();
   }
 
+  async function registerClient(item: Submission) {
+    if (item.kind === "story") return;
+    const sourceId = item.id.startsWith("counseling:") ? item.id.slice("counseling:".length) : "";
+    if (!sourceId) return alert("상담 신청 자료를 확인하지 못했습니다.");
+    setBusy(true);
+    const response = await fetch("/api/admin/clients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sourceId }),
+    });
+    const result = await response.json().catch(() => ({}));
+    setBusy(false);
+    if (!response.ok) return alert(result.error || "내담자로 등록하지 못했습니다.");
+    alert(`${result.clientCode || displayName(item)} 내담자 등록이 완료되었습니다.`);
+    setSelected(null);
+    await load();
+  }
+
   async function remove(item: Submission) {
     if (!confirm(`${displayName(item)} 접수를 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`)) return;
     const response = await fetch(`/api/admin/submissions?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
@@ -236,8 +254,13 @@ export default function AdminPage() {
 
   return (
     <main className="adminShell">
-      <header className="adminHeader">
-        <div><Link href="/" className="adminBrand">AUDE</Link><span>접수 관리</span></div>
+      <header className="adminHeader workspaceHeader">
+        <div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div>
+        <nav>
+          <Link className="active" href="/admin">접수</Link>
+          <Link href="/admin/clients">내담자</Link>
+          <Link href="/admin/jobs">채용공고</Link>
+        </nav>
         <button onClick={logout}>로그아웃</button>
       </header>
 
@@ -303,17 +326,18 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {selected && <SubmissionModal item={selected} busy={busy} onClose={() => setSelected(null)} onSave={save} onDelete={remove} />}
+      {selected && <SubmissionModal item={selected} busy={busy} onClose={() => setSelected(null)} onSave={save} onDelete={remove} onRegisterClient={registerClient} />}
     </main>
   );
 }
 
-function SubmissionModal({ item, busy, onClose, onSave, onDelete }: {
+function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClient }: {
   item: Submission;
   busy: boolean;
   onClose: () => void;
   onSave: (item: Submission, status: string, note: string) => void;
   onDelete: (item: Submission) => void;
+  onRegisterClient: (item: Submission) => void;
 }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
@@ -341,7 +365,10 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete }: {
         <label className="adminField">관리자 메모<textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} /></label>
         <div className="adminModalActions">
           <button className="danger" onClick={() => onDelete(item)}>삭제</button>
-          <button className="save" disabled={busy} onClick={() => onSave(item, status, note)}>{busy ? "저장 중…" : "변경사항 저장"}</button>
+          <div className="modalRightActions">
+            {item.kind !== "story" && <button className="clientConvert" disabled={busy} onClick={() => onRegisterClient(item)}>내담자로 등록</button>}
+            <button className="save" disabled={busy} onClick={() => onSave(item, status, note)}>{busy ? "저장 중…" : "변경사항 저장"}</button>
+          </div>
         </div>
       </section>
     </div>
