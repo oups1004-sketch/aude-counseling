@@ -40,41 +40,68 @@ function decode(value: string) {
     .trim();
 }
 
-function absoluteRecruitmentUrl(value: string) {
+function allowedDetailUrl(value: string) {
   const decoded = decodeEntities(value).trim();
   try {
     const url = new URL(decoded, "https://www.counselors.or.kr/portal/service/recruitment");
-    if (!["www.counselors.or.kr", "renewal.counselors.or.kr"].includes(url.hostname)) return null;
-    if (!url.pathname.includes("/portal/service/recruitment")) return null;
+    const allowedHosts = [
+      "www.counselors.or.kr",
+      "counselors.or.kr",
+      "renewal.counselors.or.kr",
+      "new.counselors.or.kr",
+      "dev.counselors.or.kr",
+      "imsi.counselors.or.kr",
+    ];
+    if (!allowedHosts.includes(url.hostname)) return null;
+    const isPortal = url.pathname.includes("/portal/service/recruitment");
+    const isLegacy = url.pathname.includes("/KOR/comm/job.php");
+    if (!isPortal && !isLegacy) return null;
     return url.toString();
   } catch {
     return null;
   }
 }
 
-function extractDetailUrl(rowHtml: string) {
+function legacyDetailUrl(id: string) {
+  return `https://new.counselors.or.kr/KOR/comm/job.php?code=job&idx=${id}&ptype=view`;
+}
+
+function extractDetailUrl(rowHtml: string, listNumber: string) {
   const hrefRegex = /href\s*=\s*["']([^"']+)["']/gi;
   let hrefMatch: RegExpExecArray | null;
   while ((hrefMatch = hrefRegex.exec(rowHtml)) !== null) {
     const raw = hrefMatch[1] || "";
-    if (/recruitment/i.test(raw) && /(act=view|ntt[_-]?id=|idx=)/i.test(raw)) {
-      const url = absoluteRecruitmentUrl(raw);
-      if (url) return url;
-    }
-    if (/(act=view|ntt[_-]?id=|idx=)/i.test(raw)) {
-      const url = absoluteRecruitmentUrl(raw);
+    if (/(recruitment|\/KOR\/comm\/job\.php)/i.test(raw) && /(view|idx=|ntt[_-]?id=|seq=)/i.test(raw)) {
+      const url = allowedDetailUrl(raw);
       if (url) return url;
     }
   }
 
-  const directId = rowHtml.match(/(?:ntt[_-]?id|nttId|idx)\s*[:=,'")\s]+(\d{4,})/i);
-  if (directId?.[1]) {
-    return `https://www.counselors.or.kr/portal/service/recruitment?act=view&ntt_id=${directId[1]}`;
+  const namedId = rowHtml.match(
+    /(?:idx|ntt[_-]?id|nttId|seq|bbs[_-]?no|bbsNo|board[_-]?no|boardNo)\D{0,30}(\d{5,9})/i,
+  );
+  if (namedId?.[1]) return legacyDetailUrl(namedId[1]);
+
+  const viewCall = rowHtml.match(
+    /(?:view|detail|select|read|go|fn)[\w-]*\s*\([^)]*?["']?(\d{5,9})["']?/i,
+  );
+  if (viewCall?.[1]) return legacyDetailUrl(viewCall[1]);
+
+  const numericCandidates: string[] = [];
+  const numberRegex = /\b(\d{6})\b/g;
+  let numberMatch: RegExpExecArray | null;
+  while ((numberMatch = numberRegex.exec(rowHtml)) !== null) {
+    const candidate = numberMatch[1];
+    if (!candidate || candidate === listNumber) continue;
+    if (!numericCandidates.includes(candidate)) numericCandidates.push(candidate);
   }
 
-  const viewCall = rowHtml.match(/(?:view|goView|fnView|fn_view)[^(]*\([^)]*?['"]?(\d{5,})['"]?/i);
-  if (viewCall?.[1]) {
-    return `https://www.counselors.or.kr/portal/service/recruitment?act=view&ntt_id=${viewCall[1]}`;
+  if (numericCandidates.length > 0) {
+    const likelyIdx = numericCandidates
+      .map((value) => Number(value))
+      .filter((value) => value >= 100000 && value <= 999999)
+      .sort((a, b) => b - a)[0];
+    if (likelyIdx) return legacyDetailUrl(String(likelyIdx));
   }
 
   return null;
@@ -106,7 +133,7 @@ function parseJobs(html: string, sourceUrl: string) {
       period: cells[5] || "",
       status: cells[6] || "",
       sourceUrl,
-      detailUrl: extractDetailUrl(rowHtml),
+      detailUrl: extractDetailUrl(rowHtml, cells[0] || ""),
     });
   }
 
