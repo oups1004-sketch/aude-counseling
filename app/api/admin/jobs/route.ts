@@ -14,6 +14,7 @@ type Job = {
   period: string;
   status: string;
   sourceUrl: string;
+  detailUrl: string | null;
 };
 
 async function authorized() {
@@ -21,18 +22,62 @@ async function authorized() {
   return verifyAdminSession(store.get("aude_admin_token")?.value);
 }
 
-function decode(value: string) {
+function decodeEntities(value: string) {
   return value
-    .replace(/<br\s*\/?\s*>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&")
+    .replace(/&nbsp;/gi, " ")
     .replace(/&lt;/gi, "<")
     .replace(/&gt;/gi, ">")
     .replace(/&#39;/gi, "'")
-    .replace(/&quot;/gi, '"')
+    .replace(/&quot;/gi, '"');
+}
+
+function decode(value: string) {
+  return decodeEntities(value)
+    .replace(/<br\s*\/?\s*>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function absoluteRecruitmentUrl(value: string) {
+  const decoded = decodeEntities(value).trim();
+  try {
+    const url = new URL(decoded, "https://www.counselors.or.kr/portal/service/recruitment");
+    if (!["www.counselors.or.kr", "renewal.counselors.or.kr"].includes(url.hostname)) return null;
+    if (!url.pathname.includes("/portal/service/recruitment")) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function extractDetailUrl(rowHtml: string) {
+  const hrefRegex = /href\s*=\s*["']([^"']+)["']/gi;
+  let hrefMatch: RegExpExecArray | null;
+  while ((hrefMatch = hrefRegex.exec(rowHtml)) !== null) {
+    const raw = hrefMatch[1] || "";
+    if (/recruitment/i.test(raw) && /(act=view|ntt[_-]?id=|idx=)/i.test(raw)) {
+      const url = absoluteRecruitmentUrl(raw);
+      if (url) return url;
+    }
+    if (/(act=view|ntt[_-]?id=|idx=)/i.test(raw)) {
+      const url = absoluteRecruitmentUrl(raw);
+      if (url) return url;
+    }
+  }
+
+  const directId = rowHtml.match(/(?:ntt[_-]?id|nttId|idx)\s*[:=,'")\s]+(\d{4,})/i);
+  if (directId?.[1]) {
+    return `https://www.counselors.or.kr/portal/service/recruitment?act=view&ntt_id=${directId[1]}`;
+  }
+
+  const viewCall = rowHtml.match(/(?:view|goView|fnView|fn_view)[^(]*\([^)]*?['"]?(\d{5,})['"]?/i);
+  if (viewCall?.[1]) {
+    return `https://www.counselors.or.kr/portal/service/recruitment?act=view&ntt_id=${viewCall[1]}`;
+  }
+
+  return null;
 }
 
 function parseJobs(html: string, sourceUrl: string) {
@@ -61,6 +106,7 @@ function parseJobs(html: string, sourceUrl: string) {
       period: cells[5] || "",
       status: cells[6] || "",
       sourceUrl,
+      detailUrl: extractDetailUrl(rowHtml),
     });
   }
 
