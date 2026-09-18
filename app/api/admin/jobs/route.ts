@@ -5,6 +5,17 @@ import { verifyAdminSession } from "../../../lib/supabase";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type Job = {
+  number: number;
+  title: string;
+  location: string;
+  employment: string;
+  pay: string;
+  period: string;
+  status: string;
+  sourceUrl: string;
+};
+
 async function authorized() {
   const store = await cookies();
   return verifyAdminSession(store.get("aude_admin_token")?.value);
@@ -24,6 +35,38 @@ function decode(value: string) {
     .trim();
 }
 
+function parseJobs(html: string, sourceUrl: string) {
+  const jobs: Job[] = [];
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch: RegExpExecArray | null;
+
+  while ((rowMatch = rowRegex.exec(html)) !== null && jobs.length < 20) {
+    const rowHtml = rowMatch[1] || "";
+    const cells: string[] = [];
+    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    let cellMatch: RegExpExecArray | null;
+
+    while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
+      cells.push(decode(cellMatch[1] || ""));
+    }
+
+    if (cells.length < 7 || !/^\d{4,6}$/.test(cells[0] || "")) continue;
+
+    jobs.push({
+      number: Number(cells[0]),
+      title: cells[1] || "",
+      location: cells[2] || "",
+      employment: cells[3] || "",
+      pay: cells[4] || "",
+      period: cells[5] || "",
+      status: cells[6] || "",
+      sourceUrl,
+    });
+  }
+
+  return jobs;
+}
+
 export async function GET() {
   if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -34,26 +77,8 @@ export async function GET() {
       headers: { "User-Agent": "Mozilla/5.0 AUDE-admin/1.0" },
     });
     if (!response.ok) throw new Error(`Recruitment page ${response.status}`);
-    const html = await response.text();
 
-    const jobs = [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)]
-      .map((rowMatch) => {
-        const cells = [...rowMatch[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((match) => decode(match[1]));
-        if (cells.length < 7 || !/^\d{4,6}$/.test(cells[0])) return null;
-        return {
-          number: Number(cells[0]),
-          title: cells[1],
-          location: cells[2],
-          employment: cells[3],
-          pay: cells[4],
-          period: cells[5],
-          status: cells[6],
-          sourceUrl,
-        };
-      })
-      .filter(Boolean)
-      .slice(0, 20);
-
+    const jobs = parseJobs(await response.text(), sourceUrl);
     if (jobs.length === 0) throw new Error("Recruitment rows were not recognized.");
 
     return NextResponse.json({ jobs, checkedAt: new Date().toISOString(), sourceUrl });
