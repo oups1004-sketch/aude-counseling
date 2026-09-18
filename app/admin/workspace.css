@@ -43,3 +43,94 @@
   .jobDetailMeta>div{border-bottom:1px solid #d8cfc1}
   .jobAttachments{grid-template-columns:1fr}
 }
+
+
+/* Admin workspace visual repair */
+.jobCard{
+  display:block !important;
+  grid-template-columns:none !important;
+  gap:0 !important;
+  width:100%;
+  padding:0 !important;
+  border-bottom:1px solid #cec5b7;
+}
+.jobOpen{
+  box-sizing:border-box;
+  min-width:0;
+}
+.jobOpen .jobBody,
+.jobOpen .jobMeta{
+  min-width:0;
+}
+.jobOpen .jobBody>strong{
+  overflow-wrap:anywhere;
+}
+.jobOpen .jobStatus{
+  align-self:center;
+}
+
+/* Make primary admin sections unmistakable */
+.workspaceHeader{
+  min-height:76px;
+  background:rgba(238,232,220,.96);
+}
+.workspaceHeader nav{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-left:auto;
+  margin-right:22px;
+  padding:5px;
+  border:1px solid #bdb1a1;
+  border-radius:14px;
+  background:#ddd3c3;
+  box-shadow:0 5px 18px rgba(44,38,31,.08);
+}
+.workspaceHeader nav a{
+  min-width:88px;
+  padding:11px 16px;
+  border-radius:10px;
+  color:#403b34;
+  font-size:.9rem;
+  font-weight:800;
+  letter-spacing:-.01em;
+  text-align:center;
+  transition:background .15s ease,color .15s ease,transform .15s ease;
+}
+.workspaceHeader nav a:hover{
+  background:#f6f0e7;
+  color:#1b1d19;
+  transform:translateY(-1px);
+}
+.workspaceHeader nav a.active,
+.workspaceHeader nav a.active:hover{
+  background:#1b1d19;
+  color:#fff8ee;
+  box-shadow:0 3px 10px rgba(27,29,25,.18);
+}
+
+@media(max-width:760px){
+  .workspaceHeader{
+    padding-bottom:14px;
+  }
+  .workspaceHeader nav{
+    order:3;
+    width:100%;
+    margin:0;
+    padding:4px;
+    overflow:visible;
+  }
+  .workspaceHeader nav a{
+    flex:1;
+    min-width:0;
+    padding:11px 8px;
+    font-size:.85rem;
+  }
+  .jobOpen{
+    grid-template-columns:54px minmax(0,1fr) 20px;
+  }
+  .jobOpen .jobStatus{
+    grid-column:2;
+    justify-self:start;
+  }
+}
