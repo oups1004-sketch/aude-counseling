@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
-import { SETTINGS_STATUS } from "../../../lib/counseling-status";
 
 export const runtime = "nodejs";
 
@@ -85,7 +84,7 @@ export async function GET() {
     ]);
 
     const stories = (await storiesResponse.json()) as DbRow[];
-    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => row.status !== SETTINGS_STATUS);
+    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => row.data?.type !== "site-settings");
     const items = [
       ...stories.map(storyItem),
       ...counseling.map(counselingItem),
@@ -94,7 +93,8 @@ export async function GET() {
     return NextResponse.json(items);
   } catch (error) {
     console.error("Admin list failed", error);
-    return NextResponse.json({ error: "목록을 불러오지 못했습니다." }, { status: 500 });
+    const detail = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: "목록을 불러오지 못했습니다.", detail }, { status: 500 });
   }
 }
 

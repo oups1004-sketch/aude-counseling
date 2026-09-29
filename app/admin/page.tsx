@@ -57,7 +57,10 @@ export default function AdminPage() {
       setAuth("login");
       return;
     }
-    if (!response.ok) throw new Error("목록을 불러오지 못했습니다.");
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.detail || result.error || "목록을 불러오지 못했습니다.");
+    }
     setItems(await response.json());
     const statusResponse = await fetch("/api/admin/counseling-status", { cache: "no-store" });
     if (statusResponse.ok) setCounselingOpen((await statusResponse.json()).counselingOpen !== false);
@@ -65,8 +68,8 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    load().catch(() => {
-      setLoginError("관리자 자료를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    load().catch((error) => {
+      setLoginError(`관리자 자료를 불러오지 못했습니다. (${error instanceof Error ? error.message : "알 수 없는 오류"})`);
       setAuth("login");
     });
   }, [load]);
