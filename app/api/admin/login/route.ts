@@ -11,11 +11,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "관리자 비밀번호를 확인해 주세요." }, { status: 401 });
     }
 
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set("aude_admin_token", adminSessionToken(), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 12,
     });

@@ -65,7 +65,10 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    load().catch(() => setAuth("login"));
+    load().catch(() => {
+      setLoginError("관리자 자료를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setAuth("login");
+    });
   }, [load]);
 
   async function login(event: FormEvent<HTMLFormElement>) {
@@ -84,7 +87,7 @@ export default function AdminPage() {
       setLoginError(result.error || "로그인하지 못했습니다.");
       return;
     }
-    await load();
+    window.location.reload();
   }
 
   async function logout() {
