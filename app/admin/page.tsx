@@ -48,6 +48,8 @@ export default function AdminPage() {
   const [busy, setBusy] = useState(false);
   const [selected, setSelected] = useState<Submission | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [counselingOpen, setCounselingOpen] = useState(true);
+  const [statusBusy, setStatusBusy] = useState(false);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/submissions", { cache: "no-store" });
@@ -57,6 +59,8 @@ export default function AdminPage() {
     }
     if (!response.ok) throw new Error("목록을 불러오지 못했습니다.");
     setItems(await response.json());
+    const statusResponse = await fetch("/api/admin/counseling-status", { cache: "no-store" });
+    if (statusResponse.ok) setCounselingOpen((await statusResponse.json()).counselingOpen !== false);
     setAuth("ready");
   }, []);
 
@@ -88,6 +92,23 @@ export default function AdminPage() {
     setItems([]);
     setSelectedIds(new Set());
     setAuth("login");
+  }
+
+  async function toggleCounselingStatus() {
+    const next = !counselingOpen;
+    const message = next
+      ? "상담 신청을 다시 받으시겠습니까? 본 사이트의 신청 버튼이 즉시 활성화됩니다."
+      : "상담 신청을 중지하시겠습니까? 본 사이트에 마감 안내가 표시되고 신청이 차단됩니다.";
+    if (!confirm(message)) return;
+    setStatusBusy(true);
+    const response = await fetch("/api/admin/counseling-status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ counselingOpen: next }),
+    });
+    setStatusBusy(false);
+    if (!response.ok) return alert("상담 신청 상태를 변경하지 못했습니다.");
+    setCounselingOpen(next);
   }
 
   async function save(item: Submission, status: string, adminNote: string) {
@@ -259,7 +280,6 @@ export default function AdminPage() {
         <nav>
           <Link className="active" href="/admin">접수</Link>
           <Link href="/admin/clients">내담자</Link>
-          <Link href="/admin/jobs">채용공고</Link>
         </nav>
         <button onClick={logout}>로그아웃</button>
       </header>
@@ -268,6 +288,11 @@ export default function AdminPage() {
         <div className="adminTitle">
           <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
           <div className="adminStats"><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수</span></div>
+        </div>
+
+        <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
+          <div><span>상담 신청 상태</span><strong>{counselingOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{counselingOpen ? "본 사이트에서 개인상담 신청이 가능합니다." : "본 사이트의 신청 버튼과 신규 접수가 차단되어 있습니다."}</p></div>
+          <button type="button" disabled={statusBusy} onClick={toggleCounselingStatus}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
         </div>
 
         <div className="adminToolbar">

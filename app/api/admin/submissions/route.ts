@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
+import { SETTINGS_STATUS } from "../../../lib/counseling-status";
 
 export const runtime = "nodejs";
 
@@ -84,7 +85,7 @@ export async function GET() {
     ]);
 
     const stories = (await storiesResponse.json()) as DbRow[];
-    const counseling = (await counselingResponse.json()) as DbRow[];
+    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => row.status !== SETTINGS_STATUS);
     const items = [
       ...stories.map(storyItem),
       ...counseling.map(counselingItem),

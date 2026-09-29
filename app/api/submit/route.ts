@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCounselingOpen } from "../../lib/counseling-status";
 
 export const runtime = "nodejs";
 
@@ -86,6 +87,9 @@ export async function POST(request: Request) {
         privacyVersion: "2026-09",
       });
     } else {
+      if (!(await getCounselingOpen())) {
+        return NextResponse.json({ error: "Counseling requests are currently closed." }, { status: 409 });
+      }
       if (!clean.name || !clean.ageGroup || !clean.contact || !clean.service || !clean.preferredTime) {
         return NextResponse.json({ error: "Required fields are missing." }, { status: 400 });
       }

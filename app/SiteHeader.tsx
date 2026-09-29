@@ -12,8 +12,14 @@ const sections = [
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
+  const [counselingOpen, setCounselingOpen] = useState(true);
 
   useEffect(() => {
+    fetch("/api/counseling-status", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => setCounselingOpen(data.counselingOpen !== false))
+      .catch(() => undefined);
+
     const updateActive = () => {
       const marker = window.scrollY + 150;
       let active = "";
@@ -35,6 +41,10 @@ export default function SiteHeader() {
 
   const openCounseling = () => {
     setMenuOpen(false);
+    if (!counselingOpen) {
+      window.dispatchEvent(new Event("aude-counseling-closed"));
+      return;
+    }
     const button = document.querySelector<HTMLButtonElement>(".counselingApplyButton");
     if (button) button.click();
     else window.location.hash = "counseling";
@@ -68,8 +78,8 @@ export default function SiteHeader() {
             {label}
           </a>
         ))}
-        <button className="siteConsultCta" type="button" onClick={openCounseling}>
-          상담 신청하기
+        <button className={`siteConsultCta${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={openCounseling}>
+          {counselingOpen ? "상담 신청하기" : "상담 신청 마감"}
         </button>
       </nav>
     </header>

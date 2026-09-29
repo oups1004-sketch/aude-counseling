@@ -8,57 +8,39 @@ function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 }
 
-const testCategories = [
-  {
-    name: "기질·성격",
-    tests: [
-      ["TCI", "타고난 기질과 성장하며 형성된 성격 특성을 살펴봅니다."],
-      ["MBTI", "에너지를 얻고 정보를 받아들이며 판단하고 생활하는 선호 방식을 알아봅니다."],
-      ["NEO-PI", "성격을 다섯 가지 주요 특성과 세부 특성으로 나누어 폭넓게 이해합니다."],
-    ],
-  },
-  {
-    name: "정서·심리",
-    tests: [
-      ["MMPI", "현재의 정서 상태와 심리적 어려움, 성격적 특징을 폭넓게 이해합니다."],
-      ["SCT", "미완성 문장을 완성하며 자신과 관계, 가족, 미래에 관한 생각을 살펴봅니다."],
-    ],
-  },
-  {
-    name: "진로·학습",
-    tests: [
-      ["Strong", "다양한 활동과 직업에 대한 흥미를 살펴보고 진로 탐색의 방향을 찾습니다."],
-      ["U&I", "학습 과정에서 나타나는 성격과 행동 특성, 공부 방법을 살펴봅니다."],
-    ],
-  },
-  {
-    name: "심층·투사",
-    tests: [
-      ["TAT", "그림을 보고 만든 이야기를 통해 관계 경험과 내면의 욕구·갈등을 탐색합니다."],
-      ["Rorschach", "잉크반점에 대한 반응을 바탕으로 사고와 정서, 현실을 경험하는 방식을 종합적으로 살펴봅니다."],
-      ["HTP", "집·나무·사람 그림을 통해 자기상과 관계 경험, 정서적 특징을 탐색합니다."],
-      ["KFD", "가족이 무언가를 하는 그림을 통해 가족관계에 대한 개인의 경험과 인식을 살펴봅니다."],
-    ],
-  },
-] as const;
-
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [testModalOpen, setTestModalOpen] = useState(false);
   const [counselingModalOpen, setCounselingModalOpen] = useState(false);
+  const [capacityModalOpen, setCapacityModalOpen] = useState(false);
+  const [counselingOpen, setCounselingOpen] = useState(true);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
-  const [activeTestCategory, setActiveTestCategory] = useState(0);
 
   useEffect(() => {
-    if (!testModalOpen && !counselingModalOpen && !privacyModalOpen) return;
+    fetch("/api/counseling-status", { cache: "no-store" })
+      .then((response) => response.json())
+      .then(({ counselingOpen: open }) => {
+        const isOpen = open !== false;
+        setCounselingOpen(isOpen);
+        const today = new Date().toLocaleDateString("en-CA");
+        if (!isOpen && localStorage.getItem("aude-capacity-notice-hidden") !== today) setCapacityModalOpen(true);
+      })
+      .catch(() => undefined);
+
+    const showCapacityNotice = () => setCapacityModalOpen(true);
+    window.addEventListener("aude-counseling-closed", showCapacityNotice);
+    return () => window.removeEventListener("aude-counseling-closed", showCapacityNotice);
+  }, []);
+
+  useEffect(() => {
+    if (!counselingModalOpen && !capacityModalOpen && !privacyModalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      setTestModalOpen(false);
       setCounselingModalOpen(false);
+      setCapacityModalOpen(false);
       setPrivacyModalOpen(false);
     };
     window.addEventListener("keydown", closeOnEscape);
@@ -66,7 +48,17 @@ export default function Home() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [testModalOpen, counselingModalOpen, privacyModalOpen]);
+  }, [counselingModalOpen, capacityModalOpen, privacyModalOpen]);
+
+  function openCounselingForm() {
+    if (!counselingOpen) return setCapacityModalOpen(true);
+    setCounselingModalOpen(true);
+  }
+
+  function hideCapacityNoticeToday() {
+    localStorage.setItem("aude-capacity-notice-hidden", new Date().toLocaleDateString("en-CA"));
+    setCapacityModalOpen(false);
+  }
 
   async function sendSubmission(payload: Record<string, string | boolean>) {
     const response = await fetch("/api/submit", {
@@ -114,7 +106,7 @@ export default function Home() {
       name: String(data.get("name") || ""),
       ageGroup: String(data.get("ageGroup") || ""),
       contact: String(data.get("contact") || ""),
-      service: String(data.get("service") || ""),
+      service: "개인상담",
       preferredTime: String(data.get("preferredTime") || ""),
       reason: String(data.get("reason") || ""),
       website: String(data.get("website") || ""),
@@ -155,9 +147,9 @@ export default function Home() {
             <a className="primaryButton heroChoice" href="#story">
               <span className="heroChoiceCopy"><small>STORY</small><strong>익명으로 사연 보내기</strong></span><ArrowIcon />
             </a>
-            <a className="secondaryButton heroChoice" href="#counseling">
+            <button className={`secondaryButton heroChoice${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={() => counselingOpen ? document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth" }) : setCapacityModalOpen(true)}>
               <span className="heroChoiceCopy"><small>COUNSELING</small><strong>온라인 상담 신청하기</strong></span><ArrowIcon />
-            </a>
+            </button>
           </div>
         </div>
         <div className="heroArt" aria-hidden="true">
@@ -184,18 +176,16 @@ export default function Home() {
         <p className="sectionNumber light">02 / ONLINE COUNSELING</p>
         <div className="sectionHeadingRow">
           <h2>어디에서든,<br />당신의 속도로.</h2>
-          <p>익숙하고 편안한 공간에서 화상으로 만납니다. 관계, 진로, 가족, 감정의 어려움을 혼자 정리하기 벅찰 때 함께할 수 있습니다.</p>
+          <p>익숙하고 편안한 공간에서 화상으로 만납니다. 관계, 진로, 감정의 어려움을 혼자 정리하기 벅찰 때 함께할 수 있습니다.</p>
         </div>
         <div className="serviceGrid">
-          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 65,000원</strong></article>
-          <article><span>02</span><h3>부부·가족상담</h3><p>누가 옳은지를 가리기보다 서로 다른 이야기가 만날 수 있는 대화를 만듭니다.</p><strong>온라인 · 80분 · 110,000원</strong></article>
-          <article className="assessmentService"><span>03</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 검사에 따라 상이</strong><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
         </div>
 
         <div className="counselingCta">
           <div className="counselingCtaInner">
             <p><span>신청만으로 바로 결제되거나 상담이 확정되지는 않습니다.</span><strong>신청 → 일정·비용 안내 → 확인 후 상담 확정</strong></p>
-            <button className="counselingApplyButton" type="button" onClick={() => setCounselingModalOpen(true)}>상담 신청하기 <ArrowIcon /></button>
+            <button className={`counselingApplyButton${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={openCounselingForm}>{counselingOpen ? "상담 신청하기" : "현재 상담 신청 마감"} <ArrowIcon /></button>
           </div>
         </div>
       </section>
@@ -263,11 +253,10 @@ export default function Home() {
             <h2 id="counseling-modal-title">상담을 시작하는<br />첫 번째 단계</h2>
             <p className="testModalLead">신청만으로 상담이 바로 확정되지는 않습니다. 간단한 내용을 보내주시면 가능한 일정과 비용, 진행 방법을 개별적으로 안내드립니다.</p>
             <div className="requestPrices" aria-label="상담 비용">
-              <article><span>개인상담</span><strong>65,000원</strong><small>온라인 · 60분</small></article>
-              <article><span>커플·부부상담</span><strong>110,000원</strong><small>온라인 · 80분</small></article>
-              <article><span>심리검사·해석상담</span><strong>70,000원부터</strong><small>검사 종류에 따라 상이</small></article>
+              <article><span>개인상담</span><strong>100,000원</strong><small>온라인 · 60분</small></article>
+              <article><span>대학생 개인상담</span><strong>80,000원</strong><small>재학증명서 인증 시 · 온라인 60분</small></article>
             </div>
-            <p className="requestPriceNote">3인 이상 가족상담과 심층검사는 별도로 안내드립니다.</p>
+            <p className="requestPriceNote">대학생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
             <ol className="requestSteps" aria-label="상담 신청 절차">
               <li><span>01</span><strong>상담 신청</strong><p>기본 정보와 상담받고 싶은 내용을 간단히 남깁니다.</p></li>
               <li><span>02</span><strong>개별 안내</strong><p>가능한 일정, 상담료, 진행 방식과 취소·환불 규정을 안내받습니다.</p></li>
@@ -288,7 +277,6 @@ export default function Home() {
                   <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
                   <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
                   <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
-                  <label><span>상담 유형</span><select name="service" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>개인상담</option><option>커플·부부상담</option><option>심리검사·해석상담</option><option>기타 문의</option></select></label>
                 </div>
                 <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 평일 저녁 7시 이후" /></label>
                 <label><span>간단한 신청 이유 <small>선택 · 200자 이내</small></span><textarea name="reason" rows={3} maxLength={200} placeholder="자세한 이야기는 상담에서 안전하게 나눌 수 있어요." /></label>
@@ -322,30 +310,17 @@ export default function Home() {
         </div>
       )}
 
-      {testModalOpen && (
-        <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTestModalOpen(false); }}>
-          <section className="testModal" role="dialog" aria-modal="true" aria-labelledby="test-modal-title">
-            <button className="testModalClose" type="button" onClick={() => setTestModalOpen(false)} aria-label="검사 안내 닫기">×</button>
-            <p className="testModalEyebrow">PSYCHOLOGICAL TESTS</p>
-            <h2 id="test-modal-title">나를 이해하는<br />여러 가지 방법</h2>
-            <p className="testModalLead">상담을 시작하지 않아도 심리검사와 해석상담만 별도로 신청할 수 있습니다.</p>
-            <div className="testTabs" role="tablist" aria-label="심리검사 영역">
-              {testCategories.map((category, index) => (
-                <button key={category.name} type="button" role="tab" aria-selected={activeTestCategory === index} className={activeTestCategory === index ? "active" : ""} onClick={() => setActiveTestCategory(index)}>
-                  {category.name}
-                </button>
-              ))}
+      {capacityModalOpen && (
+        <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCapacityModalOpen(false); }}>
+          <section className="testModal capacityModal" role="dialog" aria-modal="true" aria-labelledby="capacity-modal-title">
+            <button className="testModalClose" type="button" onClick={() => setCapacityModalOpen(false)} aria-label="상담 마감 안내 닫기">×</button>
+            <p className="testModalEyebrow">COUNSELING NOTICE</p>
+            <h2 id="capacity-modal-title">현재 상담 인원이<br />모두 찼습니다.</h2>
+            <p className="testModalLead">현재는 새로운 개인상담 신청을 받고 있지 않습니다. 상담 가능 인원이 생기면 신청을 다시 열겠습니다.</p>
+            <div className="capacityModalActions">
+              <button className="capacityTodayButton" type="button" onClick={hideCapacityNoticeToday}>오늘 하루 동안 이 창을 열지 않습니다</button>
+              <button className="submitButton" type="button" onClick={() => setCapacityModalOpen(false)}>확인</button>
             </div>
-            <div className="testModalList" role="tabpanel">
-              {testCategories[activeTestCategory].tests.map(([name, description]) => (
-                <details key={name}>
-                  <summary><strong>{name}</strong><span aria-hidden="true">＋</span></summary>
-                  <p>{description}</p>
-                </details>
-              ))}
-            </div>
-            {activeTestCategory === 3 && <p className="testModalNote">투사검사는 진행 방식과 실시 환경을 별도로 협의합니다.</p>}
-            <p className="testModalFootnote">검사에 따라 진행 방식과 소요 시간이 달라질 수 있습니다.</p>
           </section>
         </div>
       )}

@@ -67,6 +67,13 @@ h1 { font-size:clamp(52px,6vw,92px); }
 .counselingCtaInner p strong{margin-top:5px;color:var(--paper);font:500 20px 'Noto Serif KR'}
 .counselingApplyButton{display:flex;align-items:center;justify-content:space-between;width:min(380px,100%);margin:0 auto;padding:18px 20px 18px 28px;border:1px solid var(--paper);border-radius:999px;background:var(--paper);color:var(--ink);font-size:17px;font-weight:600;cursor:pointer;box-shadow:0 12px 35px rgba(0,0,0,.2);transition:transform .3s ease,background-color .3s ease,box-shadow .3s ease}
 .counselingApplyButton svg{color:var(--copper);transition:transform .3s ease}
+.serviceGrid>article:only-child{grid-column:1/-1;border-left:0;max-width:760px}
+.studentPrice{display:block;margin-top:10px;color:#e3bea0;font-size:13px;line-height:1.6}
+.counselingApplyButton.isDisabled,.heroChoice.isDisabled{cursor:not-allowed;opacity:.58;box-shadow:none}
+.siteConsultCta.isDisabled{cursor:not-allowed;opacity:.58}
+.capacityModal{width:min(620px,100%)}
+.capacityModalActions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:34px}
+.capacityTodayButton{border:0;background:transparent;color:#66675f;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
 .testModalBackdrop{position:fixed;inset:0;z-index:100;background:rgba(10,11,10,.78);backdrop-filter:blur(7px);display:grid;place-items:center;padding:30px;animation:modalFade .25s ease}
 .testModal{position:relative;width:min(780px,100%);max-height:88vh;overflow-y:auto;background:var(--paper);color:var(--ink);padding:55px 60px 48px;box-shadow:0 28px 90px rgba(0,0,0,.35);animation:modalRise .35s ease}
 .testModalClose{position:absolute;right:24px;top:20px;width:42px;height:42px;border:0;background:transparent;color:var(--ink);font:300 32px/1 'DM Sans';cursor:pointer}
@@ -107,6 +114,7 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 
 @media(max-width:900px){.header{height:76px}.menuButton{display:flex;background:none;border:0;flex-direction:column;gap:7px;padding:10px}.menuButton span{width:25px;border-top:1px solid var(--paper)}.nav{display:none;position:absolute;top:76px;left:0;right:0;background:var(--ink);padding:28px 4vw;flex-direction:column;align-items:flex-start}.nav.open{display:flex}.hero{grid-template-columns:1fr;padding-top:120px;height:auto;min-height:800px}.heroArt{position:absolute;width:68vw;right:-29vw;bottom:-16vw;opacity:.48}.heroCopy{align-self:start;margin-top:50px}.heroText{max-width:430px}.section{padding:90px 6vw}.intro,.counselor,.story{grid-template-columns:1fr;gap:60px}.introBody{padding-top:0}.sectionHeadingRow{grid-template-columns:1fr;gap:35px}.serviceGrid{grid-template-columns:1fr;margin-top:55px}.serviceGrid article,.serviceGrid article+article{padding:30px 0;border-left:0;min-height:0}.counselingCta{justify-content:center}.testModalBackdrop{padding:0;place-items:end center}.testModal{width:100%;max-height:92vh;padding:45px 6vw 36px;border-radius:24px 24px 0 0}.testTabs{margin-right:-6vw}.portraitPlaceholder{min-height:480px}.storyForm{margin-top:10px}footer{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.brand small{display:none}.hero{padding-left:6vw;padding-right:6vw;min-height:760px}.heroActions{align-items:flex-start;flex-direction:column;gap:12px}.heroChoice{width:min(100%,285px)}.counselingGuide{align-items:flex-start;flex-direction:column;gap:5px;margin-top:28px}.counselingCta .outlineButton{width:100%;max-width:360px;min-width:0}.heroArt{width:105vw;right:-61vw;bottom:-18vw;opacity:.42}.heroArt p{display:none}.scrollHint{display:none}.section{padding-top:75px;padding-bottom:75px}.serviceGrid{margin-bottom:35px}.testModal{padding-top:50px}.testModalLead{font-size:14px}.testModalClose{right:14px;top:14px}.portraitPlaceholder{min-height:390px}.portraitPlaceholder p{font-size:26px;max-width:290px}.counselorSilhouette{right:-8%;width:78%;height:82%}footer{grid-template-columns:1fr}.nav{padding-left:6vw}.intro h2,.sectionHeadingRow h2,.story h2{font-size:37px}.profileLead{font-size:20px}}
+@media(max-width:560px){.capacityModalActions,.intakeControl{align-items:stretch;flex-direction:column}.capacityModalActions .submitButton,.intakeControl button{width:100%}.counselingModal .requestPrices{grid-template-columns:1fr}}
 
 .textButton{display:inline;padding:0;border:0;border-bottom:1px solid currentColor;background:transparent;color:inherit;font:inherit;cursor:pointer}
 .requestSteps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:38px 0 28px;padding:0;border-top:1px solid var(--line);list-style:none}
@@ -136,6 +144,7 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 }
 
 .requestPrices{display:grid;grid-template-columns:repeat(3,1fr);margin:34px 0 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--line)}
+.counselingModal .requestPrices{grid-template-columns:repeat(2,1fr)}
 .requestPrices article{display:flex;min-height:150px;padding:22px 20px 20px 0;flex-direction:column}
 .requestPrices article+article{padding-left:20px;border-left:1px solid var(--line)}
 .requestPrices span{color:#66675f;font-size:13px}
@@ -323,6 +332,8 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 .adminHeader button,.adminActions button{border:1px solid #bdb3a4;border-radius:999px;background:transparent;padding:9px 16px;color:#3f3d38;cursor:pointer}
 .adminDashboard{width:min(1280px,calc(100% - 40px));margin:0 auto;padding:60px 0 100px}
 .adminTitle{display:flex;justify-content:space-between;align-items:flex-end}
+.intakeControl{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:28px 0;padding:20px 22px;border:1px solid #c9c1b4;border-radius:16px;background:rgba(255,255,255,.24)}
+.intakeControl>div{display:grid;gap:4px}.intakeControl span{color:#7c746a;font-size:.74rem}.intakeControl strong{font-size:1.08rem}.intakeControl p{margin:0;color:#777067;font-size:.8rem}.intakeControl button{border:0;border-radius:999px;padding:11px 17px;font-weight:700;cursor:pointer;white-space:nowrap}.intakeControl.isOpen button{background:#7e463b;color:#fff}.intakeControl.isClosed{border-color:#b87562;background:#f2dfd6}.intakeControl.isClosed button{background:#1b1d19;color:#fff}.intakeControl button:disabled{opacity:.55}
 .adminStats{display:flex;align-items:baseline;gap:10px}.adminStats strong{font-family:Georgia,serif;font-size:3rem;font-weight:400}.adminStats span{color:#797168}
 .adminToolbar{margin:36px 0 18px}
 .adminTabs{display:flex;gap:8px;overflow:auto;padding-bottom:10px}
