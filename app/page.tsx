@@ -209,7 +209,12 @@ export default function Home() {
           <a href="#about" onClick={() => setMenuOpen(false)}>아우데 소개</a>
           <a href="#counseling" onClick={() => setMenuOpen(false)}>상담 안내</a>
           <a href="#counselor" onClick={() => setMenuOpen(false)}>상담자</a>
-          <a className="navCta" href="#counseling" onClick={() => setMenuOpen(false)}>상담 신청하기</a>
+          <a className="navCta" href="#counseling" onClick={(event) => {
+            event.preventDefault();
+            setMenuOpen(false);
+            setCounselingModalOpen(false);
+            window.setTimeout(() => document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+          }}>상담 신청하기</a>
         </nav>
       </header>
 
@@ -481,7 +486,7 @@ export default function Home() {
                         <small>MMPI-2·TCI·SCT 등의 객관검사와 HTP·KFD·TAT·Rorschach 등의 투사검사 가운데 목적에 맞는 검사를 안내합니다.</small>
                       </div>
                     )}
-                    <label><span>해당 검사를 원하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
+                    <label><span>심리검사를 신청하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
                     <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
                     <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                     <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "심리검사 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
