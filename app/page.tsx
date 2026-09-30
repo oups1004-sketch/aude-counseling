@@ -8,10 +8,46 @@ function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 }
 
+const testCategories = [
+  {
+    name: "기질·성격",
+    tests: [
+      ["TCI", "타고난 기질과 성장하며 형성된 성격 특성을 살펴봅니다."],
+      ["MBTI", "에너지를 얻고 정보를 받아들이며 판단하고 생활하는 선호 방식을 알아봅니다."],
+      ["NEO-PI", "성격을 다섯 가지 주요 특성과 세부 특성으로 나누어 폭넓게 이해합니다."],
+    ],
+  },
+  {
+    name: "정서·심리",
+    tests: [
+      ["MMPI", "현재의 정서 상태와 심리적 어려움, 성격적 특징을 폭넓게 이해합니다."],
+      ["SCT", "미완성 문장을 완성하며 자신과 관계, 가족, 미래에 관한 생각을 살펴봅니다."],
+    ],
+  },
+  {
+    name: "진로·학습",
+    tests: [
+      ["Strong", "다양한 활동과 직업에 대한 흥미를 살펴보고 진로 탐색의 방향을 찾습니다."],
+      ["U&I", "학습 과정에서 나타나는 성격과 행동 특성, 공부 방법을 살펴봅니다."],
+    ],
+  },
+  {
+    name: "심층·투사",
+    tests: [
+      ["TAT", "그림을 보고 만든 이야기를 통해 관계 경험과 내면의 욕구·갈등을 탐색합니다."],
+      ["Rorschach", "잉크반점에 대한 반응을 바탕으로 사고와 정서, 현실을 경험하는 방식을 종합적으로 살펴봅니다."],
+      ["HTP", "집·나무·사람 그림을 통해 자기상과 관계 경험, 정서적 특징을 탐색합니다."],
+      ["KFD", "가족이 무언가를 하는 그림을 통해 가족관계에 대한 개인의 경험과 인식을 살펴봅니다."],
+    ],
+  },
+] as const;
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [testModalOpen, setTestModalOpen] = useState(false);
+  const [activeTestCategory, setActiveTestCategory] = useState(0);
   const [counselingModalOpen, setCounselingModalOpen] = useState(false);
   const [capacityModalOpen, setCapacityModalOpen] = useState(false);
   const [counselingOpen, setCounselingOpen] = useState(true);
@@ -34,11 +70,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!counselingModalOpen && !capacityModalOpen && !privacyModalOpen) return;
+    if (!testModalOpen && !counselingModalOpen && !capacityModalOpen && !privacyModalOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      setTestModalOpen(false);
       setCounselingModalOpen(false);
       setCapacityModalOpen(false);
       setPrivacyModalOpen(false);
@@ -48,7 +85,7 @@ export default function Home() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [counselingModalOpen, capacityModalOpen, privacyModalOpen]);
+  }, [testModalOpen, counselingModalOpen, capacityModalOpen, privacyModalOpen]);
 
   function openCounselingForm() {
     if (!counselingOpen) return setCapacityModalOpen(true);
@@ -180,6 +217,7 @@ export default function Home() {
         </div>
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
+          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 검사에 따라 상이</strong><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
@@ -244,6 +282,34 @@ export default function Home() {
           </form>
         )}
       </section>
+
+      {testModalOpen && (
+        <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setTestModalOpen(false); }}>
+          <section className="testModal" role="dialog" aria-modal="true" aria-labelledby="test-modal-title">
+            <button className="testModalClose" type="button" onClick={() => setTestModalOpen(false)} aria-label="검사 안내 닫기">×</button>
+            <p className="testModalEyebrow">PSYCHOLOGICAL TESTS</p>
+            <h2 id="test-modal-title">나를 이해하는<br />여러 가지 방법</h2>
+            <p className="testModalLead">심리검사와 해석상담을 통해 현재의 나를 보다 구체적으로 이해할 수 있습니다.</p>
+            <div className="testTabs" role="tablist" aria-label="심리검사 영역">
+              {testCategories.map((category, index) => (
+                <button key={category.name} type="button" role="tab" aria-selected={activeTestCategory === index} className={activeTestCategory === index ? "active" : ""} onClick={() => setActiveTestCategory(index)}>
+                  {category.name}
+                </button>
+              ))}
+            </div>
+            <div className="testModalList" role="tabpanel">
+              {testCategories[activeTestCategory].tests.map(([name, description]) => (
+                <details key={name}>
+                  <summary><strong>{name}</strong><span aria-hidden="true">＋</span></summary>
+                  <p>{description}</p>
+                </details>
+              ))}
+            </div>
+            {activeTestCategory === 3 && <p className="testModalNote">투사검사는 진행 방식과 실시 환경을 별도로 협의합니다.</p>}
+            <p className="testModalFootnote">검사에 따라 진행 방식과 소요 시간, 비용이 달라질 수 있습니다.</p>
+          </section>
+        </div>
+      )}
 
       {counselingModalOpen && (
         <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCounselingModalOpen(false); }}>
