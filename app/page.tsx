@@ -256,10 +256,10 @@ export default function Home() {
         <p className="sectionNumber light">02 / ONLINE COUNSELING</p>
         <div className="sectionHeadingRow">
           <h2>어디에서든,<br />당신의 속도로.</h2>
-          <p>익숙하고 편안한 공간에서 화상으로 만납니다. 관계, 진로, 감정의 어려움을 혼자 정리하기 벅찰 때 함께할 수 있습니다.</p>
+          <p>ZOOM을 통해 익숙하고 편안한 공간에서 만납니다. 관계, 진로, 감정의 어려움을 혼자 정리하기 벅찰 때, 자신의 속도에 맞춰 이야기를 시작할 수 있습니다.</p>
         </div>
         <div className="serviceGrid">
-          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
+          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 단순히 고쳐야 할 문제로 보지 않습니다. 지금까지 어떤 방식으로 삶을 견뎌왔는지, 무엇을 중요하게 여겨왔는지를 함께 살피며 앞으로 내가 원하는 선택과 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
           <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 해석상담 포함</strong><small className="studentPrice">단일·기본 성격·심층, 세 가지 정찰제 패키지</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
