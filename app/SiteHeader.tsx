@@ -45,9 +45,7 @@ export default function SiteHeader() {
       window.dispatchEvent(new Event("aude-counseling-closed"));
       return;
     }
-    const button = document.querySelector<HTMLButtonElement>(".counselingApplyButton");
-    if (button) button.click();
-    else window.location.hash = "counseling";
+    document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
