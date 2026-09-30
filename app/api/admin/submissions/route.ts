@@ -44,6 +44,7 @@ function storyItem(row: DbRow) {
 function counselingItem(row: DbRow) {
   const data = row.data || {};
   const service = stringValue(data.service);
+  const assessmentPackage = stringValue(data.assessmentPackage);
   const requestedTests = stringValue(data.requestedTests);
   const reason = stringValue(data.reason);
   return {
@@ -59,7 +60,9 @@ function counselingItem(row: DbRow) {
     contact: stringValue(data.contact) || null,
     service: service || null,
     preferred_time: stringValue(data.preferredTime) || null,
-    message: requestedTests ? `희망 검사: ${requestedTests}\n\n신청 이유: ${reason || "-"}` : reason || null,
+    message: assessmentPackage
+      ? `선택 패키지: ${assessmentPackage}\n관심 검사: ${requestedTests || "-"}\n\n신청 이유: ${reason || "-"}`
+      : requestedTests ? `관심 검사: ${requestedTests}\n\n신청 이유: ${reason || "-"}` : reason || null,
     content_consent: false,
     admin_note: stringValue(data.adminNote) || null,
   };
