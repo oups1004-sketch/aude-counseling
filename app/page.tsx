@@ -42,7 +42,19 @@ const testCategories = [
   },
 ] as const;
 
-const assessmentTestNames = ["TCI", "MBTI", "NEO-PI", "MMPI", "SCT", "Strong", "U&I", "TAT", "Rorschach", "HTP", "KFD"] as const;
+const singleAssessmentTests = [
+  ["TCI", "70,000원"],
+  ["MBTI", "70,000원"],
+  ["NEO-PI", "70,000원"],
+  ["MMPI-2", "70,000원"],
+  ["SCT", "70,000원"],
+  ["Strong", "70,000원"],
+  ["U&I", "70,000원"],
+  ["HTP", "70,000원"],
+  ["KFD", "70,000원"],
+  ["TAT", "100,000원"],
+  ["Rorschach", "100,000원"],
+] as const;
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -260,7 +272,7 @@ export default function Home() {
         </div>
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 단순히 고쳐야 할 문제로 보지 않습니다. 지금까지 어떤 방식으로 삶을 견뎌왔는지, 무엇을 중요하게 여겨왔는지를 함께 살피며 앞으로 내가 원하는 선택과 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
-          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 해석상담 포함</strong><small className="studentPrice">단일·기본 성격·심층, 세 가지 정찰제 패키지</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 해석상담 포함</strong><small className="studentPrice">단일·기본 성격·맞춤, 세 가지 정찰제 패키지</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
@@ -374,7 +386,7 @@ export default function Home() {
                   <button type="button" onClick={() => { setApplicationType("assessment"); setSelectedAssessmentPackage(""); setAssessmentCatalogOpen(false); setCounselingStatus("idle"); }}>
                     <span>02 · ASSESSMENT</span>
                     <strong>심리검사 신청하기</strong>
-                    <p>단일 70,000원 · 기본 성격 120,000원<br />심층 180,000원</p>
+                    <p>단일 70,000원부터 · 기본 성격 120,000원<br />맞춤 180,000원</p>
                     <small>심리검사 해석본 제공</small>
                     <ArrowIcon />
                   </button>
@@ -454,17 +466,17 @@ export default function Home() {
                     <fieldset className="packageChoices">
                       <legend>검사 패키지 선택 <small>필수</small></legend>
                       <div>
-                        <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>70,000원</b><small>검사 1종 · 40분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원부터" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>70,000원부터</b><small>검사 1종 · 40분 해석상담 · 검사에 따라 70,000~100,000원</small></span></label>
                         <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 120,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b>120,000원</b><small>MMPI-2 + TCI + SCT · 60분 해석상담</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="심층 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>심층 심리검사</strong><b>180,000원</b><small>상담자 맞춤 구성 · 80분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="맞춤 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤 심리검사</strong><b>180,000원</b><small>상담자 맞춤 구성 · 80분 해석상담</small></span></label>
                       </div>
                     </fieldset>
                     {selectedAssessmentPackage === "single" && (
                       <fieldset className="assessmentChecks singleTestChoices">
                         <legend>희망하는 단일검사 <small>1종 선택</small></legend>
                         <div>
-                          {assessmentTestNames.slice(0, 7).map((name) => (
-                            <label key={name}><input type="radio" name="requestedTests" value={name} /><span><strong>{name}</strong><small>70,000원</small></span></label>
+                          {singleAssessmentTests.map(([name, price]) => (
+                            <label key={name}><input type="radio" name="requestedTests" value={`${name} · ${price}`} /><span><strong>{name}</strong><small>{price}</small></span></label>
                           ))}
                         </div>
                       </fieldset>
