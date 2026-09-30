@@ -113,7 +113,10 @@ export default function AdminPage() {
       body: JSON.stringify({ counselingOpen: next }),
     });
     setStatusBusy(false);
-    if (!response.ok) return alert("상담 신청 상태를 변경하지 못했습니다.");
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      return alert(`${result.error || "상담 신청 상태를 변경하지 못했습니다."}${result.detail ? `\n${result.detail}` : ""}`);
+    }
     setCounselingOpen(next);
   }
 

@@ -1,6 +1,6 @@
 import { supabaseAdminRequest } from "./supabase";
 
-const SETTINGS_STATUS = "__AUDE_SITE_SETTINGS__";
+const SETTINGS_STATUS = "종결";
 
 type SettingsRow = {
   id: string;
@@ -9,18 +9,19 @@ type SettingsRow = {
 
 export async function getCounselingOpen() {
   const response = await supabaseAdminRequest(
-    `/rest/v1/counseling_requests?status=eq.${encodeURIComponent(SETTINGS_STATUS)}&select=id,data&limit=1`,
+    `/rest/v1/counseling_requests?status=eq.${encodeURIComponent(SETTINGS_STATUS)}&select=id,data&limit=1000`,
   );
   const rows = (await response.json()) as SettingsRow[];
-  return rows[0]?.data?.counselingOpen !== false;
+  const settings = rows.find((row) => row.data?.type === "site-settings");
+  return settings?.data?.counselingOpen !== false;
 }
 
 export async function setCounselingOpen(counselingOpen: boolean) {
   const response = await supabaseAdminRequest(
-    `/rest/v1/counseling_requests?status=eq.${encodeURIComponent(SETTINGS_STATUS)}&select=id,data&limit=1`,
+    `/rest/v1/counseling_requests?status=eq.${encodeURIComponent(SETTINGS_STATUS)}&select=id,data&limit=1000`,
   );
   const rows = (await response.json()) as SettingsRow[];
-  const current = rows[0];
+  const current = rows.find((row) => row.data?.type === "site-settings");
   const data = {
     ...(current?.data || {}),
     type: "site-settings",

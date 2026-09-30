@@ -31,6 +31,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ counselingOpen: input.counselingOpen });
   } catch (error) {
     console.error("Admin counseling status update failed", error);
-    return NextResponse.json({ error: "상담 신청 상태를 변경하지 못했습니다." }, { status: 500 });
+    const detail = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: "상담 신청 상태를 변경하지 못했습니다.", detail }, { status: 500 });
   }
 }
