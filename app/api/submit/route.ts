@@ -12,6 +12,7 @@ const limits: Record<string, number> = {
   gender: 20,
   contact: 80,
   service: 40,
+  requestedTests: 300,
   preferredTime: 100,
   reason: 500,
 };
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
         ageGroup: clean.ageGroup,
         contact: clean.contact,
         service: clean.service,
+        requestedTests: clean.requestedTests,
         preferredTime: clean.preferredTime,
         reason: clean.reason,
         privacyConsent: true,
