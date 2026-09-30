@@ -386,7 +386,7 @@ export default function Home() {
                   <button type="button" onClick={() => { setApplicationType("assessment"); setSelectedAssessmentPackage(""); setAssessmentCatalogOpen(false); setCounselingStatus("idle"); }}>
                     <span>02 · ASSESSMENT</span>
                     <strong>심리검사 신청하기</strong>
-                    <p>단일 70,000원부터 · 기본 성격 120,000원<br />맞춤 180,000원</p>
+                    <p>단일 70,000원부터 · 기본 성격 150,000원<br />맞춤 180,000원</p>
                     <small>심리검사 해석본 제공</small>
                     <ArrowIcon />
                   </button>
@@ -467,8 +467,8 @@ export default function Home() {
                       <legend>검사 패키지 선택 <small>필수</small></legend>
                       <div>
                         <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원부터" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>70,000원부터</b><small>검사 1종 · 40분 해석상담 · 검사에 따라 70,000~100,000원</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 120,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b>120,000원</b><small>MMPI-2 + TCI + SCT · 60분 해석상담</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="맞춤 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤 심리검사</strong><b>180,000원</b><small>상담자 맞춤 구성 · 80분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 150,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b className="packagePrice"><del>210,000원</del><em>150,000원</em></b><small>MMPI-2 + TCI + SCT · 80분 해석상담 · 60,000원 할인</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="맞춤 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤 심리검사</strong><b className="packagePrice"><del>210,000~270,000원</del><em>180,000원</em></b><small>상담자가 검사 3종 맞춤 구성 · 80분 해석상담 · 30,000~90,000원 할인</small></span></label>
                       </div>
                     </fieldset>
                     {selectedAssessmentPackage === "single" && (
@@ -487,15 +487,17 @@ export default function Home() {
                         <p><strong>MMPI-2</strong><span>현재의 정서 상태와 심리적 어려움을 폭넓게 살펴봅니다.</span></p>
                         <p><strong>TCI</strong><span>타고난 기질과 성장하며 형성된 성격 특성을 이해합니다.</span></p>
                         <p><strong>SCT</strong><span>자신·관계·가족·미래에 관한 내면의 생각을 탐색합니다.</span></p>
-                        <div>세 검사는 정서 상태, 성격의 구조, 말로 다 표현되지 않은 내면을 서로 보완적으로 이해하도록 구성했습니다. 개별 신청 합계 210,000원보다 할인된 패키지입니다.</div>
+                        <div>세 검사는 정서 상태, 성격의 구조, 말로 다 표현되지 않은 내면을 서로 보완적으로 이해하도록 구성했습니다.</div>
+                        <div className="packageSaving"><del>개별 신청 210,000원</del><strong>패키지 150,000원 · 60,000원 할인</strong></div>
                       </div>
                     )}
                     {selectedAssessmentPackage === "deep" && (
                       <div className="packageDetail deepPackageDetail">
-                        <input type="hidden" name="requestedTests" value="상담자 맞춤 구성" />
+                        <input type="hidden" name="requestedTests" value="상담자 맞춤 구성 · 3종" />
                         <strong>검사를 직접 고르느라 고민하지 않아도 괜찮습니다.</strong>
-                        <p>작성해 주신 신청 사유를 바탕으로 상담자가 자기보고식 검사와 투사검사 중 필요한 도구를 적절히 구성합니다.</p>
+                        <p>작성해 주신 신청 사유를 바탕으로 상담자가 객관검사와 투사검사 중 필요한 도구 3종을 적절히 구성합니다.</p>
                         <small>MMPI-2·TCI·SCT 등의 객관검사와 HTP·KFD·TAT·Rorschach 등의 투사검사 가운데 목적에 맞는 검사를 안내합니다.</small>
+                        <div className="packageSaving"><del>개별 구성 210,000~270,000원</del><strong>패키지 180,000원 · 30,000~90,000원 할인</strong></div>
                       </div>
                     )}
                     <label><span>심리검사를 신청하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
