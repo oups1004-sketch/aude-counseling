@@ -44,6 +44,8 @@ function storyItem(row: DbRow) {
 function counselingItem(row: DbRow) {
   const data = row.data || {};
   const service = stringValue(data.service);
+  const requestedTests = stringValue(data.requestedTests);
+  const reason = stringValue(data.reason);
   return {
     id: `counseling:${row.id}`,
     reference_code: `COUNSEL-${row.id.slice(0, 8).toUpperCase()}`,
@@ -57,7 +59,7 @@ function counselingItem(row: DbRow) {
     contact: stringValue(data.contact) || null,
     service: service || null,
     preferred_time: stringValue(data.preferredTime) || null,
-    message: stringValue(data.reason) || null,
+    message: requestedTests ? `희망 검사: ${requestedTests}\n\n신청 이유: ${reason || "-"}` : reason || null,
     content_consent: false,
     admin_note: stringValue(data.adminNote) || null,
   };
