@@ -42,6 +42,8 @@ const testCategories = [
   },
 ] as const;
 
+const assessmentTestNames = ["TCI", "MBTI", "NEO-PI", "MMPI", "SCT", "Strong", "U&I", "TAT", "Rorschach", "HTP", "KFD"] as const;
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -49,6 +51,7 @@ export default function Home() {
   const [testModalOpen, setTestModalOpen] = useState(false);
   const [activeTestCategory, setActiveTestCategory] = useState(0);
   const [counselingModalOpen, setCounselingModalOpen] = useState(false);
+  const [applicationType, setApplicationType] = useState<"choice" | "counseling" | "assessment">("choice");
   const [capacityModalOpen, setCapacityModalOpen] = useState(false);
   const [counselingOpen, setCounselingOpen] = useState(true);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
@@ -89,6 +92,8 @@ export default function Home() {
 
   function openCounselingForm() {
     if (!counselingOpen) return setCapacityModalOpen(true);
+    setApplicationType("choice");
+    setCounselingStatus("idle");
     setCounselingModalOpen(true);
   }
 
@@ -157,6 +162,35 @@ export default function Home() {
     }
   }
 
+  async function submitAssessment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const requestedTests = data.getAll("requestedTests").map(String);
+    if (!requestedTests.length) {
+      setCounselingStatus("error");
+      return;
+    }
+    setCounselingStatus("sending");
+    try {
+      await sendSubmission({
+        type: "counseling",
+        name: String(data.get("name") || ""),
+        ageGroup: String(data.get("ageGroup") || ""),
+        contact: String(data.get("contact") || ""),
+        service: "심리검사·해석상담",
+        requestedTests: requestedTests.join(", "),
+        preferredTime: String(data.get("preferredTime") || ""),
+        reason: String(data.get("reason") || ""),
+        website: String(data.get("website") || ""),
+      });
+      form.reset();
+      setCounselingStatus("sent");
+    } catch {
+      setCounselingStatus("error");
+    }
+  }
+
   return (
     <main>
       <header className="header">
@@ -217,7 +251,7 @@ export default function Home() {
         </div>
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
-          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 검사에 따라 상이</strong><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">전체 70,000원 · 해석상담 포함</strong><small className="studentPrice">검사 종류와 관계없이 동일한 비용입니다.</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
@@ -315,44 +349,94 @@ export default function Home() {
         <div className="testModalBackdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCounselingModalOpen(false); }}>
           <section className="testModal counselingModal" role="dialog" aria-modal="true" aria-labelledby="counseling-modal-title">
             <button className="testModalClose" type="button" onClick={() => setCounselingModalOpen(false)} aria-label="상담 신청 안내 닫기">×</button>
-            <p className="testModalEyebrow">COUNSELING REQUEST</p>
-            <h2 id="counseling-modal-title">상담을 시작하는<br />첫 번째 단계</h2>
-            <p className="testModalLead">신청만으로 상담이 바로 확정되지는 않습니다. 간단한 내용을 보내주시면 가능한 일정과 비용, 진행 방법을 개별적으로 안내드립니다.</p>
-            <div className="requestPrices" aria-label="상담 비용">
-              <article><span>개인상담</span><strong>100,000원</strong><small>온라인 · 60분</small></article>
-              <article><span>대학생 개인상담</span><strong>80,000원</strong><small>재학증명서 인증 시 · 온라인 60분</small></article>
-            </div>
-            <p className="requestPriceNote">대학생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
-            <ol className="requestSteps" aria-label="상담 신청 절차">
-              <li><span>01</span><strong>상담 신청</strong><p>기본 정보와 상담받고 싶은 내용을 간단히 남깁니다.</p></li>
-              <li><span>02</span><strong>개별 안내</strong><p>가능한 일정, 상담료, 진행 방식과 취소·환불 규정을 안내받습니다.</p></li>
-              <li><span>03</span><strong>상담 확정</strong><p>안내 내용을 확인하고 동의한 뒤 첫 상담을 확정합니다.</p></li>
-            </ol>
-            <div className="requestNotice">
-              <strong>신청 전 확인해 주세요</strong>
-              <p>아직 상담료와 취소 규정에 동의한 상태가 아니며, 개별 안내를 확인한 후 진행 여부를 결정할 수 있습니다. 위기 상황에는 112·119 또는 자살예방상담전화 109를 이용해 주세요.</p>
-            </div>
-            {counselingStatus === "sent" ? (
-              <div className="requestSuccess" role="status">
-                <span>신청이 접수되었습니다.</span>
-                <strong>확인 후 가능한 일정과 진행 방법을 안내드릴게요.</strong>
-              </div>
-            ) : (
-              <form className="requestForm" onSubmit={submitCounseling}>
-                <div className="requestFormGrid">
-                  <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
-                  <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
-                  <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
+            {applicationType === "choice" ? (
+              <>
+                <p className="testModalEyebrow">START WITH AUDE</p>
+                <h2 id="counseling-modal-title">어떤 도움을<br />원하시나요?</h2>
+                <p className="testModalLead">원하는 방식을 선택하면 해당 신청서로 이어집니다. 신청만으로 결제되거나 일정이 확정되지는 않습니다.</p>
+                <div className="applicationChoices">
+                  <button type="button" onClick={() => { setApplicationType("counseling"); setCounselingStatus("idle"); }}>
+                    <span>01 · COUNSELING</span>
+                    <strong>개인상담 신청하기</strong>
+                    <p>온라인 · 60분 · 100,000원<br />대학생 재학증명서 인증 시 80,000원</p>
+                    <small>3회기 이상 진행 시 심리검사비 무료</small>
+                    <ArrowIcon />
+                  </button>
+                  <button type="button" onClick={() => { setApplicationType("assessment"); setCounselingStatus("idle"); }}>
+                    <span>02 · ASSESSMENT</span>
+                    <strong>심리검사 신청하기</strong>
+                    <p>검사 종류와 관계없이 전체 70,000원</p>
+                    <small>심리검사 해석본 제공</small>
+                    <ArrowIcon />
+                  </button>
                 </div>
-                <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 평일 저녁 7시 이후" /></label>
-                <label><span>간단한 신청 이유 <small>선택 · 200자 이내</small></span><textarea name="reason" rows={3} maxLength={200} placeholder="자세한 이야기는 상담에서 안전하게 나눌 수 있어요." /></label>
-                <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
-                <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-                <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "상담 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
-                {counselingStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
-              </form>
+              </>
+            ) : (
+              <>
+                <button className="applicationBack" type="button" onClick={() => { setApplicationType("choice"); setCounselingStatus("idle"); }}>← 신청 유형 다시 선택</button>
+                <p className="testModalEyebrow">{applicationType === "counseling" ? "PERSONAL COUNSELING" : "PSYCHOLOGICAL ASSESSMENT"}</p>
+                <h2 id="counseling-modal-title">{applicationType === "counseling" ? <>개인상담<br />신청하기</> : <>심리검사<br />신청하기</>}</h2>
+                <p className="testModalLead">{applicationType === "counseling" ? "기본 정보를 남겨주시면 가능한 일정과 진행 방법을 개별적으로 안내드립니다." : "원하는 검사를 선택하고 신청 이유를 남겨주시면 검사 진행 방법과 일정을 안내드립니다."}</p>
+
+                {applicationType === "counseling" ? (
+                  <>
+                    <div className="requestPrices" aria-label="개인상담 비용">
+                      <article><span>개인상담</span><strong>100,000원</strong><small>온라인 · 60분</small></article>
+                      <article><span>대학생 개인상담</span><strong>80,000원</strong><small>재학증명서 인증 시 · 온라인 60분</small></article>
+                    </div>
+                    <p className="requestPriceNote">3회기 이상 진행 시 심리검사비가 무료입니다. 대학생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
+                  </>
+                ) : (
+                  <div className="assessmentPrice">
+                    <span>심리검사·해석상담</span><strong>전체 70,000원</strong><small>선택한 검사 종류와 관계없이 동일 · 해석상담 및 해석본 제공</small>
+                  </div>
+                )}
+
+                {counselingStatus === "sent" ? (
+                  <div className="requestSuccess" role="status">
+                    <span>신청이 접수되었습니다.</span>
+                    <strong>확인 후 가능한 일정과 진행 방법을 안내드릴게요.</strong>
+                  </div>
+                ) : applicationType === "counseling" ? (
+                  <form className="requestForm" onSubmit={submitCounseling}>
+                    <div className="requestFormGrid">
+                      <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
+                      <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
+                      <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
+                    </div>
+                    <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 평일 저녁 7시 이후" /></label>
+                    <label><span>간단한 신청 이유 <small>선택 · 200자 이내</small></span><textarea name="reason" rows={3} maxLength={200} placeholder="자세한 이야기는 상담에서 안전하게 나눌 수 있어요." /></label>
+                    <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
+                    <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+                    <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "개인상담 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
+                    {counselingStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
+                  </form>
+                ) : (
+                  <form className="requestForm assessmentForm" onSubmit={submitAssessment}>
+                    <div className="requestFormGrid">
+                      <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
+                      <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
+                      <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
+                      <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 토요일 오전" /></label>
+                    </div>
+                    <fieldset className="assessmentChecks">
+                      <legend>원하는 검사 <small>복수 선택 가능</small></legend>
+                      <div>
+                        {assessmentTestNames.map((name) => (
+                          <label key={name}><input type="checkbox" name="requestedTests" value={name} /><span>{name}</span></label>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <label><span>해당 검사를 원하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
+                    <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
+                    <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+                    <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "심리검사 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
+                    {counselingStatus === "error" && <p className="formError" role="alert">원하는 검사를 하나 이상 선택했는지 확인한 뒤 다시 시도해 주세요.</p>}
+                  </form>
+                )}
+                <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
+              </>
             )}
-            <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
           </section>
         </div>
       )}
