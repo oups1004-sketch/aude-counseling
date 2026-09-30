@@ -397,7 +397,7 @@ export default function Home() {
                 <button className="applicationBack" type="button" onClick={() => { setApplicationType("choice"); setCounselingStatus("idle"); }}>← 신청 유형 다시 선택</button>
                 <p className="testModalEyebrow">{applicationType === "counseling" ? "PERSONAL COUNSELING" : "PSYCHOLOGICAL ASSESSMENT"}</p>
                 <h2 id="counseling-modal-title">{applicationType === "counseling" ? <>개인상담<br />신청하기</> : <>심리검사<br />신청하기</>}</h2>
-                <p className="testModalLead">{applicationType === "counseling" ? "기본 정보를 남겨주시면 가능한 일정과 진행 방법을 개별적으로 안내드립니다." : "원하는 검사를 선택하고 신청 이유를 남겨주시면 검사 진행 방법과 일정을 안내드립니다."}</p>
+                <p className="testModalLead">{applicationType === "counseling" ? "기본 정보를 남겨주시면 가능한 일정과 진행 방법을 개별적으로 안내드립니다." : <>원하는 검사를 선택하고 신청 이유를 남겨주시면 검사 진행 방법과 일정을 안내드립니다.<span className="assessmentIncluded">모든 패키지에 전문가 해석상담과 요약 해석본이 포함됩니다.</span></>}</p>
 
                 {applicationType === "counseling" ? (
                   <>
@@ -407,11 +407,7 @@ export default function Home() {
                     </div>
                     <p className="requestPriceNote">3회기 이상 진행 시 심리검사비가 무료입니다. 대학생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
                   </>
-                ) : (
-                  <div className="assessmentPrice">
-                    <span>심리검사·해석상담</span><strong>70,000원부터</strong><small>모든 패키지에 전문가 해석상담과 요약 해석본이 포함됩니다.</small>
-                  </div>
-                )}
+                ) : null}
 
                 {applicationType === "assessment" && (
                   <div className="assessmentCatalogWrap">
@@ -468,7 +464,7 @@ export default function Home() {
                       <div>
                         <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원부터" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>70,000원부터</b><small>검사 1종 · 40분 해석상담 · 검사에 따라 70,000~100,000원</small></span></label>
                         <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 150,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b className="packagePrice"><del>210,000원</del><em>150,000원</em></b><small>MMPI-2 + TCI + SCT · 80분 해석상담 · 60,000원 할인</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="맞춤 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤 심리검사</strong><b className="packagePrice"><del>210,000~270,000원</del><em>180,000원</em></b><small>상담자가 검사 3종 맞춤 구성 · 80분 해석상담 · 30,000~90,000원 할인</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="맞춤 심리검사 · 180,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤 심리검사</strong><b>180,000원</b><small>상담자가 검사 3종 맞춤 구성 · 80분 해석상담 · 구성에 따른 추가 비용 없음</small></span></label>
                       </div>
                     </fieldset>
                     {selectedAssessmentPackage === "single" && (
@@ -496,8 +492,8 @@ export default function Home() {
                         <input type="hidden" name="requestedTests" value="상담자 맞춤 구성 · 3종" />
                         <strong>검사를 직접 고르느라 고민하지 않아도 괜찮습니다.</strong>
                         <p>작성해 주신 신청 사유를 바탕으로 상담자가 객관검사와 투사검사 중 필요한 도구 3종을 적절히 구성합니다.</p>
-                        <small>MMPI-2·TCI·SCT 등의 객관검사와 HTP·KFD·TAT·Rorschach 등의 투사검사 가운데 목적에 맞는 검사를 안내합니다.</small>
-                        <div className="packageSaving"><del>개별 구성 210,000~270,000원</del><strong>패키지 180,000원 · 30,000~90,000원 할인</strong></div>
+                        <small>MMPI-2·TCI·SCT·MBTI 등의 객관검사와 HTP·KFD·TAT·Rorschach 등의 투사검사 가운데 목적에 맞는 검사를 안내합니다.</small>
+                        <div className="packageFixedPrice"><strong>180,000원 정찰제</strong><span>어떤 검사가 포함되더라도 추가 비용이 없습니다.</span></div>
                       </div>
                     )}
                     <label><span>심리검사를 신청하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
