@@ -167,7 +167,8 @@ export default function Home() {
     const form = event.currentTarget;
     const data = new FormData(form);
     const requestedTests = data.getAll("requestedTests").map(String);
-    if (!requestedTests.length) {
+    const assessmentPackage = String(data.get("assessmentPackage") || "");
+    if (!assessmentPackage) {
       setCounselingStatus("error");
       return;
     }
@@ -179,6 +180,7 @@ export default function Home() {
         ageGroup: String(data.get("ageGroup") || ""),
         contact: String(data.get("contact") || ""),
         service: "심리검사·해석상담",
+        assessmentPackage,
         requestedTests: requestedTests.join(", "),
         preferredTime: String(data.get("preferredTime") || ""),
         reason: String(data.get("reason") || ""),
@@ -251,7 +253,7 @@ export default function Home() {
         </div>
         <div className="serviceGrid">
           <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 이해하고, 내가 원하는 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
-          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">전체 70,000원 · 해석상담 포함</strong><small className="studentPrice">검사 종류와 관계없이 동일한 비용입니다.</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 해석상담 포함</strong><small className="studentPrice">단일·통합·심층, 세 가지 정찰제 패키지</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
@@ -365,7 +367,7 @@ export default function Home() {
                   <button type="button" onClick={() => { setApplicationType("assessment"); setCounselingStatus("idle"); }}>
                     <span>02 · ASSESSMENT</span>
                     <strong>심리검사 신청하기</strong>
-                    <p>검사 종류와 관계없이 전체 70,000원</p>
+                    <p>단일 70,000원 · 통합 120,000원<br />심층 180,000원</p>
                     <small>심리검사 해석본 제공</small>
                     <ArrowIcon />
                   </button>
@@ -388,7 +390,7 @@ export default function Home() {
                   </>
                 ) : (
                   <div className="assessmentPrice">
-                    <span>심리검사·해석상담</span><strong>전체 70,000원</strong><small>선택한 검사 종류와 관계없이 동일 · 해석상담 및 해석본 제공</small>
+                    <span>심리검사·해석상담</span><strong>70,000원부터</strong><small>모든 패키지에 전문가 해석상담과 요약 해석본이 포함됩니다.</small>
                   </div>
                 )}
 
@@ -419,19 +421,28 @@ export default function Home() {
                       <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
                       <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 토요일 오전" /></label>
                     </div>
+                    <fieldset className="packageChoices">
+                      <legend>검사 패키지 선택 <small>필수</small></legend>
+                      <div>
+                        <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원" /><span><strong>단일 심리검사</strong><b>70,000원</b><small>검사 1종 · 40분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="통합 심리검사 · 120,000원" /><span><strong>통합 심리검사</strong><b>120,000원</b><small>자기보고식 2~3종 · 60분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="심층 심리검사 · 180,000원" /><span><strong>심층 심리검사</strong><b>180,000원</b><small>객관·투사검사 조합 · 80분 해석상담</small></span></label>
+                      </div>
+                    </fieldset>
                     <fieldset className="assessmentChecks">
-                      <legend>원하는 검사 <small>복수 선택 가능</small></legend>
+                      <legend>관심 있는 검사 <small>선택 · 복수 선택 가능</small></legend>
                       <div>
                         {assessmentTestNames.map((name) => (
                           <label key={name}><input type="checkbox" name="requestedTests" value={name} /><span>{name}</span></label>
                         ))}
                       </div>
+                      <p>관심 검사는 참고용이며, 실제 검사 구성은 신청 이유와 패키지에 맞춰 최종 안내합니다.</p>
                     </fieldset>
                     <label><span>해당 검사를 원하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>
                     <label className="check"><input type="checkbox" required /><span><button className="textButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인하고 접수에 동의합니다. (필수)</span></label>
                     <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
                     <button className="submitButton requestMailButton" type="submit" disabled={counselingStatus === "sending"}>{counselingStatus === "sending" ? "접수하는 중…" : "심리검사 신청서 보내기"} {counselingStatus !== "sending" && <ArrowIcon />}</button>
-                    {counselingStatus === "error" && <p className="formError" role="alert">원하는 검사를 하나 이상 선택했는지 확인한 뒤 다시 시도해 주세요.</p>}
+                    {counselingStatus === "error" && <p className="formError" role="alert">검사 패키지를 선택했는지 확인한 뒤 다시 시도해 주세요.</p>}
                   </form>
                 )}
                 <button className="textButton privacyOpenButton" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내 보기</button>
