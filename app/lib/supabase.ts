@@ -39,6 +39,7 @@ export async function supabaseAdminRequest(path: string, init: RequestInit = {})
     cache: "no-store",
     headers: {
       apikey: current.secretKey,
+      Authorization: `Bearer ${current.secretKey}`,
       "Content-Type": "application/json",
       ...init.headers,
     },
