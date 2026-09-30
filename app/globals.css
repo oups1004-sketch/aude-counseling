@@ -148,6 +148,18 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 .assessmentChecks label:has(input:checked){border-color:var(--copper);background:rgba(162,103,63,.09)}
 .assessmentChecks label span{display:inline!important;margin:0!important;color:var(--ink)!important;font:500 12px 'DM Sans'!important}
 .assessmentChecks input{accent-color:var(--copper)}
+.assessmentChecks>p{margin:10px 0 0;color:#85867e;font-size:11px;line-height:1.65}
+.packageChoices{margin:5px 0 25px;padding:0;border:0}
+.packageChoices legend{margin-bottom:12px;color:#55564f;font-size:12px;font-weight:600}
+.packageChoices legend small{margin-left:7px;color:#8b8c84;font-weight:400}
+.packageChoices>div{display:grid;gap:9px}
+.packageChoices label{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;margin:0!important;padding:16px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.24);cursor:pointer}
+.packageChoices label:has(input:checked){border-color:var(--copper);background:rgba(162,103,63,.09);box-shadow:0 0 0 2px rgba(162,103,63,.07)}
+.packageChoices input{margin-top:5px;accent-color:var(--copper)}
+.packageChoices label>span{display:grid!important;grid-template-columns:1fr auto;gap:4px 16px;margin:0!important;color:var(--ink)!important}
+.packageChoices strong{font:500 15px 'Noto Serif KR'}
+.packageChoices b{color:var(--copper);font:600 14px 'DM Sans'}
+.packageChoices small{grid-column:1/-1;color:#76776f;font-size:11px;font-weight:400}
 @media(hover:hover) and (pointer:fine){.applicationChoices button:hover{transform:translateY(-3px);border-color:var(--copper);background:rgba(255,255,255,.42)}}
 @media(max-width:560px){.applicationChoices{grid-template-columns:1fr}.applicationChoices button{min-height:210px}.assessmentChecks>div{grid-template-columns:repeat(2,1fr)}}
 .privacyModal{width:min(640px,100%)}
