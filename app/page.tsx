@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
 const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@example.com";
+const openChatUrl = "https://m.site.naver.com/2hPA6";
 
 function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
@@ -434,8 +435,17 @@ export default function Home() {
 
                 {counselingStatus === "sent" ? (
                   <div className="requestSuccess" role="status">
-                    <span>신청이 접수되었습니다.</span>
-                    <strong>확인 후 가능한 일정과 진행 방법을 안내드릴게요.</strong>
+                    <span>신청서가 정상적으로 접수되었습니다.</span>
+                    <strong>일정 안내를 위해 오픈채팅으로 들어와 주세요.</strong>
+                    <p>오픈채팅 입장 후 신청서에 적은 이름 또는 닉네임을 남겨주시면 확인해 드립니다.</p>
+                    <a className="openChatButton" href={openChatUrl} target="_blank" rel="noreferrer">
+                      카카오톡 오픈채팅으로 이동하기 <ArrowIcon />
+                    </a>
+                    <div className="openChatQr">
+                      <img src="/aude-open-chat-qr.jpg" alt="아우데 심리상담 카카오톡 오픈채팅 QR코드" width="357" height="357" />
+                      <small>PC에서 신청하셨다면 휴대폰 카메라로 QR코드를 촬영해 주세요.</small>
+                    </div>
+                    <button className="applicationBack successCloseButton" type="button" onClick={() => setCounselingModalOpen(false)}>완료하고 닫기</button>
                   </div>
                 ) : applicationType === "counseling" ? (
                   <form className="requestForm" onSubmit={submitCounseling}>
