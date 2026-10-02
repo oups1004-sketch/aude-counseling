@@ -134,3 +134,60 @@
     justify-self:start;
   }
 }
+
+/* Responsive, tactile admin workspace */
+.adminShell{font-family:'Noto Sans KR',sans-serif}
+.adminShell button,.adminShell nav a{transition:background-color .18s,color .18s,box-shadow .18s,transform .18s}
+.adminShell button:disabled{cursor:not-allowed;opacity:.5}
+.adminShell :is(button,a,input,select,textarea):focus-visible{outline:3px solid #7c8967;outline-offset:3px}
+.adminShell button:not(:disabled):active{transform:scale(.98)}
+.adminShell .newShortcut{border:1px solid #cec7b8;border-radius:18px;padding:10px 20px;background:#f8f5ee;color:#34422f;cursor:pointer}
+.adminShell .newShortcut.active,.adminShell .newFilter.active{background:#e2e9d9;border-color:#869772;color:#34422f}
+.adminShell .adminTabs button.active{background:#45553c;border-color:#45553c}
+.adminShell .adminList{border:1px solid #d3ccbe;border-radius:18px;overflow:hidden;background:#f8f5ee;box-shadow:0 5px 20px #25251b06}
+.adminShell .adminList .submissionRow{padding-inline:12px;transition:background .18s,box-shadow .18s}
+.adminShell .adminList .submissionRow:last-child{border-bottom:0}
+.adminShell .adminList .submissionRow.isViewing{background:#e7ecdf;box-shadow:inset 3px 0 #647b50}
+.adminShell .submissionStatus{white-space:nowrap}
+.adminShell .status-신규{background:#8d513d;color:#fff}
+.adminShell .status-확인{background:#e8dfca;color:#66552d}
+.adminShell .status-연락-완료{background:#dce7eb;color:#375764}
+.adminShell .status-진행{background:#dce7d2;color:#405a34}
+.adminShell .status-종결{background:#e8e6e1;color:#68665e;opacity:1}
+.adminShell .adminDashboard{transition:width .2s,margin .2s}
+.submissionDrawerWrap{position:fixed;inset:0 0 0 auto;width:min(560px,100%);z-index:1000;pointer-events:none}
+.adminShell .submissionDrawer{pointer-events:auto;width:100%;height:100dvh;max-height:none;border-radius:22px 0 0 22px;padding:44px 28px 32px;background:#faf8f1;border-left:1px solid #d3ccbe;box-shadow:-16px 0 55px #26281f20;animation:adminSlide .2s ease-out;overscroll-behavior:contain}
+.submissionDrawer .sectionNumber{margin-bottom:20px}
+.submissionDrawer .submissionDetails{grid-template-columns:1fr}
+.submissionDrawer .adminModalClose{border-radius:50%;width:40px;height:40px;display:grid;place-items:center}
+.detailQuickActions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px}
+.detailQuickActions button{border:1px solid #cbcbbb;border-radius:999px;background:#f1f0e5;padding:8px 13px;color:#4b5940;font-size:.8rem;cursor:pointer}
+.editHint{color:#6f775f;font-size:.76rem;margin:16px 0 0}
+.adminShell .submissionDrawer .adminModalActions{position:sticky;bottom:-32px;margin-inline:-28px;padding:18px 28px 24px;background:#faf8f1;border-top:1px solid #e2ded3;flex-wrap:wrap}
+.adminShell .adminModalActions .save{background:#45553c}
+.adminToast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);z-index:1100;background:#2f3a28;color:#fff;padding:13px 22px;border-radius:14px;box-shadow:0 8px 30px #17191525;font-size:.88rem}
+@keyframes adminSlide{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+@media(hover:hover) and (pointer:fine){
+ .adminShell button:not(:disabled):hover{box-shadow:0 4px 12px #26281f15;transform:translateY(-1px)}
+ .adminShell .adminList .submissionRow:hover{background:#eeeee3}
+ .adminShell .adminList .submissionRow.isViewing:hover{background:#e0e7d6}
+ .adminShell .submissionOpen:hover{box-shadow:none;transform:none}
+ .adminShell .adminTabs button:not(.active):hover,.adminShell .detailQuickActions button:hover{background:#e5eadb;border-color:#a4b194}
+ .adminShell .adminModalClose:hover{background:#e9ecdf}
+ .adminShell .clientRow:hover{background:#e7ecdf}
+}
+@media(min-width:1200px){
+ .intakeWorkspace.hasDetail .adminDashboard{width:calc(100% - 620px);margin-left:30px;margin-right:590px}
+ .intakeWorkspace.hasDetail .submissionOpen{grid-template-columns:75px minmax(0,1fr) 80px;gap:12px}
+ .intakeWorkspace.hasDetail .submissionDate{display:none}
+}
+@media(max-width:1199px){.submissionDrawerWrap{background:#faf8f1}.submissionDrawer .adminModalActions{flex-direction:column}.submissionDrawer .modalRightActions{flex-wrap:wrap}}
+@media(max-width:600px){
+ .adminShell .submissionDrawer{border-radius:0;padding:38px 20px 24px}
+ .adminShell .submissionDrawer .adminModalActions{margin-inline:-20px;bottom:-24px;padding:18px 20px 22px}
+ .adminShell .adminActions{flex-wrap:wrap}
+ .adminShell .adminActions input{max-width:none;flex-basis:100%}
+ .adminShell .newShortcut{padding:8px 12px}
+ .newShortcut span{font-size:.75rem}
+}
+@media(prefers-reduced-motion:reduce){.adminShell *{transition:none!important;animation:none!important}}

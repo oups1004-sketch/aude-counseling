@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 type Kind = "intake" | "assessment" | "story";
@@ -50,6 +50,30 @@ export default function AdminPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [counselingOpen, setCounselingOpen] = useState(true);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [onlyNew, setOnlyNew] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(""), 3500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+  function closeDetail() {
+    if (busy || (dirty && !confirm("저장하지 않은 변경사항을 버릴까요?"))) return;
+    setSelected(null);
+    setDirty(false);
+  }
+  function openDetail(item: Submission) {
+    if (busy || selected?.id === item.id || (dirty && !confirm("저장하지 않은 변경사항을 버릴까요?"))) return;
+    setSelected(item);
+    setDirty(false);
+  }
 
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/submissions", { cache: "no-store" });
@@ -94,9 +118,12 @@ export default function AdminPage() {
   }
 
   async function logout() {
+    if (busy || (dirty && !confirm("저장하지 않은 변경사항을 버리고 로그아웃할까요?"))) return;
     await fetch("/api/admin/logout", { method: "POST" });
     setItems([]);
     setSelectedIds(new Set());
+    setSelected(null);
+    setDirty(false);
     setAuth("login");
   }
 
@@ -122,15 +149,23 @@ export default function AdminPage() {
 
   async function save(item: Submission, status: string, adminNote: string) {
     setBusy(true);
-    const response = await fetch("/api/admin/submissions", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: item.id, status, adminNote }),
-    });
-    setBusy(false);
-    if (!response.ok) return alert("저장하지 못했습니다.");
-    setSelected(null);
-    await load();
+    try {
+      const response = await fetch("/api/admin/submissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: item.id, status, adminNote }),
+      });
+      if (!response.ok) throw new Error("저장하지 못했습니다. 다시 시도해 주세요.");
+      const updated = { ...item, status, admin_note: adminNote };
+      setItems((current) => current.map((entry) => entry.id === item.id ? updated : entry));
+      setSelected(updated);
+      setDirty(false);
+      setNotice("✓ 변경사항을 저장했어요");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "저장하지 못했습니다. 연결을 확인해 주세요.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function registerClient(item: Submission) {
@@ -167,12 +202,13 @@ export default function AdminPage() {
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return items.filter((item) => {
+      if (onlyNew && item.status !== "신규") return false;
       if (activeTab !== "all" && item.kind !== activeTab) return false;
       if (!needle) return true;
       return [item.reference_code, item.name, item.nickname, item.age_group, item.gender, item.contact, item.service, item.message]
         .some((value) => value?.toLowerCase().includes(needle));
     });
-  }, [activeTab, items, query]);
+  }, [activeTab, items, query, onlyNew]);
 
   const selectedItems = useMemo(
     () => items.filter((item) => selectedIds.has(item.id)),
@@ -283,7 +319,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="adminShell">
+    <main className={`adminShell intakeWorkspace ${selected ? "hasDetail" : ""}`}>
       <header className="adminHeader workspaceHeader">
         <div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div>
         <nav>
@@ -296,7 +332,7 @@ export default function AdminPage() {
       <section className="adminDashboard">
         <div className="adminTitle">
           <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
-          <div className="adminStats"><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수</span></div>
+          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => setOnlyNew(!onlyNew)} aria-pressed={onlyNew}><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수 ↗</span></button>
         </div>
 
         <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
@@ -313,7 +349,8 @@ export default function AdminPage() {
             ))}
           </div>
           <div className="adminActions">
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름·연령·성별·내용 검색" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="접수 검색" placeholder="이름·연령·성별·내용 검색" />
+            <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => setOnlyNew(!onlyNew)}>신규만 보기</button>
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
@@ -335,17 +372,17 @@ export default function AdminPage() {
         )}
 
         <div className="adminList">
-          {filtered.length === 0 && <div className="adminEmpty">아직 표시할 접수가 없습니다.</div>}
+          {filtered.length === 0 && <div className="adminEmpty">{items.length ? "검색 조건에 맞는 접수가 없어요. 검색어나 필터를 바꿔보세요." : "새로운 접수가 들어오면 여기에 표시됩니다."}</div>}
           {filtered.map((item) => {
             const storyMeta = item.kind === "story" ? [item.age_group, item.gender].filter(Boolean).join(" · ") : "";
             const isChecked = selectedIds.has(item.id);
             return (
-              <div className={isChecked ? "submissionRow submissionRowSelected" : "submissionRow"} key={item.id}>
+              <div className={`submissionRow ${isChecked ? "submissionRowSelected" : ""} ${selected?.id === item.id ? "isViewing" : ""}`} key={item.id}>
                 <label className="submissionSelect" title={`${displayName(item)} 선택`}>
                   <input type="checkbox" checked={isChecked} onChange={() => toggleSelected(item.id)} />
                   <span aria-hidden="true" />
                 </label>
-                <button className="submissionOpen" type="button" onClick={() => setSelected(item)}>
+                <button className="submissionOpen" type="button" onClick={() => openDetail(item)} aria-expanded={selected?.id === item.id}>
                   <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
                   <span className="submissionMain">
                     <strong>{displayName(item)}</strong>
@@ -360,14 +397,17 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {selected && <SubmissionModal item={selected} busy={busy} onClose={() => setSelected(null)} onSave={save} onDelete={remove} onRegisterClient={registerClient} />}
+      {notice && <div className="adminToast" role="status">{notice}</div>}
+      {selected && <SubmissionModal key={selected.id} item={selected} busy={busy} onClose={closeDetail} onSave={save} onDelete={remove} onRegisterClient={registerClient} onDirty={setDirty} onNotice={setNotice} />}
     </main>
   );
 }
 
-function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClient }: {
+function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClient, onDirty, onNotice }: {
   item: Submission;
   busy: boolean;
+  onDirty: (dirty: boolean) => void;
+  onNotice: (message: string) => void;
   onClose: () => void;
   onSave: (item: Submission, status: string, note: string) => void;
   onDelete: (item: Submission) => void;
@@ -376,12 +416,37 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClie
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
 
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const closeHandler = useRef(onClose);
+  closeHandler.current = onClose;
+  const changed = status !== item.status || note !== (item.admin_note || "");
+  useEffect(() => { onDirty(changed); }, [changed, onDirty]);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeHandler.current();
+    };
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("keydown", escape);
+      previous?.focus();
+    };
+  }, []);
+  async function copy(value: string) {
+    try { await navigator.clipboard.writeText(value); onNotice("✓ 복사했어요"); }
+    catch { onNotice("복사하지 못했습니다. 내용을 직접 선택해 주세요."); }
+  }
   return (
-    <div className="adminModalBackdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="adminModal" role="dialog" aria-modal="true" aria-label="접수 상세">
-        <button className="adminModalClose" onClick={onClose} aria-label="닫기">×</button>
+    <div className="submissionDrawerWrap">
+      <section className="adminModal submissionDrawer" role="dialog" aria-label="접수 상세">
+        <button ref={closeRef} className="adminModalClose" disabled={busy} onClick={onClose} aria-label="닫기">×</button>
         <p className="sectionNumber">{item.reference_code}</p>
         <h2>{displayName(item)}</h2>
+        <div className="detailQuickActions">
+          {item.contact && <button onClick={() => copy(item.contact!)}>연락처 복사</button>}
+          <button onClick={() => copy([item.reference_code, displayName(item), item.contact, item.message].filter(Boolean).join("\n"))}>접수 내용 복사</button>
+        </div>
         <div className="submissionDetails">
           <Detail label="구분" value={kindLabel[item.kind]} />
           <Detail label="접수일시" value={new Date(item.created_at).toLocaleString("ko-KR")} />
@@ -393,15 +458,16 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClie
           <Detail label={item.kind === "story" ? "사연" : "신청 이유"} value={item.message} wide />
           {item.kind === "story" && <Detail label="콘텐츠 활용" value={item.content_consent ? "동의" : "동의하지 않음"} />}
         </div>
-        <label className="adminField">상태<select value={status} onChange={(event) => setStatus(event.target.value)}>
+        <label className="adminField">상태<select disabled={busy} value={status} onChange={(event) => setStatus(event.target.value)}>
           {["신규", "확인", "연락 완료", "진행", "종결"].map((value) => <option key={value}>{value}</option>)}
         </select></label>
-        <label className="adminField">관리자 메모<textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} /></label>
+        <label className="adminField">관리자 메모<textarea disabled={busy} value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} /></label>
+        <p className="editHint" role="status">{changed ? "저장하지 않은 변경사항이 있어요" : "모든 변경사항이 저장되어 있어요"}</p>
         <div className="adminModalActions">
-          <button className="danger" onClick={() => onDelete(item)}>삭제</button>
+          <button className="danger" disabled={busy} onClick={() => onDelete(item)}>삭제</button>
           <div className="modalRightActions">
             {item.kind !== "story" && <button className="clientConvert" disabled={busy} onClick={() => onRegisterClient(item)}>내담자로 등록</button>}
-            <button className="save" disabled={busy} onClick={() => onSave(item, status, note)}>{busy ? "저장 중…" : "변경사항 저장"}</button>
+            <button className="save" disabled={busy || !changed} onClick={() => onSave(item, status, note)}>{busy ? "저장 중…" : "변경사항 저장"}</button>
           </div>
         </div>
       </section>
