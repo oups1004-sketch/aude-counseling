@@ -39,7 +39,7 @@ export default function AssessmentRecords({ clientId, initial, onRecordsChange, 
   const fileUrl = (record: AssessmentRecord, kind: string) => `/api/admin/assessments?clientId=${encodeURIComponent(clientId)}&recordId=${encodeURIComponent(record.id)}&kind=${kind}`;
   return <section className="sessionSection assessmentSection">
     <div className="sessionHeading"><h3>심리검사 <span>{records.length}</span></h3><button type="button" onClick={() => changeEditing(null)}>+ 검사 기록</button></div>
-    <p className="editHint">검사 결과와 해석 내용을 내담자별로 보관합니다. PDF는 각각 3MB까지 첨부할 수 있습니다.</p>
+    <p className="editHint">검사 결과와 해석 내용을 내담자별로 보관합니다. PDF는 각각 3MB, 두 파일 합계 4MB까지 첨부할 수 있습니다.</p>
     {message && <p className="assessmentMessage" role="status">{message}</p>}
     {editing !== undefined && <form key={editing?.id || "new"} className="sessionForm assessmentForm" onSubmit={submit} onChange={() => setDirty(true)}>
       <label>검사명<input name="testName" defaultValue={editing?.testName} maxLength={100} required placeholder="예: MMPI-2, MBTI, SCT" /></label>

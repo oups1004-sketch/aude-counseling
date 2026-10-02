@@ -51,8 +51,13 @@ export async function POST(request: Request) {
   if (!await authorized()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const uploaded: string[] = [];
   try {
-    if (Number(request.headers.get("content-length") || 0) > 7500000) throw new Error("파일은 각각 3MB 이하로 첨부해 주세요.");
+    if (Number(request.headers.get("content-length") || 0) > 4400000) throw new Error("파일은 각각 3MB, 두 파일 합계 4MB 이하로 첨부해 주세요.");
     const form = await request.formData();
+    const totalBytes = ["resultFile", "summaryFile"].reduce((sum, key) => {
+      const file = form.get(key);
+      return sum + (file instanceof File ? file.size : 0);
+    }, 0);
+    if (totalBytes > 4194304) throw new Error("두 PDF 파일의 합계는 4MB 이하여야 합니다.");
     const id = clean(form.get("clientId"), 80);
     const data = await client(id);
     const records = (Array.isArray(data.assessments) ? [...data.assessments] : []) as RecordItem[];

@@ -37,9 +37,7 @@ export default function SiteHeader() {
     updateActive();
     window.addEventListener("scroll", updateActive, { passive: true });
     window.addEventListener("resize", updateActive);
-    if (isAdmin) return null;
-
-  return () => {
+    return () => {
       window.removeEventListener("scroll", updateActive);
       window.removeEventListener("resize", updateActive);
     };
@@ -91,4 +89,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-
