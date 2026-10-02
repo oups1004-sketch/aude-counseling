@@ -360,8 +360,8 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
 .openChatButton svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7}
 .openChatQr{display:grid;justify-items:center;gap:8px;margin:22px auto 0}
 .openChatQr img{display:block;width:176px;height:176px;border-radius:8px;object-fit:cover;box-shadow:0 8px 24px rgba(45,45,38,.1)}
-.openChatQr small{max-width:330px;color:#77786f;font-size:11px;line-height:1.65}
-.successCloseButton{margin:20px auto 0}
+.openChatQr small{max-width:360px;color:#4f504a;font-size:13px;font-weight:600;line-height:1.65}
+.successCloseButton{min-height:46px;margin:20px auto 0;padding:11px 22px;border-color:rgba(31,33,30,.42);background:rgba(255,255,255,.58);color:#292b27;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(45,45,38,.08)}
 @media(hover:hover) and (pointer:fine){.openChatButton:hover{transform:translateY(-2px);background:#2b2d29;box-shadow:0 10px 28px rgba(0,0,0,.15)}}
 @media(max-width:560px){
   .requestFormGrid{grid-template-columns:1fr;gap:0}
@@ -371,7 +371,7 @@ footer { background:#111210; color:rgba(244,240,231,.65); padding:65px 4vw; disp
   .requestSuccess{padding:25px 17px}
   .openChatButton{min-height:58px;border-radius:14px;text-align:left}
   .openChatQr{display:none}
-  .successCloseButton{width:100%;justify-content:center}
+  .successCloseButton{width:100%;min-height:50px;justify-content:center;border-radius:12px;background:rgba(255,255,255,.72);font-size:14px}
 }
 /* Admin */
 .adminShell{min-height:100vh;background:#eee8dc;color:#171915;font-family:var(--font-sans,Arial,sans-serif)}
