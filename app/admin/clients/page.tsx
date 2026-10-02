@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import AssessmentRecords, { AssessmentRecord } from "../AssessmentRecords";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 type SessionRecord = { id: string; date: string; sessionNo: number; summary: string; nextPlan: string };
@@ -15,6 +16,7 @@ type Client = {
   startedAt: string;
   nextSessionAt: string | null;
   memo: string | null;
+  assessments: AssessmentRecord[];
   sessions: SessionRecord[];
   sessionCount: number;
   sourceReason: string | null;
@@ -34,7 +36,10 @@ export default function ClientsPage() {
     const response = await fetch("/api/admin/clients", { cache: "no-store" });
     if (response.status === 401) return setAuth("login");
     if (!response.ok) throw new Error("load failed");
-    setClients(await response.json());
+    const list: Client[] = await response.json();
+    setClients(list);
+    const requested = new URLSearchParams(window.location.search).get("client");
+    if (requested) setSelected(list.find((c) => c.id === requested) || null);
     setAuth("ready");
   }, []);
 
@@ -64,7 +69,7 @@ export default function ClientsPage() {
         </div>
 
         <div className="workspaceMetrics">
-          <Metric value={clients.filter((c) => c.status === "진행").length} label="진행 내담자" />
+          <Metric value={clients.filter((c) => c.status === "진행").length} label="상담 중" />
           <Metric value={upcoming.length} label="예정 상담" />
           <Metric value={clients.reduce((sum, c) => sum + c.sessionCount, 0)} label="기록된 회기" />
           <Metric value={clients.filter((c) => c.status === "종결").length} label="종결" />
@@ -85,7 +90,7 @@ export default function ClientsPage() {
           {filtered.map((client) => (
             <button className="clientRow" key={client.id} onClick={() => setSelected(client)}>
               <span className="clientIdentity"><b>{client.name}</b><small>{client.clientCode}{client.service ? ` · ${client.service}` : ""}</small></span>
-              <span><em className={`clientStatus status-${client.status}`}>{client.status}</em></span>
+              <span><em className={`clientStatus status-${client.status}`}>{client.status === "진행" ? "상담 중" : client.status}</em></span>
               <span>{client.sessionCount ? `${client.sessionCount}회기` : "기록 없음"}</span>
               <span>{client.nextSessionAt ? formatDateTime(client.nextSessionAt) : "미정"}</span>
             </button>
@@ -100,7 +105,7 @@ export default function ClientsPage() {
 }
 
 function AdminHeader() {
-  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link></nav></header>;
+  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">심리검사</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
 }
 
 function Metric({ value, label }: { value: number; label: string }) {
@@ -126,6 +131,8 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
   const [status, setStatus] = useState(client.status);
   const [nextSessionAt, setNextSessionAt] = useState(toLocalInput(client.nextSessionAt));
   const [memo, setMemo] = useState(client.memo || "");
+  const [assessmentDirty, setAssessmentDirty] = useState(false);
+  function close() { if (!busy && (!assessmentDirty || confirm("저장하지 않은 검사 내용을 버릴까요?"))) onClose(); }
   const [sessionOpen, setSessionOpen] = useState(false);
 
   async function patch(payload: Record<string, unknown>) {
@@ -136,20 +143,23 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
     return true;
   }
 
-  async function save() { if (await patch({ name, contact, status, nextSessionAt, memo })) onSaved(); }
+  async function save() { if (assessmentDirty) { alert("작성 중인 검사 기록을 먼저 저장하거나 취소해 주세요."); return; } if (await patch({ name, contact, status, nextSessionAt, memo })) onSaved(); }
 
   async function addSession(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (assessmentDirty) { alert("작성 중인 검사 기록을 먼저 저장하거나 취소해 주세요."); return; }
     const data = Object.fromEntries(new FormData(event.currentTarget));
     if (await patch({ session: data })) onSaved();
   }
 
-  return <div className="adminModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}><section className="adminModal clientModal"><button className="adminModalClose" onClick={onClose}>×</button><p className="sectionNumber">{client.clientCode}</p><h2>{client.name}</h2><div className="clientEditGrid"><label>이름<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>연락처<input value={contact} onChange={(e) => setContact(e.target.value)} /></label><label>상태<select value={status} onChange={(e) => setStatus(e.target.value)}>{statuses.map((v) => <option key={v}>{v}</option>)}</select></label><label>다음 상담<input type="datetime-local" value={nextSessionAt} onChange={(e) => setNextSessionAt(e.target.value)} /></label><label className="wide">내담자 메모<textarea rows={4} value={memo} onChange={(e) => setMemo(e.target.value)} /></label></div>
+  return <div className="adminModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && close()}><section className="adminModal clientModal"><button className="adminModalClose" onClick={close}>×</button><p className="sectionNumber">{client.clientCode}</p><h2>{client.name}</h2><div className="clientEditGrid"><label>이름<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>연락처<input value={contact} onChange={(e) => setContact(e.target.value)} /></label><label>상태<select value={status} onChange={(e) => setStatus(e.target.value)}>{statuses.map((v) => <option key={v} value={v}>{v === "진행" ? "상담 중" : v}</option>)}</select></label><label>다음 상담<input type="datetime-local" value={nextSessionAt} onChange={(e) => setNextSessionAt(e.target.value)} /></label><label className="wide">내담자 메모<textarea rows={4} value={memo} onChange={(e) => setMemo(e.target.value)} /></label></div>
     {client.sourceReason && <div className="sourceReason"><small>최초 신청 내용</small><p>{client.sourceReason}</p></div>}
     <div className="sessionSection"><div className="sessionHeading"><h3>회기 기록 <span>{client.sessionCount}</span></h3><button onClick={() => setSessionOpen((v) => !v)}>+ 회기 기록</button></div>{sessionOpen && <form className="sessionForm" onSubmit={addSession}><label>회기<input name="sessionNo" type="number" min="1" defaultValue={client.sessionCount + 1} /></label><label>상담일<input name="date" type="date" defaultValue={new Date().toISOString().slice(0,10)} /></label><label className="wide">회기 요약<textarea name="summary" rows={5} required placeholder="주요 호소, 상담 내용, 관찰 등을 기록" /></label><label className="wide">다음 회기 계획<textarea name="nextPlan" rows={3} /></label><button className="workspacePrimary wide" disabled={busy}>{busy ? "저장 중…" : "회기 저장"}</button></form>}
       <div className="sessionList">{[...client.sessions].reverse().map((session) => <article key={session.id}><div><b>{session.sessionNo}회기</b><span>{session.date}</span></div><p>{session.summary || "요약 없음"}</p>{session.nextPlan && <small>다음 계획 · {session.nextPlan}</small>}</article>)}{client.sessions.length === 0 && <p className="sessionEmpty">아직 회기 기록이 없습니다.</p>}</div></div>
-    <div className="adminModalActions"><button className="danger" onClick={onClose}>닫기</button><button className="save" onClick={save} disabled={busy}>{busy ? "저장 중…" : "변경사항 저장"}</button></div></section></div>;
+    <AssessmentRecords clientId={client.id} initial={client.assessments || []} onDirty={setAssessmentDirty} />
+    <div className="adminModalActions"><button className="danger" onClick={close}>닫기</button><button className="save" onClick={save} disabled={busy}>{busy ? "저장 중…" : "변경사항 저장"}</button></div></section></div>;
 }
 
 function toLocalInput(value: string | null) { return value ? value.slice(0, 16) : ""; }
 function formatDateTime(value: string | null) { if (!value) return "미정"; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" }); }
+

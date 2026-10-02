@@ -20,6 +20,7 @@ type Submission = {
   message: string | null;
   content_consent: boolean;
   admin_note: string | null;
+  client_status?: string | null;
 };
 
 const tabs: Array<{ key: "all" | Kind; label: string }> = [
@@ -51,6 +52,7 @@ export default function AdminPage() {
   const [counselingOpen, setCounselingOpen] = useState(true);
   const [statusBusy, setStatusBusy] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
+  const [decisionFilter, setDecisionFilter] = useState("전체");
   const [notice, setNotice] = useState("");
   const [dirty, setDirty] = useState(false);
   useEffect(() => {
@@ -155,12 +157,12 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: item.id, status, adminNote }),
       });
-      if (!response.ok) throw new Error("저장하지 못했습니다. 다시 시도해 주세요.");
-      const updated = { ...item, status, admin_note: adminNote };
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || "저장하지 못했습니다. 다시 시도해 주세요.");
+      const updated = { ...item, status, admin_note: adminNote, client_status: item.kind !== "story" && status === "확정" ? item.client_status || "진행" : item.client_status };
       setItems((current) => current.map((entry) => entry.id === item.id ? updated : entry));
       setSelected(updated);
       setDirty(false);
-      setNotice("✓ 변경사항을 저장했어요");
+      setNotice(item.kind !== "story" && status === "확정" ? "✓ 확정했어요. 내담자 관리에서 상담을 이어갈 수 있습니다." : "✓ 변경사항을 저장했어요");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "저장하지 못했습니다. 연결을 확인해 주세요.");
     } finally {
@@ -168,28 +170,10 @@ export default function AdminPage() {
     }
   }
 
-  async function registerClient(item: Submission) {
-    if (item.kind === "story") return;
-    const sourceId = item.id.startsWith("counseling:") ? item.id.slice("counseling:".length) : "";
-    if (!sourceId) return alert("상담 신청 자료를 확인하지 못했습니다.");
-    setBusy(true);
-    const response = await fetch("/api/admin/clients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sourceId }),
-    });
-    const result = await response.json().catch(() => ({}));
-    setBusy(false);
-    if (!response.ok) return alert(result.error || "내담자로 등록하지 못했습니다.");
-    alert(`${result.clientCode || displayName(item)} 내담자 등록이 완료되었습니다.`);
-    setSelected(null);
-    await load();
-  }
-
   async function remove(item: Submission) {
     if (!confirm(`${displayName(item)} 접수를 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`)) return;
     const response = await fetch(`/api/admin/submissions?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
-    if (!response.ok) return alert("삭제하지 못했습니다.");
+    if (!response.ok) return alert((await response.json().catch(() => ({}))).error || "삭제하지 못했습니다.");
     setSelected(null);
     setSelectedIds((current) => {
       const next = new Set(current);
@@ -203,12 +187,13 @@ export default function AdminPage() {
     const needle = query.trim().toLowerCase();
     return items.filter((item) => {
       if (onlyNew && item.status !== "신규") return false;
+      if (decisionFilter !== "전체" && (item.kind === "story" || item.status !== decisionFilter)) return false;
       if (activeTab !== "all" && item.kind !== activeTab) return false;
       if (!needle) return true;
       return [item.reference_code, item.name, item.nickname, item.age_group, item.gender, item.contact, item.service, item.message]
         .some((value) => value?.toLowerCase().includes(needle));
     });
-  }, [activeTab, items, query, onlyNew]);
+  }, [activeTab, items, query, onlyNew, decisionFilter]);
 
   const selectedItems = useMemo(
     () => items.filter((item) => selectedIds.has(item.id)),
@@ -325,14 +310,16 @@ export default function AdminPage() {
         <nav>
           <Link className="active" href="/admin">접수</Link>
           <Link href="/admin/clients">내담자</Link>
+          <Link href="/admin/assessments">심리검사</Link>
         </nav>
+        <Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link>
         <button onClick={logout}>로그아웃</button>
       </header>
 
       <section className="adminDashboard">
         <div className="adminTitle">
           <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
-          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => setOnlyNew(!onlyNew)} aria-pressed={onlyNew}><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수 ↗</span></button>
+          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수 ↗</span></button>
         </div>
 
         <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
@@ -340,6 +327,7 @@ export default function AdminPage() {
           <button type="button" disabled={statusBusy} onClick={toggleCounselingStatus}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
         </div>
 
+        <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
@@ -350,7 +338,7 @@ export default function AdminPage() {
           </div>
           <div className="adminActions">
             <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="접수 검색" placeholder="이름·연령·성별·내용 검색" />
-            <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => setOnlyNew(!onlyNew)}>신규만 보기</button>
+            <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }}>신규만 보기</button>
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
@@ -389,7 +377,7 @@ export default function AdminPage() {
                     <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
                   </span>
                   <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
-                  <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
+                  <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}{item.client_status && <small> · {item.client_status === "진행" ? "상담 중" : item.client_status}</small>}</span>
                 </button>
               </div>
             );
@@ -398,12 +386,12 @@ export default function AdminPage() {
       </section>
 
       {notice && <div className="adminToast" role="status">{notice}</div>}
-      {selected && <SubmissionModal key={selected.id} item={selected} busy={busy} onClose={closeDetail} onSave={save} onDelete={remove} onRegisterClient={registerClient} onDirty={setDirty} onNotice={setNotice} />}
+      {selected && <SubmissionModal key={selected.id} item={selected} busy={busy} onClose={closeDetail} onSave={save} onDelete={remove} onDirty={setDirty} onNotice={setNotice} />}
     </main>
   );
 }
 
-function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClient, onDirty, onNotice }: {
+function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNotice }: {
   item: Submission;
   busy: boolean;
   onDirty: (dirty: boolean) => void;
@@ -411,7 +399,6 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClie
   onClose: () => void;
   onSave: (item: Submission, status: string, note: string) => void;
   onDelete: (item: Submission) => void;
-  onRegisterClient: (item: Submission) => void;
 }) {
   const [status, setStatus] = useState(item.status);
   const [note, setNote] = useState(item.admin_note || "");
@@ -458,15 +445,16 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onRegisterClie
           <Detail label={item.kind === "story" ? "사연" : "신청 이유"} value={item.message} wide />
           {item.kind === "story" && <Detail label="콘텐츠 활용" value={item.content_consent ? "동의" : "동의하지 않음"} />}
         </div>
-        <label className="adminField">상태<select disabled={busy} value={status} onChange={(event) => setStatus(event.target.value)}>
-          {["신규", "확인", "연락 완료", "진행", "종결"].map((value) => <option key={value}>{value}</option>)}
+        <label className="adminField">상태<select disabled={busy || (item.kind !== "story" && !!item.client_status)} value={status} onChange={(event) => setStatus(event.target.value)}>
+          {(item.kind === "story" ? ["신규", "확인", "연락 완료", "진행", "종결"] : ["신규", "보류", "확정", "거절"]).map((value) => <option key={value}>{value}</option>)}
         </select></label>
+        {item.kind !== "story" && <p className="editHint">{item.client_status ? "확정된 내담자의 상담·휴식·종결은 내담자 화면에서 관리합니다." : "확정으로 저장하면 내담자로 등록되고 상담 중으로 전환됩니다."}</p>}
         <label className="adminField">관리자 메모<textarea disabled={busy} value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} /></label>
         <p className="editHint" role="status">{changed ? "저장하지 않은 변경사항이 있어요" : "모든 변경사항이 저장되어 있어요"}</p>
         <div className="adminModalActions">
           <button className="danger" disabled={busy} onClick={() => onDelete(item)}>삭제</button>
           <div className="modalRightActions">
-            {item.kind !== "story" && <button className="clientConvert" disabled={busy} onClick={() => onRegisterClient(item)}>내담자로 등록</button>}
+            {item.client_status && <Link className="clientConvert" href={`/admin/clients?client=${encodeURIComponent(item.id.slice("counseling:".length))}`}>내담자 기록 열기 ↗</Link>}
             <button className="save" disabled={busy || !changed} onClick={() => onSave(item, status, note)}>{busy ? "저장 중…" : "변경사항 저장"}</button>
           </div>
         </div>
@@ -479,3 +467,4 @@ function Detail({ label, value, wide = false }: { label: string; value: string |
   if (!value) return null;
   return <div className={wide ? "detailWide" : ""}><dt>{label}</dt><dd>{value}</dd></div>;
 }
+

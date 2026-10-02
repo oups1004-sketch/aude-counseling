@@ -51,7 +51,8 @@ function counselingItem(row: DbRow) {
     id: `counseling:${row.id}`,
     reference_code: `COUNSEL-${row.id.slice(0, 8).toUpperCase()}`,
     kind: service === "심리검사·해석상담" ? ("assessment" as const) : ("intake" as const),
-    status: row.status || "신규",
+    status: data.adminManagedClient ? "확정" : stringValue(data.admissionStatus) || (["진행", "종결"].includes(row.status) ? "확정" : ["확인", "연락 완료"].includes(row.status) ? "신규" : row.status || "신규"),
+    client_status: data.adminManagedClient ? stringValue(data.clientStatus || "진행") : null,
     created_at: row.created_at,
     name: stringValue(data.name) || null,
     nickname: null,
@@ -89,7 +90,7 @@ export async function GET() {
     ]);
 
     const stories = (await storiesResponse.json()) as DbRow[];
-    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => row.data?.type !== "site-settings");
+    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => !["site-settings", "admin-client"].includes(String(row.data?.type)));
     const items = [
       ...stories.map(storyItem),
       ...counseling.map(counselingItem),
@@ -109,26 +110,45 @@ export async function PATCH(request: Request) {
   try {
     const { id, status, adminNote } = await request.json();
     const parsed = parseAdminId(id);
-    if (!parsed || !["신규", "확인", "연락 완료", "진행", "종결"].includes(status)) {
+    if (!parsed || !(parsed.source === "story" ? ["신규", "확인", "연락 완료", "진행", "종결"] : ["신규", "보류", "확정", "거절"]).includes(status)) {
       return NextResponse.json({ error: "Invalid update" }, { status: 400 });
     }
 
     const currentResponse = await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}&select=data&limit=1`);
     const currentRows = (await currentResponse.json()) as Array<{ data: Record<string, unknown> | null }>;
-    const currentData = currentRows[0]?.data || {};
+    if (!currentRows[0]) return NextResponse.json({ error: "접수를 찾지 못했습니다." }, { status: 404 });
+    const currentData = currentRows[0].data || {};
+    if (parsed.source === "counseling" && currentData.adminManagedClient && status !== "확정") {
+      return NextResponse.json({ error: "확정된 내담자의 진행 상태는 내담자 화면에서 변경해 주세요." }, { status: 409 });
+    }
+    const confirming = parsed.source === "counseling" && status === "확정";
+    const registration = confirming && !currentData.adminManagedClient ? {
+      adminManagedClient: true,
+      clientCode: `C-${new Date().getFullYear()}-${parsed.id.slice(0, 5).toUpperCase()}`,
+      clientName: stringValue(currentData.name),
+      clientContact: stringValue(currentData.contact),
+      clientStatus: "진행",
+      startedAt: new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }),
+      nextSessionAt: "",
+      clientMemo: stringValue(adminNote).slice(0, 2000),
+      sessions: Array.isArray(currentData.sessions) ? currentData.sessions : [],
+    } : {};
 
-    await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}`, {
+    const savedResponse = await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}&data=eq.${encodeURIComponent(JSON.stringify(currentRows[0].data))}`, {
       method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify({
-        status,
+        status: parsed.source === "story" ? status : confirming ? (currentData.clientStatus === "종결" ? "종결" : "진행") : "신규",
         data: {
           ...currentData,
+          ...registration,
+          ...(parsed.source === "counseling" ? { admissionStatus: status } : {}),
           adminNote: stringValue(adminNote).slice(0, 2000),
         },
       }),
     });
 
+    if (!(await savedResponse.json()).length) return NextResponse.json({ error: "다른 변경사항이 저장되었습니다. 새로고침 후 다시 저장해 주세요." }, { status: 409 });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Admin update failed", error);
@@ -143,6 +163,11 @@ export async function DELETE(request: Request) {
     const parsed = parseAdminId(new URL(request.url).searchParams.get("id"));
     if (!parsed) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
+    if (parsed.source === "counseling") {
+      const response = await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}&select=data&limit=1`);
+      const rows = await response.json();
+      if (rows[0]?.data?.adminManagedClient) return NextResponse.json({ error: "내담자로 등록된 접수는 상담·검사 기록 보호를 위해 삭제할 수 없습니다." }, { status: 409 });
+    }
     await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}`, {
       method: "DELETE",
       headers: { Prefer: "return=minimal" },
@@ -154,3 +179,4 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+

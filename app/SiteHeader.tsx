@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const sections = [
@@ -10,11 +11,14 @@ const sections = [
 ] as const;
 
 export default function SiteHeader() {
+  const pathname = usePathname();
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [counselingOpen, setCounselingOpen] = useState(true);
 
   useEffect(() => {
+    if (isAdmin) return;
     fetch("/api/counseling-status", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => setCounselingOpen(data.counselingOpen !== false))
@@ -33,11 +37,13 @@ export default function SiteHeader() {
     updateActive();
     window.addEventListener("scroll", updateActive, { passive: true });
     window.addEventListener("resize", updateActive);
-    return () => {
+    if (isAdmin) return null;
+
+  return () => {
       window.removeEventListener("scroll", updateActive);
       window.removeEventListener("resize", updateActive);
     };
-  }, []);
+  }, [isAdmin]);
 
   const openCounseling = () => {
     setMenuOpen(false);
@@ -47,6 +53,8 @@ export default function SiteHeader() {
     }
     document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  if (isAdmin) return null;
 
   return (
     <header className="siteHeader">
@@ -83,3 +91,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+

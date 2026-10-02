@@ -191,3 +191,30 @@
  .newShortcut span{font-size:.75rem}
 }
 @media(prefers-reduced-motion:reduce){.adminShell *{transition:none!important;animation:none!important}}
+
+/* Intake decisions and private assessment records */
+.adminHomeLink{font-size:.78rem;color:#61695a;margin-right:16px;white-space:nowrap}
+.decisionFilters{display:flex;gap:8px;flex-wrap:wrap;margin-top:28px}
+.decisionFilters button,.assessmentFormActions>button:not(.workspacePrimary),.assessmentFileActions button{border:1px solid #c8cebd;border-radius:999px;background:#f8f5ee;color:#48553e;padding:9px 15px;cursor:pointer}
+.decisionFilters button span{margin-left:8px;opacity:.65}
+.decisionFilters button.active{background:#45553c;color:#fff;border-color:#45553c}
+.adminShell .status-보류{background:#ede3c8;color:#715b27}
+.adminShell .status-확정{background:#dce7d2;color:#405a34}
+.adminShell .status-거절{background:#e9ddd8;color:#815345}
+.adminShell .submissionOpen{grid-template-columns:90px minmax(0,1fr) 150px 140px}
+.submissionStatus small{font-size:.65rem}
+.assessmentForm select,.clientToolbar select{font:inherit;border:1px solid #cbc2b5;border-radius:10px;background:#f8f4ec;color:#171915;padding:11px 12px}
+.assessmentForm input[type=file]{padding:8px;width:100%;font-size:.75rem}
+.assessmentForm small{font-size:.72rem;color:#7a7166;overflow-wrap:anywhere}
+.assessmentFormActions,.assessmentFileActions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.assessmentFileActions{margin-top:14px}
+.assessmentFileActions a{padding:8px 12px;border-radius:9px;background:#e6ebdd;color:#405635;font-size:.8rem}
+.assessmentBadge{font-size:.76rem;color:#526745}
+.assessmentMessage{padding:12px 16px;border-radius:12px;background:#e6ebdd;color:#405635;font-size:.84rem}
+.assessmentClientPanel{margin-top:28px;background:#f8f5ee;padding:28px;border:1px solid #d2cebe;border-radius:18px}
+.assessmentClientPanel h2{font-size:1.7rem;margin-bottom:12px}
+.assessmentClientPanel>a{font-size:.8rem;color:#637356}
+.assessmentSection article p{overflow-wrap:anywhere}
+@media(max-width:760px){.adminHomeLink{margin-left:auto;margin-right:0}.adminShell .submissionOpen{grid-template-columns:65px minmax(0,1fr) 92px;gap:8px}.submissionStatus{display:grid;text-align:center}.submissionStatus small{display:block}.assessmentClientPanel{padding:18px}.decisionFilters button{padding:8px 12px}.clientToolbar select{width:100%}}
+
+@media(min-width:1200px){.intakeWorkspace.hasDetail .submissionOpen{grid-template-columns:70px minmax(0,1fr) 120px;gap:10px}}

@@ -53,6 +53,7 @@ function clientItem(row: DbRow) {
     startedAt: text(data.startedAt, 20) || row.created_at.slice(0, 10),
     nextSessionAt: text(data.nextSessionAt, 40) || null,
     memo: text(data.clientMemo, 5000) || null,
+    assessments: Array.isArray(data.assessments) ? data.assessments : [],
     sessions,
     sessionCount: sessions.length,
     sourceReason: text(data.reason, 1000) || null,
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
       if (!row) return NextResponse.json({ error: "신청 자료를 찾지 못했습니다." }, { status: 404 });
 
       const data = row.data || {};
+      if (bool(data.adminManagedClient)) return NextResponse.json({ ok: true, clientCode: clientCode(row) });
       const code = clientCode(row);
       await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${encodeURIComponent(sourceId)}`, {
         method: "PATCH",
@@ -104,6 +106,7 @@ export async function POST(request: Request) {
           status: "진행",
           data: {
             ...data,
+            admissionStatus: "확정",
             adminManagedClient: true,
             clientCode: code,
             clientName: text(data.name, 80),
@@ -197,6 +200,7 @@ export async function PATCH(request: Request) {
     }
 
     const status = text(input.status, 30) || text(data.clientStatus, 30) || row.status || "진행";
+    if (!["진행", "휴식", "종결"].includes(status)) return NextResponse.json({ error: "잘못된 상담 상태입니다." }, { status: 400 });
     const nextData = {
       ...data,
       adminManagedClient: true,
@@ -210,15 +214,17 @@ export async function PATCH(request: Request) {
       sessions,
     };
 
-    await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${encodeURIComponent(id)}`, {
+    const savedResponse = await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${encodeURIComponent(id)}&data=eq.${encodeURIComponent(JSON.stringify(row.data))}`, {
       method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify({ status: status === "종결" ? "종결" : "진행", data: nextData }),
     });
 
+    if (!(await savedResponse.json()).length) return NextResponse.json({ error: "다른 변경사항이 저장되었습니다. 다시 열고 저장해 주세요." }, { status: 409 });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Client update failed", error);
     return NextResponse.json({ error: "내담자 정보를 저장하지 못했습니다." }, { status: 500 });
   }
 }
+
