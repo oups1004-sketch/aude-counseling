@@ -285,7 +285,7 @@ export default function Home() {
       </section>
 
       <section className="counselor section" id="counselor">
-        <div className="portraitPlaceholder" aria-label="아우데 심리상담 상담자 연필 스케치"><span>AUDE</span><div className="counselorSilhouette" aria-hidden="true" /></div>
+        <div className="counselorArt"><img src="/aude-conversation-sketch.webp" alt="작은 테이블을 사이에 두고 마주 놓인 두 의자의 연필 그림" width="1024" height="1536" loading="lazy" /></div>
         <div className="profile">
           <p className="sectionNumber">03 / COUNSELOR</p>
           <h2>상담자 소개</h2>
