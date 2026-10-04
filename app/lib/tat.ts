@@ -1,9 +1,10 @@
+import type { CardRecords } from './tat-records';
 import { cookies } from 'next/headers';
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { supabaseAdminRequest, verifyAdminSession } from './supabase';
 export const cards = ['1','2','3BM','3GF','4','5','6BM','6GF','7BM','7GF','8BM','8GF','9BM','9GF','10','11','12M','12F','12BG','13MF','13B','13G','14','15','16','17BM','17GF','18BM','18GF','19','20'];
 export type Recording = {id:string;startedAt:string;parts:number;mime:string;finished?:boolean};
-export type TatSession = {type:'tat-session';creationSignature:string;creationNonce:string;version?:number;clientId:string;clientName:string;codeHash:string;expiresAt:string;endedAt?:string;order:string[];index:number;hidden:boolean;revision:number;note:string;joinedAt?:string;consentedAt?:string;view?:{card:string;scale:number;angle:number;seenAt:string};recordings:Recording[];events:{card:string;at:string;hidden:boolean}[]};
+export type TatSession = {type:'tat-session';creationSignature:string;creationNonce:string;version?:number;clientId:string;clientName:string;codeHash:string;expiresAt:string;endedAt?:string;order:string[];index:number;hidden:boolean;revision:number;note:string;cardRecords?:CardRecords;summary?:string;joinedAt?:string;consentedAt?:string;view?:{card:string;scale:number;angle:number;seenAt:string};recordings:Recording[];events:{card:string;at:string;hidden:boolean}[]};
 export type TatRow = {id:string;created_at:string;data:TatSession};
 export const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
 export const newCode=()=>randomBytes(10).toString('hex').toUpperCase();
@@ -31,7 +32,7 @@ export async function participant(row:TatRow){
  const v=JSON.parse(Buffer.from(p,'base64url').toString());return v.id===row.id&&v.exp>Date.now()&&v.hash===row.data.codeHash;
  }catch{return false;}
 }
-export function publicState(row:TatRow){const d=row.data;return {id:row.id,active:alive(d),card:alive(d)&&!d.hidden?d.order[d.index]:null,revision:d.revision,recordingConsent:!!d.consentedAt};}
+export function publicState(row:TatRow){const d=row.data;return {id:row.id,active:alive(d),card:alive(d)&&!d.hidden?d.order[d.index]:null,revision:d.revision};}
 export const bucket='aude-tat-audio-private';
 export async function ensureAudioBucket(){
  const r=await supabaseAdminRequest('/storage/v1/bucket');const b=(await r.json()).find((x:{id:string})=>x.id===bucket);
@@ -61,3 +62,4 @@ export async function insertSession(id:string,data:TatSession) {
  if(!isTrustedSession(row))throw new Error('저장된 검사 공간을 확인하지 못했습니다.');
  return row!;
 }
+
