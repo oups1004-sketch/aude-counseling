@@ -26,13 +26,14 @@ function storyItem(row: DbRow) {
     id: `story:${row.id}`,
     reference_code: `STORY-${row.id.slice(0, 8).toUpperCase()}`,
     kind: "story" as const,
-    status: row.status || "신규",
+    status: ["미답장", "답장 완료", "답장 안 함"].includes(stringValue(data.replyStatus)) ? stringValue(data.replyStatus) : row.status === "연락 완료" ? "답장 완료" : "미답장",
+    important: data.important === true,
     created_at: row.created_at,
     name: null,
     nickname: stringValue(data.nickname) || "익명",
     age_group: stringValue(data.ageGroup) || null,
     gender: stringValue(data.gender) || null,
-    contact: null,
+    contact: stringValue(data.email) || null,
     service: null,
     preferred_time: null,
     message: stringValue(data.story),
@@ -108,9 +109,9 @@ export async function PATCH(request: Request) {
   if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { id, status, adminNote } = await request.json();
+    const { id, status, adminNote, important } = await request.json();
     const parsed = parseAdminId(id);
-    if (!parsed || !(parsed.source === "story" ? ["신규", "확인", "연락 완료", "진행", "종결"] : ["신규", "보류", "확정", "거절"]).includes(status)) {
+    if (!parsed || (parsed.source === "story" ? ((status !== undefined && !["미답장", "답장 완료", "답장 안 함"].includes(status)) || (important !== undefined && typeof important !== "boolean") || (status === undefined && important === undefined && adminNote === undefined)) : !["신규", "보류", "확정", "거절"].includes(status))) {
       return NextResponse.json({ error: "Invalid update" }, { status: 400 });
     }
 
@@ -138,12 +139,12 @@ export async function PATCH(request: Request) {
       method: "PATCH",
       headers: { Prefer: "return=representation" },
       body: JSON.stringify({
-        status: parsed.source === "story" ? status : confirming ? (currentData.clientStatus === "종결" ? "종결" : "진행") : "신규",
+        ...(parsed.source === "counseling" ? { status: confirming ? (currentData.clientStatus === "종결" ? "종결" : "진행") : "신규" } : {}),
         data: {
           ...currentData,
           ...registration,
-          ...(parsed.source === "counseling" ? { admissionStatus: status } : {}),
-          adminNote: stringValue(adminNote).slice(0, 2000),
+          ...(parsed.source === "counseling" ? { admissionStatus: status } : { ...(status !== undefined ? { replyStatus: status } : {}), ...(important !== undefined ? { important } : {}) }),
+          ...(adminNote !== undefined ? { adminNote: stringValue(adminNote).slice(0, 2000) } : {}),
         },
       }),
     });
@@ -179,5 +180,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+
 
 

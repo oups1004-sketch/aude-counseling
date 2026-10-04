@@ -1,0 +1,12 @@
+.storyManagementFilters{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:4px 0 20px}
+.storyManagementFilters>div{display:flex;flex-wrap:wrap;gap:6px}
+.storyManagementFilters button{border:1px solid #d6d2ca;border-radius:8px;background:transparent;color:#625f58;padding:10px 14px;font:inherit;font-size:14px;cursor:pointer}
+.storyManagementFilters button.active{background:#343b35;border-color:#343b35;color:#fff}
+.storyManagementFilters span{margin-left:8px;opacity:.7;font-size:12px}
+.adminList .submissionRow.storySubmissionRow{grid-template-columns:34px 34px minmax(0,1fr)}
+.storyStar{border:0;background:transparent;color:#8b877d;font-size:25px;padding:6px 0;cursor:pointer;line-height:1.4}
+.storyStar.active{color:#947b49}
+.storyStar:focus-visible{outline:2px solid #343b35;outline-offset:2px;border-radius:5px}
+.storyStar:disabled{opacity:.5;cursor:wait}
+.detailQuickActions a{font-size:13px;color:#343b35;border:1px solid #d6d2ca;border-radius:5px;padding:8px 10px;text-decoration:none}
+@media(max-width:700px){.adminList .submissionRow.storySubmissionRow{grid-template-columns:28px 28px minmax(0,1fr)}.storyManagementFilters{gap:8px}.storyManagementFilters button{padding:9px 10px}}

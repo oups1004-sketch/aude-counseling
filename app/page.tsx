@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import "./story-email.css";
 
 const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@example.com";
 const openChatUrl = "https://m.site.naver.com/2hPA6";
@@ -139,6 +140,7 @@ export default function Home() {
     try {
       await sendSubmission({
         type: "story",
+        email: String(data.get("email") || ""),
         nickname,
         ageGroup,
         gender,
@@ -321,6 +323,7 @@ export default function Home() {
               <label className="storyField"><span className="fieldEyebrow">AGE</span><span className="fieldLabel">나이 / 연령대 · 선택</span><select name="ageGroup" defaultValue=""><option value="">선택하지 않음</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
               <label className="storyField"><span className="fieldEyebrow">GENDER</span><span className="fieldLabel">성별 · 선택</span><select name="gender" defaultValue=""><option value="">선택하지 않음</option><option>여성</option><option>남성</option><option>기타</option></select></label>
             </div>
+            <label className="storyField storyReplyEmail"><span className="fieldEyebrow">REPLY EMAIL</span><span className="fieldLabel">답장받을 이메일 · 선택</span><input name="email" type="email" maxLength={254} autoComplete="email" placeholder="답장을 원하시면 입력해 주세요" /><small>외삼춘 채널에서 소개되지 않은 사연에도 이메일로 답장을 드릴 수 있습니다. 답장을 받으실 이메일 주소를 정확히 입력해 주세요. 모든 사연에 답장을 드리기는 어려운 점 양해 부탁드립니다.</small></label>
             <label className="storyField storyMessageField"><span className="fieldEyebrow">YOUR STORY</span><span className="fieldLabel">당신의 이야기</span><textarea name="story" required rows={8} placeholder="어떤 이야기가 마음에 걸려 있나요?" /></label>
             <div className="storyConsent">
               <label className="check"><input type="checkbox" name="contentConsent" required /><span>보내주신 사연이 개인정보를 알아볼 수 없도록 수정·각색된 뒤, ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있음에 동의합니다. (필수)</span></label>
@@ -527,8 +530,8 @@ export default function Home() {
             <p className="testModalEyebrow">PRIVACY</p>
             <h2 id="privacy-modal-title">개인정보 처리 안내</h2>
             <div className="privacyCopy">
-              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·성별·연락처·상담 또는 사연 내용</span></p>
-              <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변</span></p>
+              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·성별·연락처·답장받을 이메일(선택)·상담 또는 사연 내용</span></p>
+              <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변. 선택한 이메일 주소는 사연 답장을 위해 이용합니다.</span></p>
               <p><strong>보유 기간</strong><span>이용 목적 달성 후 지체 없이 파기합니다. 관계 법령에 따라 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</span></p>
               <p><strong>보관 방식</strong><span>접수 내용은 접근이 제한된 관리 시스템에 보관하며, 상담 진행과 답변을 위한 목적으로만 확인합니다.</span></p>
               <p><strong>동의 거부</strong><span>개인정보 제공에 동의하지 않을 수 있으나, 접수와 답변이 제한될 수 있습니다.</span></p>

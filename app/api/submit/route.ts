@@ -72,6 +72,10 @@ export async function POST(request: Request) {
     }
 
     if (type === "story") {
+      const email = String(input.email ?? "").trim();
+      if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+        return NextResponse.json({ error: "이메일 주소를 확인해 주세요." }, { status: 400 });
+      }
       if (!clean.story) {
         return NextResponse.json({ error: "Story is required." }, { status: 400 });
       }
@@ -82,11 +86,14 @@ export async function POST(request: Request) {
       await insertSubmission("story_submissions", {
         type: "story",
         nickname: clean.nickname || "익명",
+        email,
+        replyStatus: "미답장",
+        important: false,
         ageGroup: clean.ageGroup,
         gender: clean.gender,
         story: clean.story,
         contentConsent: true,
-        privacyVersion: "2026-09",
+        privacyVersion: "2026-10",
       });
     } else {
       if (!(await getCounselingOpen())) {
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
         preferredTime: clean.preferredTime,
         reason: clean.reason,
         privacyConsent: true,
-        privacyVersion: "2026-09",
+        privacyVersion: "2026-10",
       });
     }
 
@@ -117,3 +124,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unable to submit." }, { status: 500 });
   }
 }
+

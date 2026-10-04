@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import "./story-management.css";
 
 type Kind = "intake" | "assessment" | "story";
 type Submission = {
@@ -21,6 +22,7 @@ type Submission = {
   content_consent: boolean;
   admin_note: string | null;
   client_status?: string | null;
+  important?: boolean;
 };
 
 const tabs: Array<{ key: "all" | Kind; label: string }> = [
@@ -53,6 +55,8 @@ export default function AdminPage() {
   const [statusBusy, setStatusBusy] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
   const [decisionFilter, setDecisionFilter] = useState("전체");
+  const [storyFilter, setStoryFilter] = useState("전체");
+  const [onlyImportant, setOnlyImportant] = useState(false);
   const [notice, setNotice] = useState("");
   const [dirty, setDirty] = useState(false);
   useEffect(() => {
@@ -170,6 +174,20 @@ export default function AdminPage() {
     }
   }
 
+  async function toggleImportant(item: Submission) {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const important = !item.important;
+      const response = await fetch("/api/admin/submissions", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id, important }) });
+      if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || "별표를 저장하지 못했습니다.");
+      setItems(current => current.map(entry => entry.id === item.id ? { ...entry, important } : entry));
+      setSelected(current => current?.id === item.id ? { ...current, important } : current);
+      setNotice(important ? "★ 중요 사연으로 표시했어요" : "중요 표시를 해제했어요");
+    } catch (error) { setNotice(error instanceof Error ? error.message : "별표를 저장하지 못했습니다."); }
+    finally { setBusy(false); }
+  }
+
   async function remove(item: Submission) {
     if (!confirm(`${displayName(item)} 접수를 정말 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.`)) return;
     const response = await fetch(`/api/admin/submissions?id=${encodeURIComponent(item.id)}`, { method: "DELETE" });
@@ -186,14 +204,15 @@ export default function AdminPage() {
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return items.filter((item) => {
-      if (onlyNew && item.status !== "신규") return false;
-      if (decisionFilter !== "전체" && (item.kind === "story" || item.status !== decisionFilter)) return false;
+      if (activeTab !== "story" && onlyNew && item.status !== "신규" && !(item.kind === "story" && item.status === "미답장")) return false;
+      if (activeTab === "story" && ((onlyImportant && !item.important) || (storyFilter !== "전체" && item.status !== storyFilter))) return false;
+      if (activeTab !== "story" && decisionFilter !== "전체" && (item.kind === "story" || item.status !== decisionFilter)) return false;
       if (activeTab !== "all" && item.kind !== activeTab) return false;
       if (!needle) return true;
       return [item.reference_code, item.name, item.nickname, item.age_group, item.gender, item.contact, item.service, item.message]
         .some((value) => value?.toLowerCase().includes(needle));
     });
-  }, [activeTab, items, query, onlyNew, decisionFilter]);
+  }, [activeTab, items, query, onlyNew, decisionFilter, storyFilter, onlyImportant]);
 
   const selectedItems = useMemo(
     () => items.filter((item) => selectedIds.has(item.id)),
@@ -254,7 +273,7 @@ export default function AdminPage() {
 
   function exportCsv() {
     const rows = [
-      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "성별", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모"],
+      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "성별", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모", "중요 사연"],
       ...filtered.map((item) => [
         item.reference_code,
         item.created_at,
@@ -269,6 +288,7 @@ export default function AdminPage() {
         item.message || "",
         item.content_consent ? "동의" : "미동의",
         item.admin_note || "",
+        item.kind === "story" && item.important ? "중요" : "",
       ]),
     ];
     const csv = "\uFEFF" + rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -319,7 +339,7 @@ export default function AdminPage() {
       <section className="adminDashboard">
         <div className="adminTitle">
           <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
-          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => item.status === "신규").length}</strong><span>새 접수 ↗</span></button>
+          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => (item.status === "신규" || (item.kind === "story" && item.status === "미답장"))).length}</strong><span>새 접수 ↗</span></button>
         </div>
 
         <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
@@ -327,21 +347,26 @@ export default function AdminPage() {
           <button type="button" disabled={statusBusy} onClick={toggleCounselingStatus}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
         </div>
 
-        <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>
+        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
-              <button key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={() => setActiveTab(tab.key)}>
+              <button key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={() => { setActiveTab(tab.key); setOnlyNew(false); setDecisionFilter("전체"); }}>
                 {tab.label}<span>{tab.key === "all" ? items.length : items.filter((item) => item.kind === tab.key).length}</span>
               </button>
             ))}
           </div>
           <div className="adminActions">
             <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="접수 검색" placeholder="이름·연령·성별·내용 검색" />
-            <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }}>신규만 보기</button>
+            {activeTab !== "story" && <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }}>신규만 보기</button>}
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
+
+        {activeTab === "story" && <div className="storyManagementFilters">
+          <button className={onlyImportant ? "active" : ""} aria-pressed={onlyImportant} onClick={() => setOnlyImportant(!onlyImportant)}>★ 중요 사연만 보기</button>
+          <div>{["전체", "미답장", "답장 완료", "답장 안 함"].map(value => <button key={value} className={storyFilter === value ? "active" : ""} aria-pressed={storyFilter === value} onClick={() => setStoryFilter(value)}>{value}<span>{items.filter(item => item.kind === "story" && (!onlyImportant || item.important) && (value === "전체" || item.status === value)).length}</span></button>)}</div>
+        </div>}
 
         {filtered.length > 0 && (
           <div className="bulkBar">
@@ -365,11 +390,12 @@ export default function AdminPage() {
             const storyMeta = item.kind === "story" ? [item.age_group, item.gender].filter(Boolean).join(" · ") : "";
             const isChecked = selectedIds.has(item.id);
             return (
-              <div className={`submissionRow ${isChecked ? "submissionRowSelected" : ""} ${selected?.id === item.id ? "isViewing" : ""}`} key={item.id}>
+              <div className={`submissionRow ${item.kind === "story" ? "storySubmissionRow" : ""} ${isChecked ? "submissionRowSelected" : ""} ${selected?.id === item.id ? "isViewing" : ""}`} key={item.id}>
                 <label className="submissionSelect" title={`${displayName(item)} 선택`}>
                   <input type="checkbox" checked={isChecked} onChange={() => toggleSelected(item.id)} />
                   <span aria-hidden="true" />
                 </label>
+                {item.kind === "story" && <button className={`storyStar ${item.important ? "active" : ""}`} type="button" disabled={busy} aria-pressed={!!item.important} aria-label={`${displayName(item)} 중요 사연 ${item.important ? "해제" : "표시"}`} onClick={() => toggleImportant(item)}>{item.important ? "★" : "☆"}</button>}
                 <button className="submissionOpen" type="button" onClick={() => openDetail(item)} aria-expanded={selected?.id === item.id}>
                   <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
                   <span className="submissionMain">
@@ -431,7 +457,8 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNot
         <p className="sectionNumber">{item.reference_code}</p>
         <h2>{displayName(item)}</h2>
         <div className="detailQuickActions">
-          {item.contact && <button onClick={() => copy(item.contact!)}>연락처 복사</button>}
+          {item.contact && <button onClick={() => copy(item.contact!)}>{item.kind === "story" ? "이메일 복사" : "연락처 복사"}</button>}
+          {item.kind === "story" && item.contact && <a href={`mailto:${item.contact}?subject=${encodeURIComponent("보내주신 사연에 답장드립니다 · 아우데")}`}>메일로 답장하기 ↗</a>}
           <button onClick={() => copy([item.reference_code, displayName(item), item.contact, item.message].filter(Boolean).join("\n"))}>접수 내용 복사</button>
         </div>
         <div className="submissionDetails">
@@ -439,15 +466,16 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNot
           <Detail label="접수일시" value={new Date(item.created_at).toLocaleString("ko-KR")} />
           <Detail label="연령대" value={item.age_group} />
           {item.kind === "story" && <Detail label="성별" value={item.gender} />}
-          <Detail label="연락처" value={item.contact} />
+          <Detail label={item.kind === "story" ? "답장받을 이메일" : "연락처"} value={item.contact || (item.kind === "story" ? "입력된 이메일이 없습니다." : null)} />
           <Detail label="상담 유형" value={item.service} />
           <Detail label="희망 시간" value={item.preferred_time} />
           <Detail label={item.kind === "story" ? "사연" : "신청 이유"} value={item.message} wide />
           {item.kind === "story" && <Detail label="콘텐츠 활용" value={item.content_consent ? "동의" : "동의하지 않음"} />}
         </div>
         <label className="adminField">상태<select disabled={busy || (item.kind !== "story" && !!item.client_status)} value={status} onChange={(event) => setStatus(event.target.value)}>
-          {(item.kind === "story" ? ["신규", "확인", "연락 완료", "진행", "종결"] : ["신규", "보류", "확정", "거절"]).map((value) => <option key={value}>{value}</option>)}
+          {(item.kind === "story" ? ["미답장", "답장 완료", "답장 안 함"] : ["신규", "보류", "확정", "거절"]).map((value) => <option key={value}>{value}</option>)}
         </select></label>
+        {item.kind === "story" && <p className="editHint">메일을 보낸 뒤 상태를 ‘답장 완료’로 변경하고 저장해 주세요.</p>}
         {item.kind !== "story" && <p className="editHint">{item.client_status ? "확정된 내담자의 상담·휴식·종결은 내담자 화면에서 관리합니다." : "확정으로 저장하면 내담자로 등록되고 상담 중으로 전환됩니다."}</p>}
         <label className="adminField">관리자 메모<textarea disabled={busy} value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} /></label>
         <p className="editHint" role="status">{changed ? "저장하지 않은 변경사항이 있어요" : "모든 변경사항이 저장되어 있어요"}</p>
@@ -467,4 +495,5 @@ function Detail({ label, value, wide = false }: { label: string; value: string |
   if (!value) return null;
   return <div className={wide ? "detailWide" : ""}><dt>{label}</dt><dd>{value}</dd></div>;
 }
+
 
