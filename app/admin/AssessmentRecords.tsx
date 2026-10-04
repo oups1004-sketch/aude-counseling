@@ -1,5 +1,5 @@
 "use client";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { assessmentReport, ReportData } from "./AssessmentReport";
 import { assessmentStates, assessmentStatus } from "../lib/assessment-status";
 import { sealData } from "./AssessmentSeal";
@@ -54,6 +54,13 @@ export default function AssessmentRecords({ clientId, clientName, initial, onRec
     if (busy || dirty && !confirm("저장하지 않은 검사 내용을 버릴까요?")) return;
     setEditing(record); setDirty(false); setMessage("");
   }
+  function openDatePicker(event: MouseEvent<HTMLLabelElement>) {
+    const input = event.currentTarget.querySelector<HTMLInputElement>('input[type="date"]');
+    if (!input || input.disabled) return;
+    event.preventDefault();
+    input.focus();
+    try { input.showPicker(); } catch { /* Native date input remains available. */ }
+  }
   const fileUrl = (record: AssessmentRecord, kind: string) => `/api/admin/assessments?clientId=${encodeURIComponent(clientId)}&recordId=${encodeURIComponent(record.id)}&kind=${kind}`;
   return <section className="sessionSection assessmentSection">
     <div className="sessionHeading"><h3>심리검사 <span>{records.length}</span></h3><button type="button" onClick={() => changeEditing(null)}>+ 검사 기록</button></div>
@@ -61,9 +68,9 @@ export default function AssessmentRecords({ clientId, clientName, initial, onRec
     {message && <p className="assessmentMessage" role="status">{message}</p>}
     {editing !== undefined && <form ref={formRef} key={editing?.id || "new"} className="sessionForm assessmentForm" onSubmit={submit} onChange={() => setDirty(true)}>
       <label>검사명<input name="testName" defaultValue={editing?.testName} maxLength={100} required placeholder="예: MMPI-2, MBTI, SCT" /></label>
-      <label>실시일<input name="date" type="date" defaultValue={editing?.date} /></label>
+      <label onClick={openDatePicker} style={{ cursor: "pointer" }}>실시일<input name="date" type="date" style={{ cursor: "pointer" }} defaultValue={editing?.date} /></label>
       <label>진행 상태<select name="status" defaultValue={assessmentStatus(editing?.status || "검사 전송")}>{assessmentStates.map(s => <option key={s}>{s}</option>)}</select></label>
-      <label>해석상담일<input name="interpretationDate" type="date" defaultValue={editing?.interpretationDate} /></label>
+      <label onClick={openDatePicker} style={{ cursor: "pointer" }}>해석상담일<input name="interpretationDate" type="date" style={{ cursor: "pointer" }} defaultValue={editing?.interpretationDate} /></label>
       <label className="wide">심리검사 해석<textarea name="scores" rows={5} maxLength={16000} defaultValue={interpretation(editing)} placeholder="검사 결과와 주요 특징, 해석 내용을 작성해 주세요" /></label>
       <input name="note" type="hidden" value="" />
       <label className="wide">상담 내용<textarea name="reaction" rows={5} maxLength={4000} defaultValue={editing?.reaction} placeholder="심리검사 해석 과정에서 나눈 상담 내용과 내담자 반응을 작성해 주세요" /></label>
