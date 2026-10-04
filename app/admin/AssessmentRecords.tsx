@@ -5,6 +5,9 @@ export type AssessmentRecord = {
   interpretationDate: string; reaction: string; updatedAt: string;
   resultFile?: { name: string }; summaryFile?: { name: string };
 };
+function interpretation(record?: AssessmentRecord | null) {
+  return [record?.scores, record?.note].filter(Boolean).join("\n\n");
+}
 export default function AssessmentRecords({ clientId, initial, onRecordsChange, onDirty }: { clientId: string; initial: AssessmentRecord[]; onRecordsChange?: (records: AssessmentRecord[]) => void; onDirty?: (dirty: boolean) => void }) {
   const [records, setRecords] = useState(initial);
   const [editing, setEditing] = useState<AssessmentRecord | null | undefined>(undefined);
@@ -46,9 +49,9 @@ export default function AssessmentRecords({ clientId, initial, onRecordsChange, 
       <label>실시일<input name="date" type="date" defaultValue={editing?.date} /></label>
       <label>진행 상태<select name="status" defaultValue={editing?.status || "실시 예정"}>{["실시 예정", "결과 대기", "해석 준비", "해석상담 완료"].map(s => <option key={s}>{s}</option>)}</select></label>
       <label>해석상담일<input name="interpretationDate" type="date" defaultValue={editing?.interpretationDate} /></label>
-      <label className="wide">주요 점수·유형<textarea name="scores" rows={3} maxLength={4000} defaultValue={editing?.scores} placeholder="척도와 T점수, MBTI 유형 등을 기록" /></label>
-      <label className="wide">해석 메모<textarea name="note" rows={5} maxLength={8000} defaultValue={editing?.note} placeholder="주요 특징, 상담에서 확인할 내용" /></label>
-      <label className="wide">해석상담 기록·내담자 반응<textarea name="reaction" rows={3} maxLength={4000} defaultValue={editing?.reaction} /></label>
+      <label className="wide">심리검사 해석<textarea name="scores" rows={5} maxLength={16000} defaultValue={interpretation(editing)} placeholder="검사 결과와 주요 특징, 해석 내용을 작성해 주세요" /></label>
+      <input name="note" type="hidden" value="" />
+      <label className="wide">상담 내용<textarea name="reaction" rows={5} maxLength={4000} defaultValue={editing?.reaction} placeholder="심리검사 해석 과정에서 나눈 상담 내용과 내담자 반응을 작성해 주세요" /></label>
       <label>결과 PDF<input name="resultFile" type="file" accept="application/pdf,.pdf" />{editing?.resultFile && <small>기존: {editing.resultFile.name} · 새 파일 선택 시 교체</small>}</label>
       <label>요약 해석본 PDF<input name="summaryFile" type="file" accept="application/pdf,.pdf" />{editing?.summaryFile && <small>기존: {editing.summaryFile.name} · 새 파일 선택 시 교체</small>}</label>
       <div className="assessmentFormActions wide"><button type="button" disabled={busy} onClick={() => changeEditing(undefined)}>취소</button><button className="workspacePrimary" disabled={busy}>{busy ? "저장 중…" : "검사 기록 저장"}</button></div>
@@ -56,9 +59,8 @@ export default function AssessmentRecords({ clientId, initial, onRecordsChange, 
     <div className="sessionList">{records.map(record => <article key={record.id}>
       <div><b>{record.testName}</b><span className="assessmentBadge">{record.status}</span></div>
       <small>실시일 {record.date || "미정"}{record.interpretationDate ? ` · 해석상담 ${record.interpretationDate}` : ""}</small>
-      {record.scores && <p><strong>주요 점수·유형</strong><br/>{record.scores}</p>}
-      {record.note && <p><strong>해석 메모</strong><br/>{record.note}</p>}
-      {record.reaction && <p><strong>해석상담 기록</strong><br/>{record.reaction}</p>}
+      {interpretation(record) && <p><strong>심리검사 해석</strong><br/>{interpretation(record)}</p>}
+      {record.reaction && <p><strong>상담 내용</strong><br/>{record.reaction}</p>}
       <div className="assessmentFileActions">{record.resultFile && <a href={fileUrl(record, "result")}>결과 PDF ↓</a>}{record.summaryFile && <a href={fileUrl(record, "summary")}>요약 해석본 ↓</a>}<button type="button" onClick={() => changeEditing(record)}>수정</button></div>
     </article>)}
     {!records.length && <p className="sessionEmpty">검사 기록을 추가해 결과와 해석 내용을 정리해 보세요.</p>}</div>
