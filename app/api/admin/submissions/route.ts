@@ -87,11 +87,11 @@ export async function GET() {
   try {
     const [storiesResponse, counselingResponse] = await Promise.all([
       supabaseAdminRequest("/rest/v1/story_submissions?select=id,created_at,status,data&order=created_at.desc&limit=500"),
-      supabaseAdminRequest("/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=500"),
+      supabaseAdminRequest("/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=500&or=(data->>type.is.null,data->>type.eq.counseling)"),
     ]);
 
     const stories = (await storiesResponse.json()) as DbRow[];
-    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => !["site-settings", "admin-client", "tat-session"].includes(String(row.data?.type)));
+    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => !["site-settings", "admin-client", "tat-session", "aude-appointment", "aude-charge", "aude-expense"].includes(String(row.data?.type)));
     const items = [
       ...stories.map(storyItem),
       ...counseling.map(counselingItem),
@@ -119,6 +119,7 @@ export async function PATCH(request: Request) {
     const currentRows = (await currentResponse.json()) as Array<{ data: Record<string, unknown> | null }>;
     if (!currentRows[0]) return NextResponse.json({ error: "접수를 찾지 못했습니다." }, { status: 404 });
     const currentData = currentRows[0].data || {};
+    if (["aude-appointment", "aude-charge", "aude-expense", "tat-session", "site-settings"].includes(String(currentData.type))) return NextResponse.json({error:"접수 기록이 아닙니다."},{status:400});
     if (parsed.source === "counseling" && currentData.adminManagedClient && status !== "확정") {
       return NextResponse.json({ error: "확정된 내담자의 진행 상태는 내담자 화면에서 변경해 주세요." }, { status: 409 });
     }
@@ -167,6 +168,7 @@ export async function DELETE(request: Request) {
     if (parsed.source === "counseling") {
       const response = await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}&select=data&limit=1`);
       const rows = await response.json();
+      if (["aude-appointment", "aude-charge", "aude-expense", "tat-session", "site-settings"].includes(String(rows[0]?.data?.type))) return NextResponse.json({error:"접수 기록이 아닙니다."},{status:400});
       if (rows[0]?.data?.adminManagedClient) return NextResponse.json({ error: "내담자로 등록된 접수는 상담·검사 기록 보호를 위해 삭제할 수 없습니다." }, { status: 409 });
     }
     await supabaseAdminRequest(`/rest/v1/${parsed.table}?id=eq.${encodeURIComponent(parsed.id)}`, {
@@ -180,6 +182,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+
 
 
 

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import OperationsOverview from "./OperationsOverview";
 import "./story-management.css";
 
 type Kind = "intake" | "assessment" | "story";
@@ -331,7 +332,7 @@ export default function AdminPage() {
           <Link className="active" href="/admin">접수</Link>
           <Link href="/admin/clients">내담자</Link>
           <Link href="/admin/assessments">투사검사</Link>
-        </nav>
+        <Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav>
         <Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link>
         <button onClick={logout}>로그아웃</button>
       </header>
@@ -342,6 +343,7 @@ export default function AdminPage() {
           <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => (item.status === "신규" || (item.kind === "story" && item.status === "미답장"))).length}</strong><span>새 접수 ↗</span></button>
         </div>
 
+        <OperationsOverview />
         <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
           <div><span>상담 신청 상태</span><strong>{counselingOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{counselingOpen ? "본 사이트에서 개인상담 신청이 가능합니다." : "본 사이트의 신청 버튼과 신규 접수가 차단되어 있습니다."}</p></div>
           <button type="button" disabled={statusBusy} onClick={toggleCounselingStatus}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
@@ -495,5 +497,6 @@ function Detail({ label, value, wide = false }: { label: string; value: string |
   if (!value) return null;
   return <div className={wide ? "detailWide" : ""}><dt>{label}</dt><dd>{value}</dd></div>;
 }
+
 
 

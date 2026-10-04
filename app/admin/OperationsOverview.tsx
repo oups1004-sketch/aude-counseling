@@ -1,0 +1,6 @@
+'use client';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
+import { Operations,monthTotals,seoulDate,won } from '../lib/operations-model';
+import './operations.css';
+export default function OperationsOverview(){const [data,setData]=useState<Operations|null>(null);useEffect(()=>{let active=true;fetch('/api/admin/operations',{cache:'no-store'}).then(async r=>{if(r.ok&&active)setData(await r.json());}).catch(()=>undefined);return()=>{active=false;};},[]);if(!data)return <div className="opsDashboardMini"><Link href="/admin/calendar">상담 일정 관리 ↗</Link><Link href="/admin/finance">수납·지출 관리 ↗</Link></div>;const today=seoulDate(),t=monthTotals(data,today.slice(0,7));return <div className="opsDashboardMini"><Link href="/admin/calendar">오늘 일정<strong>{data.appointments.filter(r=>r.data.status==='예약'&&seoulDate(r.data.startAt!)===today).length}건</strong></Link><Link href="/admin/finance">이번 달 받은 금액<strong>{won(t.net)}</strong><small>환불 제외</small></Link><Link href="/admin/finance">미수납<strong>{won(t.due)}</strong><small>전체 {t.unpaidCount}건</small></Link><Link href="/admin/finance">이번 달 지출<strong>{won(t.spent)}</strong></Link><Link href="/admin/finance">수입·지출 차액<strong>{won(t.balance)}</strong></Link></div>;}

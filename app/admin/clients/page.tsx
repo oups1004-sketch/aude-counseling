@@ -103,7 +103,7 @@ export default function ClientsPage() {
 }
 
 function AdminHeader() {
-  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">투사검사</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
+  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">투사검사</Link><Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
 }
 
 function Metric({ value, label }: { value: number; label: string }) {
@@ -137,7 +137,7 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
     if (await patch({ session: data })) onSaved();
   }
 
-  return <div className="adminModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && close()}><section className="adminModal clientModal"><button className="adminModalClose" onClick={close}>×</button><p className="sectionNumber">{client.clientCode}</p><h2>{client.name}</h2><div className="clientEditGrid"><label>이름<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>연락처<input value={contact} onChange={(e) => setContact(e.target.value)} /></label><label>상태<select value={status} onChange={(e) => setStatus(e.target.value)}>{statuses.map((v) => <option key={v} value={v}>{v === "진행" ? "상담 중" : v}</option>)}</select></label><label>다음 상담<input type="datetime-local" value={nextSessionAt} onChange={(e) => setNextSessionAt(e.target.value)} /></label><label className="wide">내담자 메모<textarea rows={4} value={memo} onChange={(e) => setMemo(e.target.value)} /></label></div>
+  return <div className="adminModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && close()}><section className="adminModal clientModal"><button className="adminModalClose" onClick={close}>×</button><p className="sectionNumber">{client.clientCode}</p><h2>{client.name}</h2><div style={{display:"flex",gap:16,margin:"16px 0"}}><Link href={`/admin/calendar?client=${client.id}`}>상담 일정 ↗</Link><Link href={`/admin/finance?client=${client.id}`}>수납 내역 ↗</Link></div><div className="clientEditGrid"><label>이름<input value={name} onChange={(e) => setName(e.target.value)} /></label><label>연락처<input value={contact} onChange={(e) => setContact(e.target.value)} /></label><label>상태<select value={status} onChange={(e) => setStatus(e.target.value)}>{statuses.map((v) => <option key={v} value={v}>{v === "진행" ? "상담 중" : v}</option>)}</select></label><label>다음 상담 · 일정에서 관리<input readOnly type="datetime-local" value={nextSessionAt} onChange={(e) => setNextSessionAt(e.target.value)} /></label><label className="wide">내담자 메모<textarea rows={4} value={memo} onChange={(e) => setMemo(e.target.value)} /></label></div>
     {client.sourceReason && <div className="sourceReason"><small>최초 신청 내용</small><p>{client.sourceReason}</p></div>}
     <div className="sessionSection"><div className="sessionHeading"><h3>회기 기록 <span>{client.sessionCount}</span></h3><button onClick={() => setSessionOpen((v) => !v)}>+ 회기 기록</button></div>{sessionOpen && <form className="sessionForm" onSubmit={addSession}><label>회기<input name="sessionNo" type="number" min="1" defaultValue={client.sessionCount + 1} /></label><label>상담일<input name="date" type="date" defaultValue={new Date().toISOString().slice(0,10)} /></label><label className="wide">회기 요약<textarea name="summary" rows={5} required placeholder="주요 호소, 상담 내용, 관찰 등을 기록" /></label><label className="wide">다음 회기 계획<textarea name="nextPlan" rows={3} /></label><button className="workspacePrimary wide" disabled={busy}>{busy ? "저장 중…" : "회기 저장"}</button></form>}
       <div className="sessionList">{[...client.sessions].reverse().map((session) => <article key={session.id}><div><b>{session.sessionNo}회기</b><span>{session.date}</span></div><p>{session.summary || "요약 없음"}</p>{session.nextPlan && <small>다음 계획 · {session.nextPlan}</small>}</article>)}{client.sessions.length === 0 && <p className="sessionEmpty">아직 회기 기록이 없습니다.</p>}</div></div>
@@ -148,5 +148,6 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
 
 function toLocalInput(value: string | null) { return value ? value.slice(0, 16) : ""; }
 function formatDateTime(value: string | null) { if (!value) return "미정"; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" }); }
+
 
 

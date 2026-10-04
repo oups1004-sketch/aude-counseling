@@ -1,0 +1,14 @@
+import { NextResponse } from 'next/server';
+import { admin,error,privateHeaders,validId } from '../../../lib/tat';
+import { getOperation,getOperations,validateOperation,insertOperation,updateOperation,addPayment } from '../../../lib/operations';
+import { OperationType,chargeTotals } from '../../../lib/operations-model';
+export const runtime='nodejs';
+export async function GET(){if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});try{const rows=await getOperations();return NextResponse.json({appointments:rows.filter(r=>r.data.type==='aude-appointment'),charges:rows.filter(r=>r.data.type==='aude-charge'),expenses:rows.filter(r=>r.data.type==='aude-expense')},{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}}
+export async function POST(request:Request){if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});try{const i=await request.json();if(!validId(i.requestId))throw new Error('저장 요청을 확인해 주세요.');const type=i.type as OperationType;const fields=await validateOperation(type,i);return NextResponse.json(await insertOperation(type,fields,i.requestId),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}}
+export async function PATCH(request:Request){if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});try{const i=await request.json(),row=await getOperation(i.id);if(i.action==='payment'&&row.data.payments?.some(p=>p.id===i.paymentId))return NextResponse.json(row,{headers:privateHeaders});if(i.version!==row.data.version)throw new Error('다른 변경사항이 저장되었습니다. 기록을 다시 열고 시도해 주세요.');let data=row.data;
+ if(i.action==='payment')data=addPayment(data,i);
+ else if(i.action==='void-payment'){if(data.type!=='aude-charge')throw new Error('결제 항목을 확인해 주세요.');const p=data.payments?.find(p=>p.id===i.paymentId);if(!p)throw new Error('입출금 기록을 찾지 못했습니다.');data={...data,payments:data.payments!.map(p=>p.id===i.paymentId?{...p,voided:true}:p)};if(chargeTotals(data).net<0)throw new Error('연결된 환불 기록을 먼저 정정해 주세요.');}
+ else if(i.action==='evidence'){if(data.type!=='aude-charge'||!['확인 필요','처리 완료','해당 없음'].includes(i.evidence)||!data.payments?.some(p=>p.id===i.paymentId))throw new Error('증빙 상태를 확인해 주세요.');data={...data,payments:data.payments!.map(p=>p.id===i.paymentId?{...p,evidence:i.evidence}:p)};}
+ else if(i.action==='archive'){if(data.type==='aude-appointment')throw new Error('일정 상태를 취소로 변경해 주세요.');if(data.type==='aude-charge'&&chargeTotals(data).net>0)throw new Error('수납 금액을 환불한 뒤 결제 항목을 취소해 주세요.');if(typeof i.archived!=='boolean')throw new Error('취소 상태를 확인해 주세요.');data={...data,archived:i.archived};}
+ else if(i.action==='edit')data={...data,...await validateOperation(data.type,i,data)};
+ else throw new Error('요청을 확인해 주세요.');return NextResponse.json(await updateOperation(row,data),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}}

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
 
+import { getOperations } from "../../../lib/operations";
 import { isConfirmedClient } from "../../../lib/client-eligibility";
 
 export const runtime = "nodejs";
@@ -61,7 +62,7 @@ function clientItem(row: DbRow) {
 
 async function getRows() {
   const response = await supabaseAdminRequest(
-    "/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=1000",
+    "/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=1000&or=(data->>type.is.null,data->>type.eq.counseling)",
   );
   return (await response.json()) as DbRow[];
 }
@@ -70,8 +71,14 @@ export async function GET() {
   if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const rows = await getRows();
-    const clients = rows.filter((row) => isConfirmedClient(row.data)).map(clientItem);
+    const [rows, operations] = await Promise.all([getRows(), getOperations()]);
+    const appointments = operations.filter(r => r.data.type === "aude-appointment");
+    const calendarClients = new Set(appointments.map(r => r.data.clientId));
+    const upcoming = appointments.filter(r => r.data.status === "예약" && Date.parse(r.data.startAt!) >= Date.now()).sort((a,b) => a.data.startAt!.localeCompare(b.data.startAt!));
+    const clients = rows.filter((row) => isConfirmedClient(row.data)).map(row => {
+      const item = clientItem(row);
+      return {...item, nextSessionAt: calendarClients.has(row.id) ? upcoming.find(r => r.data.clientId === row.id)?.data.startAt || null : item.nextSessionAt};
+    });
     return NextResponse.json(clients);
   } catch (error) {
     console.error("Client list failed", error);
@@ -144,4 +151,5 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "내담자 정보를 저장하지 못했습니다." }, { status: 500 });
   }
 }
+
 
