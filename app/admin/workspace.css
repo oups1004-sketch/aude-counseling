@@ -253,3 +253,32 @@
   .adminShell .submissionOpen{grid-template-columns:96px minmax(0,1fr);gap:10px}
   .adminShell .submissionOpen .submissionStatus{grid-column:2;justify-self:start}
 }
+
+/* Intake tabs match the category badges */
+.adminShell .adminTabs{gap:10px;flex-wrap:wrap;overflow:visible}
+.adminShell .adminTabs button{
+  --tab-ink:#3e4b35;--tab-bg:#e8eddf;--tab-border:#bdc9ac;
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;
+  min-height:52px;padding:12px 18px;border:1px solid var(--tab-border);border-radius:12px;
+  background:var(--tab-bg);color:var(--tab-ink);
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:1rem;font-weight:800;line-height:1.4;
+}
+.adminShell .adminTabs button:nth-child(2){--tab-ink:#204f91;--tab-bg:#e0ebff;--tab-border:#adc4e8}
+.adminShell .adminTabs button:nth-child(3){--tab-ink:#245c3b;--tab-bg:#dfeee3;--tab-border:#aacdb6}
+.adminShell .adminTabs button:nth-child(4){--tab-ink:#664087;--tab-bg:#eee4fa;--tab-border:#cbb2e1}
+.adminShell .adminTabs button span{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:28px;min-height:28px;padding:2px 7px;border-radius:8px;
+  background:#fff;color:var(--tab-ink);font-size:.95rem;font-weight:800;opacity:1;
+}
+.adminShell .adminTabs button.active{
+  background:var(--tab-ink);color:#fff;border-color:var(--tab-ink);
+  box-shadow:0 0 0 2px #f8f5ee,0 0 0 4px var(--tab-border);
+}
+@media(hover:hover) and (pointer:fine){
+  .adminShell .adminTabs button:not(.active):hover{background:var(--tab-bg);border-color:var(--tab-ink);color:var(--tab-ink)}
+}
+@media(max-width:560px){
+  .adminShell .adminTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .adminShell .adminTabs button{width:100%;padding:11px 12px;font-size:.95rem}
+}
