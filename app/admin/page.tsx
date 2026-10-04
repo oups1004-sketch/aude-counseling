@@ -377,7 +377,7 @@ export default function AdminPage() {
                     <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
                   </span>
                   <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
-                  <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}{item.client_status && <small> · {item.client_status === "진행" ? "상담 중" : item.client_status}</small>}</span>
+                  <span className={`submissionStatus status-${item.status.replace(" ", "-")}`}>{item.status}</span>
                 </button>
               </div>
             );
