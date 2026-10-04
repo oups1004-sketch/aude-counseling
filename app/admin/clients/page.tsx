@@ -105,7 +105,7 @@ export default function ClientsPage() {
 }
 
 function AdminHeader() {
-  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">심리검사</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
+  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">투사검사</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
 }
 
 function Metric({ value, label }: { value: number; label: string }) {
