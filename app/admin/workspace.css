@@ -218,3 +218,38 @@
 @media(max-width:760px){.adminHomeLink{margin-left:auto;margin-right:0}.adminShell .submissionOpen{grid-template-columns:65px minmax(0,1fr) 92px;gap:8px}.submissionStatus{display:grid;text-align:center}.submissionStatus small{display:block}.assessmentClientPanel{padding:18px}.decisionFilters button{padding:8px 12px}.clientToolbar select{width:100%}}
 
 @media(min-width:1200px){.intakeWorkspace.hasDetail .submissionOpen{grid-template-columns:70px minmax(0,1fr) 120px;gap:10px}}
+
+/* Clear, consistent record headings and intake categories */
+.adminShell .sessionHeading{gap:16px;margin-bottom:12px}
+.adminShell .sessionHeading h3{
+  display:flex;align-items:center;gap:10px;
+  margin:0;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  font-size:1.4rem;font-weight:800;line-height:1.5;letter-spacing:-.03em;color:#202b24;
+}
+.adminShell .sessionHeading h3 span{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:30px;height:30px;padding:0 8px;border-radius:8px;
+  background:#e0e8da;color:#344d2d;font-family:inherit;font-size:.95rem;font-weight:700;letter-spacing:0;
+}
+.adminShell .submissionKind{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:100%;min-height:42px;padding:9px 10px;border:1px solid transparent;border-radius:10px;
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;font-size:1rem;font-weight:800;
+  line-height:1.4;letter-spacing:-.025em;white-space:nowrap;
+}
+.adminShell .submissionKind.intake{background:#e0ebff;color:#204f91;border-color:#adc4e8}
+.adminShell .submissionKind.assessment{background:#dfeee3;color:#245c3b;border-color:#aacdb6}
+.adminShell .submissionKind.story{background:#eee4fa;color:#664087;border-color:#cbb2e1}
+.adminShell .submissionOpen{grid-template-columns:112px minmax(0,1fr) 150px 140px}
+@media(min-width:1200px){
+  .intakeWorkspace.hasDetail .submissionOpen{grid-template-columns:112px minmax(0,1fr) 120px;gap:12px}
+}
+@media(max-width:760px){
+  .adminShell .submissionOpen{grid-template-columns:96px minmax(0,1fr) 92px;gap:8px}
+  .adminShell .submissionKind{font-size:.95rem;padding:8px 6px;min-height:40px}
+  .adminShell .sessionHeading h3{font-size:1.3rem}
+}
+@media(max-width:420px){
+  .adminShell .submissionOpen{grid-template-columns:96px minmax(0,1fr);gap:10px}
+  .adminShell .submissionOpen .submissionStatus{grid-column:2;justify-self:start}
+}
