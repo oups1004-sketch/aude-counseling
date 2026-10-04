@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     const testName = clean(form.get("testName"), 100);
     const status = clean(form.get("status"), 40);
     if (!testName || !states.includes(status)) throw new Error("검사명과 진행 상태를 확인해 주세요.");
-    const record: RecordItem = { ...old, id: old?.id || crypto.randomUUID(), testName, date: clean(form.get("date"), 20), status, scores: clean(form.get("scores"), 4000), note: clean(form.get("note"), 8000), interpretationDate: clean(form.get("interpretationDate"), 20), reaction: clean(form.get("reaction"), 4000), updatedAt: new Date().toISOString() };
+    const record: RecordItem = { ...old, id: old?.id || crypto.randomUUID(), testName, date: clean(form.get("date"), 20), status, scores: clean(form.get("scores"), 16000), note: clean(form.get("note"), 8000), interpretationDate: clean(form.get("interpretationDate"), 20), reaction: clean(form.get("reaction"), 4000), updatedAt: new Date().toISOString() };
     for (const key of ["resultFile", "summaryFile"] as const) {
       const file = form.get(key);
       if (!(file instanceof File) || !file.size) continue;
