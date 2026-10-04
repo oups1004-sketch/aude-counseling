@@ -2,9 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
 
+import { assessmentStates, assessmentStatus } from "../../../lib/assessment-status";
+
 export const runtime = "nodejs";
 const bucket = "aude-assessment-private";
-const states = ["실시 예정", "결과 대기", "해석 준비", "해석상담 완료"];
+const states = assessmentStates;
 const clean = (v: unknown, max = 2000) => String(v ?? "").trim().slice(0, max);
 type Attachment = { path: string; name: string };
 type RecordItem = { id: string; testName: string; date: string; status: string; scores: string; note: string; deliveryText?: string; interpretationDate: string; reaction: string; resultFile?: Attachment; summaryFile?: Attachment; updatedAt: string };
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     if (!old && records.length >= 200) throw new Error("내담자별 검사 기록은 최대 200개까지 등록할 수 있습니다.");
     if (old && clean(form.get("updatedAt"), 80) !== old.updatedAt) throw new Error("기록이 변경되었습니다. 새로고침 후 다시 확인해 주세요.");
     const testName = clean(form.get("testName"), 100);
-    const status = clean(form.get("status"), 40);
+    const status = assessmentStatus(clean(form.get("status"), 40));
     if (!testName || !states.includes(status)) throw new Error("검사명과 진행 상태를 확인해 주세요.");
     const record: RecordItem = { ...old, id: old?.id || crypto.randomUUID(), testName, date: clean(form.get("date"), 20), status, deliveryText: form.has("deliveryText") ? clean(form.get("deliveryText"), 16000) : old?.deliveryText || "", scores: clean(form.get("scores"), 16000), note: clean(form.get("note"), 8000), interpretationDate: clean(form.get("interpretationDate"), 20), reaction: clean(form.get("reaction"), 4000), updatedAt: new Date().toISOString() };
     for (const key of ["resultFile", "summaryFile"] as const) {
