@@ -304,3 +304,11 @@
   .adminShell .submissionOpen .submissionStatus{grid-column:2;grid-row:1 / 3}
   .adminShell .submissionOpen .submissionDate{grid-column:1 / 3;grid-row:3}
 }
+
+/* Keep admin navigation visible while scrolling long lists. */
+.adminShell .workspaceHeader{
+  position:sticky;top:0;z-index:900;
+  background:#eee8dc;
+  border-bottom:1px solid #cdc5b7;
+  box-shadow:0 3px 12px rgba(35,38,30,.06);
+}
