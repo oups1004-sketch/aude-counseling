@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
 
+import { isConfirmedClient } from "../../../lib/client-eligibility";
+
 export const runtime = "nodejs";
 
 type DbRow = {
@@ -26,10 +28,6 @@ async function authorized() {
 
 function text(value: unknown, max = 2000) {
   return String(value ?? "").trim().slice(0, max);
-}
-
-function bool(value: unknown) {
-  return value === true || value === "true";
 }
 
 function clientCode(row: DbRow) {
@@ -73,7 +71,7 @@ export async function GET() {
 
   try {
     const rows = await getRows();
-    const clients = rows.filter((row) => bool(row.data?.adminManagedClient)).map(clientItem);
+    const clients = rows.filter((row) => isConfirmedClient(row.data)).map(clientItem);
     return NextResponse.json(clients);
   } catch (error) {
     console.error("Client list failed", error);
@@ -81,90 +79,9 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  try {
-    const input = await request.json();
-    const sourceId = text(input.sourceId, 80);
-
-    if (sourceId) {
-      const currentResponse = await supabaseAdminRequest(
-        `/rest/v1/counseling_requests?id=eq.${encodeURIComponent(sourceId)}&select=id,created_at,status,data&limit=1`,
-      );
-      const rows = (await currentResponse.json()) as DbRow[];
-      const row = rows[0];
-      if (!row) return NextResponse.json({ error: "신청 자료를 찾지 못했습니다." }, { status: 404 });
-
-      const data = row.data || {};
-      if (bool(data.adminManagedClient)) return NextResponse.json({ ok: true, clientCode: clientCode(row) });
-      const code = clientCode(row);
-      await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${encodeURIComponent(sourceId)}`, {
-        method: "PATCH",
-        headers: { Prefer: "return=minimal" },
-        body: JSON.stringify({
-          status: "진행",
-          data: {
-            ...data,
-            admissionStatus: "확정",
-            adminManagedClient: true,
-            clientCode: code,
-            clientName: text(data.name, 80),
-            clientContact: text(data.contact, 120),
-            clientStatus: "진행",
-            startedAt: new Date().toISOString().slice(0, 10),
-            nextSessionAt: "",
-            clientMemo: text(data.adminNote, 5000),
-            sessions: Array.isArray(data.sessions) ? data.sessions : [],
-          },
-        }),
-      });
-      return NextResponse.json({ ok: true, clientCode: code });
-    }
-
-    const name = text(input.name, 80);
-    if (!name) return NextResponse.json({ error: "내담자 이름을 입력해 주세요." }, { status: 400 });
-
-    const created = await supabaseAdminRequest("/rest/v1/counseling_requests?select=id,created_at,status,data", {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        status: "진행",
-        data: {
-          type: "admin-client",
-          adminManagedClient: true,
-          name,
-          clientName: name,
-          contact: text(input.contact, 120),
-          clientContact: text(input.contact, 120),
-          ageGroup: text(input.ageGroup, 40),
-          service: text(input.service, 80),
-          clientStatus: "진행",
-          startedAt: text(input.startedAt, 20) || new Date().toISOString().slice(0, 10),
-          nextSessionAt: text(input.nextSessionAt, 40),
-          clientMemo: text(input.memo, 5000),
-          sessions: [],
-          privacyVersion: "admin-managed-2026-09",
-        },
-      }),
-    });
-
-    const rows = (await created.json()) as DbRow[];
-    const row = rows[0];
-    if (!row) return NextResponse.json({ error: "내담자를 만들지 못했습니다." }, { status: 500 });
-
-    const code = clientCode(row);
-    await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${encodeURIComponent(row.id)}`, {
-      method: "PATCH",
-      headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ data: { ...(row.data || {}), clientCode: code } }),
-    });
-
-    return NextResponse.json({ ok: true, clientCode: code });
-  } catch (error) {
-    console.error("Client create failed", error);
-    return NextResponse.json({ error: "내담자를 등록하지 못했습니다." }, { status: 500 });
-  }
+  return NextResponse.json({ error: "접수 화면에서 상담·심리검사 신청을 확정하면 내담자로 자동 등록됩니다." }, { status: 409 });
 }
 
 export async function PATCH(request: Request) {
@@ -180,7 +97,7 @@ export async function PATCH(request: Request) {
     );
     const rows = (await currentResponse.json()) as DbRow[];
     const row = rows[0];
-    if (!row || !bool(row.data?.adminManagedClient)) {
+    if (!row || !isConfirmedClient(row.data)) {
       return NextResponse.json({ error: "내담자를 찾지 못했습니다." }, { status: 404 });
     }
 

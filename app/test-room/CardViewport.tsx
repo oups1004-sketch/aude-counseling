@@ -1,10 +1,11 @@
 'use client';
 import { useEffect,useRef,useState } from 'react';
 export default function CardViewport({src,onView}:{src:string;onView?:(scale:number,angle:number)=>void}){
+ const defaultAngle=new URL(src,'https://www.audecounseling.com').searchParams.get('card')==='14'?90:0;
  const box=useRef<HTMLDivElement>(null);const drag=useRef<{x:number;y:number;left:number;top:number}|null>(null);
- const [scale,setScale]=useState(1);const [angle,setAngle]=useState(0);const [offset,setOffset]=useState({x:0,y:0});const [size,setSize]=useState({w:800,h:600});const [aspect,setAspect]=useState(1.3);const [failed,setFailed]=useState(false);
- const reset=()=>{setScale(1);setAngle(0);setOffset({x:0,y:0});};
- useEffect(()=>{setScale(1);setAngle(0);setOffset({x:0,y:0});setFailed(false);},[src]);
+ const [scale,setScale]=useState(1);const [angle,setAngle]=useState(defaultAngle);const [offset,setOffset]=useState({x:0,y:0});const [size,setSize]=useState({w:800,h:600});const [aspect,setAspect]=useState(1.3);const [failed,setFailed]=useState(false);
+ const reset=()=>{setScale(1);setAngle(defaultAngle);setOffset({x:0,y:0});};
+ useEffect(()=>{setScale(1);setAngle(defaultAngle);setOffset({x:0,y:0});setFailed(false);},[src,defaultAngle]);
  useEffect(()=>{const el=box.current;if(!el)return;const observer=new ResizeObserver(()=>setSize({w:el.clientWidth,h:el.clientHeight}));observer.observe(el);const wheel=(e:WheelEvent)=>{e.preventDefault();setScale(s=>Math.min(4,Math.max(.5,s*Math.exp(-e.deltaY*.001))));};el.addEventListener('wheel',wheel,{passive:false});return()=>{observer.disconnect();el.removeEventListener('wheel',wheel);};},[]);
  useEffect(()=>{const t=setTimeout(()=>onView?.(scale,angle),600);return()=>clearTimeout(t);},[scale,angle,onView]);
  const flipped=Math.abs(angle%180)===90;const w=Math.max(20,Math.min((flipped?size.h:size.w)-90,((flipped?size.w:size.h)-90)*aspect));

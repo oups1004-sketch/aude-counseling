@@ -29,7 +29,6 @@ export default function ClientsPage() {
   const [auth, setAuth] = useState<"checking" | "ready" | "login">("checking");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Client | null>(null);
-  const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -64,8 +63,8 @@ export default function ClientsPage() {
       <AdminHeader />
       <section className="adminDashboard workspacePage">
         <div className="workspaceHeading">
-          <div><p className="sectionNumber">COUNSELING DESK</p><h1>내담자 관리</h1><p>내담자 기본정보, 다음 상담일과 회기 기록을 한곳에서 관리합니다.</p></div>
-          <button className="workspacePrimary" onClick={() => setCreating(true)}>+ 내담자 등록</button>
+          <div><p className="sectionNumber">COUNSELING DESK</p><h1>내담자 관리</h1><p>접수에서 확정한 내담자의 기본정보, 다음 상담일과 회기 기록을 관리합니다.</p></div>
+          <Link className="clientConvert" href="/admin">접수에서 확정하기 ↗</Link>
         </div>
 
         <div className="workspaceMetrics">
@@ -98,7 +97,6 @@ export default function ClientsPage() {
         </div>
       </section>
 
-      {creating && <CreateClient busy={busy} onClose={() => setCreating(false)} onCreated={async () => { setCreating(false); await load(); }} setBusy={setBusy} />}
       {selected && <ClientModal client={selected} busy={busy} setBusy={setBusy} onClose={() => setSelected(null)} onSaved={async () => { await load(); setSelected(null); }} />}
     </main>
   );
@@ -110,19 +108,6 @@ function AdminHeader() {
 
 function Metric({ value, label }: { value: number; label: string }) {
   return <div className="workspaceMetric"><strong>{value}</strong><span>{label}</span></div>;
-}
-
-function CreateClient({ busy, onClose, onCreated, setBusy }: { busy: boolean; onClose: () => void; onCreated: () => void; setBusy: (v: boolean) => void }) {
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    const response = await fetch("/api/admin/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-    setBusy(false);
-    if (!response.ok) return alert((await response.json().catch(() => ({}))).error || "등록하지 못했습니다.");
-    onCreated();
-  }
-  return <div className="adminModalBackdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}><section className="adminModal workspaceModal"><button className="adminModalClose" onClick={onClose}>×</button><p className="sectionNumber">NEW CLIENT</p><h2>내담자 등록</h2><form className="clientForm" onSubmit={submit}><label>이름<input name="name" required autoFocus /></label><label>연락처<input name="contact" /></label><label>연령대<input name="ageGroup" placeholder="예: 20대" /></label><label>상담 유형<input name="service" placeholder="예: 개인상담" /></label><label>상담 시작일<input name="startedAt" type="date" defaultValue={new Date().toISOString().slice(0,10)} /></label><label>다음 상담<input name="nextSessionAt" type="datetime-local" /></label><label className="wide">메모<textarea name="memo" rows={4} /></label><div className="adminModalActions wide"><button type="button" className="danger" onClick={onClose}>취소</button><button className="save" disabled={busy}>{busy ? "등록 중…" : "내담자 등록"}</button></div></form></section></div>;
 }
 
 function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Client; busy: boolean; setBusy: (v: boolean) => void; onClose: () => void; onSaved: () => void }) {

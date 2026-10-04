@@ -1,23 +1,24 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdminRequest } from '../../../lib/supabase';
-import { admin,alive,cards,digest,error,getSession,mutate,newCode,privateHeaders,validId,TatSession,bucket } from '../../../lib/tat';
+import { admin,alive,cards,digest,error,getSession,mutate,newCode,privateHeaders,validId,TatSession,bucket,insertSession,sign,isTrustedSession } from '../../../lib/tat';
+import { isConfirmedClient } from '../../../lib/client-eligibility';
 export const runtime='nodejs';
 export async function GET(request:Request){
  if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});
  try{const id=new URL(request.url).searchParams.get('id');if(id){const row=await getSession(id);return NextResponse.json({...row,active:alive(row.data)},{headers:privateHeaders});}
  const r=await supabaseAdminRequest('/rest/v1/counseling_requests?data->>type=eq.tat-session&select=id,created_at,data&order=created_at.desc&limit=100');
- return NextResponse.json(await r.json(),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
+ return NextResponse.json((await r.json()).filter(isTrustedSession),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
 }
 export async function POST(request:Request){
  if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});
  try{const input=await request.json();if(!validId(input.clientId))throw new Error('내담자를 선택해 주세요.');
  const r=await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${input.clientId}&select=data&limit=1`);const c=(await r.json())[0]?.data;
- if(!c?.adminManagedClient)throw new Error('등록된 내담자를 선택해 주세요.');
+ if(!isConfirmedClient(c))throw new Error('등록된 내담자를 선택해 주세요.');
  const order=Array.isArray(input.order)?input.order.filter((v:unknown)=>typeof v==='string'&&cards.includes(v)):[];
  if(!order.length||order.length>31||new Set(order).size!==order.length)throw new Error('사용할 도판을 선택해 주세요.');
- const code=newCode();const data:TatSession={type:'tat-session',clientId:input.clientId,clientName:String(c.clientName||c.name||'내담자'),codeHash:digest(code),expiresAt:new Date(Date.now()+24*3600000).toISOString(),order,index:0,hidden:true,revision:0,note:'',recordings:[],events:[]};
- const saved=await supabaseAdminRequest('/rest/v1/counseling_requests?select=id,created_at,data',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({status:'신규',data})});
- return NextResponse.json({...(await saved.json())[0],code},{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
+ const id=crypto.randomUUID();const code=newCode();const data:TatSession={type:'tat-session',creationNonce:id,creationSignature:sign('tat-room:'+id+':'+input.clientId),clientId:input.clientId,clientName:String(c.clientName||c.name||'내담자'),codeHash:digest(code),expiresAt:new Date(Date.now()+24*3600000).toISOString(),order,index:0,hidden:true,revision:0,note:'',recordings:[],events:[]};
+ const saved=await insertSession(id,data);
+ return NextResponse.json({...saved,code},{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
 }
 export async function PATCH(request:Request){
  if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});

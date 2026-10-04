@@ -3,7 +3,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypt
 import { supabaseAdminRequest, verifyAdminSession } from './supabase';
 export const cards = ['1','2','3BM','3GF','4','5','6BM','6GF','7BM','7GF','8BM','8GF','9BM','9GF','10','11','12M','12F','12BG','13MF','13B','13G','14','15','16','17BM','17GF','18BM','18GF','19','20'];
 export type Recording = {id:string;startedAt:string;parts:number;mime:string;finished?:boolean};
-export type TatSession = {type:'tat-session';version?:number;clientId:string;clientName:string;codeHash:string;expiresAt:string;endedAt?:string;order:string[];index:number;hidden:boolean;revision:number;note:string;joinedAt?:string;consentedAt?:string;view?:{card:string;scale:number;angle:number;seenAt:string};recordings:Recording[];events:{card:string;at:string;hidden:boolean}[]};
+export type TatSession = {type:'tat-session';creationSignature:string;creationNonce:string;version?:number;clientId:string;clientName:string;codeHash:string;expiresAt:string;endedAt?:string;order:string[];index:number;hidden:boolean;revision:number;note:string;joinedAt?:string;consentedAt?:string;view?:{card:string;scale:number;angle:number;seenAt:string};recordings:Recording[];events:{card:string;at:string;hidden:boolean}[]};
 export type TatRow = {id:string;created_at:string;data:TatSession};
 export const digest=(s:string)=>createHash('sha256').update(s).digest('hex');
 export const newCode=()=>randomBytes(10).toString('hex').toUpperCase();
@@ -13,7 +13,7 @@ export function alive(d:TatSession){return !d.endedAt&&Date.parse(d.expiresAt)>D
 export async function getSession(id:string):Promise<TatRow>{
  if(!validId(id))throw new Error('검사 접속 정보를 확인해 주세요.');
  const r=await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${id}&select=id,created_at,data&limit=1`);
- const rows=await r.json();if(rows[0]?.data?.type!=='tat-session')throw new Error('검사 공간을 찾지 못했습니다.');return rows[0];
+ const rows=await r.json();if(!isTrustedSession(rows[0]))throw new Error('검사 공간을 찾지 못했습니다.');return rows[0];
 }
 export async function mutate(id:string,fn:(d:TatSession)=>TatSession){
  for(let n=0;n<5;n++){
@@ -41,3 +41,23 @@ export async function ensureAudioBucket(){
 }
 export function error(e:unknown){return e instanceof Error&&!e.message.startsWith('Supabase')?e.message:'저장소 연결을 확인해 주세요. 잠시 후 다시 시도해 주세요.';}
 export const privateHeaders={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'};
+
+export function isTrustedSession(row: TatRow | undefined) {
+ if(!row || row.data?.type!=='tat-session' || !validId(row.id) || !validId(row.data.clientId) || !validId(row.data.creationNonce)) return false;
+ const signature=row.data.creationSignature;
+ const expected=sign('tat-room:'+row.data.creationNonce+':'+row.data.clientId);
+ return typeof signature==='string' && signature.length===expected.length && timingSafeEqual(Buffer.from(signature),Buffer.from(expected));
+}
+export async function insertSession(id:string,data:TatSession) {
+ const url=process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/,'');
+ const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+ if(!url||!key)throw new Error('검사 공간 저장 연결이 설정되어 있지 않습니다.');
+ // The live database permits public INSERT, but does not grant INSERT to its service role.
+ // The server signature prevents forged public inserts from becoming usable test rooms.
+ const response=await fetch(url+'/rest/v1/counseling_requests',{method:'POST',cache:'no-store',headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({data})});
+ if(!response.ok){console.error('TAT session insert failed',response.status,await response.text());throw new Error('검사 공간을 새로 저장하지 못했습니다. DB 등록 권한을 확인해 주세요.');}
+ const result=await supabaseAdminRequest('/rest/v1/counseling_requests?data->>creationNonce=eq.'+id+'&select=id,created_at,data&limit=1');
+ const row=(await result.json())[0] as TatRow | undefined;
+ if(!isTrustedSession(row))throw new Error('저장된 검사 공간을 확인하지 못했습니다.');
+ return row!;
+}
