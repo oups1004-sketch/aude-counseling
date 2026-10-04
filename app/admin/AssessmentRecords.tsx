@@ -24,9 +24,9 @@ export default function AssessmentRecords({ clientId, clientName, initial, onRec
   function showReport(record?: AssessmentRecord) {
     const form = !record && formRef.current ? new FormData(formRef.current) : null;
     const get = (key: string) => String(form?.get(key) ?? "");
-    const data: ReportData = record ? { ...record, clientName, scores: interpretation(record), deliveryText: record.deliveryText || "" } : { clientName, testName: get("testName"), date: get("date"), interpretationDate: get("interpretationDate"), scores: get("scores"), deliveryText: get("deliveryText"), reaction: get("reaction") };
+    const data: ReportData = record ? { ...record, clientName, scores: interpretation(record) } : { clientName, testName: get("testName"), date: get("date"), interpretationDate: get("interpretationDate"), scores: get("scores") };
     if (!data.testName.trim()) { setMessage("검사명을 먼저 작성해 주세요."); return; }
-    if (!data.deliveryText.trim()) { setMessage("내담자 전달용 해석본을 먼저 작성해 주세요."); return; }
+    if (!data.scores.trim()) { setMessage("심리검사 해석 내용을 먼저 작성해 주세요."); return; }
     setPreviewReady(false); setPreview(assessmentReport(data, sealData));
   }
 
@@ -66,7 +66,6 @@ export default function AssessmentRecords({ clientId, clientName, initial, onRec
       <label>해석상담일<input name="interpretationDate" type="date" defaultValue={editing?.interpretationDate} /></label>
       <label className="wide">심리검사 해석<textarea name="scores" rows={5} maxLength={16000} defaultValue={interpretation(editing)} placeholder="검사 결과와 주요 특징, 해석 내용을 작성해 주세요" /></label>
       <input name="note" type="hidden" value="" />
-      <details className="wide"><summary>내담자 전달용 해석본</summary><p className="editHint">내담자용 PDF에는 아래 내용만 담깁니다. 전달할 표현을 확인해 주세요.</p><button type="button" disabled={busy} onClick={() => { const form = formRef.current; const source = form?.elements.namedItem("scores") as HTMLTextAreaElement | null; const target = form?.elements.namedItem("deliveryText") as HTMLTextAreaElement | null; if (source && target && (!target.value.trim() || confirm("전달용 해석본을 현재 해석 내용으로 바꿀까요?"))) { target.value = source.value; setDirty(true); } }}>해석 내용 가져오기</button><label>전달할 해석 내용<textarea name="deliveryText" rows={8} maxLength={16000} defaultValue={editing?.deliveryText || ""} placeholder="내담자에게 전달할 해석본을 작성해 주세요" /></label></details>
       <label className="wide">상담 내용<textarea name="reaction" rows={5} maxLength={4000} defaultValue={editing?.reaction} placeholder="심리검사 해석 과정에서 나눈 상담 내용과 내담자 반응을 작성해 주세요" /></label>
       <label>결과 PDF<input name="resultFile" type="file" accept="application/pdf,.pdf" />{editing?.resultFile && <small>기존: {editing.resultFile.name} · 새 파일 선택 시 교체</small>}</label>
       <label>요약 해석본 PDF<input name="summaryFile" type="file" accept="application/pdf,.pdf" />{editing?.summaryFile && <small>기존: {editing.summaryFile.name} · 새 파일 선택 시 교체</small>}</label>
