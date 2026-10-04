@@ -60,6 +60,7 @@ const singleAssessmentTests = [
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [storyError, setStoryError] = useState("");
   const [storyStatus, setStoryStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [counselingStatus, setCounselingStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [testModalOpen, setTestModalOpen] = useState(false);
@@ -124,7 +125,10 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error("submission unavailable");
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(response.status < 500 && result.error ? result.error : "잠시 접수하지 못했습니다. 입력한 내용은 그대로 남아 있습니다. 잠시 후 다시 시도해 주세요.");
+    }
   }
 
   async function submitStory(event: FormEvent<HTMLFormElement>) {
@@ -136,11 +140,18 @@ export default function Home() {
     const gender = String(data.get("gender") || "");
     const story = String(data.get("story") || "");
     const consent = data.get("contentConsent") ? "동의" : "동의하지 않음";
+    setStoryError("");
+    const email = String(data.get("email") || "").trim();
+    if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      setStoryError("이메일 주소를 확인해 주세요. 예: name@example.com. 답장을 원하지 않으면 비워두셔도 됩니다.");
+      setStoryStatus("error");
+      return;
+    }
     setStoryStatus("sending");
     try {
       await sendSubmission({
         type: "story",
-        email: String(data.get("email") || ""),
+        email,
         nickname,
         ageGroup,
         gender,
@@ -150,7 +161,8 @@ export default function Home() {
       });
       form.reset();
       setStoryStatus("sent");
-    } catch {
+    } catch (error) {
+      setStoryError(error instanceof Error && error.message !== "Failed to fetch" ? error.message : "인터넷 연결을 확인해 주세요. 입력한 내용은 그대로 남아 있습니다.");
       setStoryStatus("error");
     }
   }
@@ -337,7 +349,7 @@ export default function Home() {
             </div>
             <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             <button className="submitButton" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "이야기 보내기"} {storyStatus !== "sending" && <ArrowIcon />}</button>
-            {storyStatus === "error" && <p className="formError" role="alert">잠시 접수하지 못했습니다. 내용을 보관한 뒤 잠시 후 다시 시도해 주세요.</p>}
+            {storyStatus === "error" && <p className="formError" role="alert">{storyError || "잠시 접수하지 못했습니다. 입력한 내용은 그대로 남아 있습니다."}</p>}
           </form>
         )}
       </section>

@@ -77,10 +77,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "이메일 주소를 확인해 주세요." }, { status: 400 });
       }
       if (!clean.story) {
-        return NextResponse.json({ error: "Story is required." }, { status: 400 });
+        return NextResponse.json({ error: "사연 내용을 입력해 주세요." }, { status: 400 });
       }
       if (clean.contentConsent !== "동의") {
-        return NextResponse.json({ error: "Content consent is required." }, { status: 400 });
+        return NextResponse.json({ error: "콘텐츠 활용 동의를 확인해 주세요." }, { status: 400 });
       }
 
       await insertSubmission("story_submissions", {
@@ -97,10 +97,10 @@ export async function POST(request: Request) {
       });
     } else {
       if (!(await getCounselingOpen())) {
-        return NextResponse.json({ error: "Counseling requests are currently closed." }, { status: 409 });
+        return NextResponse.json({ error: "현재 상담 신청이 마감되었습니다." }, { status: 409 });
       }
       if (!clean.name || !clean.ageGroup || !clean.contact || !clean.service || !clean.preferredTime) {
-        return NextResponse.json({ error: "Required fields are missing." }, { status: 400 });
+        return NextResponse.json({ error: "필수 입력 항목을 확인해 주세요." }, { status: 400 });
       }
 
       await insertSubmission("counseling_requests", {
