@@ -90,7 +90,7 @@ export async function GET() {
     ]);
 
     const stories = (await storiesResponse.json()) as DbRow[];
-    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => !["site-settings", "admin-client"].includes(String(row.data?.type)));
+    const counseling = ((await counselingResponse.json()) as DbRow[]).filter((row) => !["site-settings", "admin-client", "tat-session"].includes(String(row.data?.type)));
     const items = [
       ...stories.map(storyItem),
       ...counseling.map(counselingItem),
@@ -179,4 +179,5 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+
 

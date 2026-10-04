@@ -12,7 +12,7 @@ const sections = [
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/test-room";
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [counselingOpen, setCounselingOpen] = useState(true);
@@ -89,3 +89,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+

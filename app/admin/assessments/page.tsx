@@ -1,35 +1,40 @@
-"use client";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import AssessmentRecords, { AssessmentRecord } from "../AssessmentRecords";
-import { assessmentStates, assessmentStatus } from "../../lib/assessment-status";
-type Client = { id: string; name: string; clientCode: string; assessments: AssessmentRecord[] };
-export default function AssessmentsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedId, setSelectedId] = useState("");
-  const [dirty, setDirty] = useState(false);
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("전체");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetch("/api/admin/clients", { cache: "no-store" }).then(async r => {
-      if (!r.ok) throw new Error(r.status === 401 ? "관리자 로그인이 필요합니다." : "검사 목록을 불러오지 못했습니다.");
-      setClients(await r.json());
-    }).catch(e => setError(e.message)).finally(() => setLoading(false));
-  }, []);
-  const selected = clients.find(c => c.id === selectedId);
-  const rows = clients.flatMap(c => (c.assessments || []).map(r => ({ client: c, record: r })))
-    .filter(({ client, record }) => (status === "전체" || assessmentStatus(record.status) === status) && [client.name, client.clientCode, record.testName].join(" ").toLowerCase().includes(query.toLowerCase()));
-  return <main className="adminShell">
-    <header className="adminHeader workspaceHeader"><div><Link className="adminBrand" href="/admin">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link href="/admin/clients">내담자</Link><Link href="/admin/assessments" className="active">투사검사</Link></nav><Link className="adminHomeLink" href="/" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>
-    <section className="adminDashboard workspacePage">
-      <div className="workspaceHeading"><div><p className="sectionNumber">ASSESSMENT DESK</p><h1>투사검사</h1><p>내담자별 검사 전송, 해석 대기·완료와 해석상담 기록을 관리합니다.</p></div></div>
-      {loading ? <p>검사 기록을 불러오는 중…</p> : error ? <p className="adminError">{error} <Link href="/admin">관리자 페이지로</Link></p> : <>
-      <div className="clientToolbar"><input aria-label="검사 검색" value={query} onChange={e => setQuery(e.target.value)} placeholder="이름·내담자 코드·검사명 검색" /><select aria-label="검사 상태 필터" value={status} onChange={e => setStatus(e.target.value)}>{["전체", ...assessmentStates].map(s => <option key={s}>{s}</option>)}</select></div>
-      <label className="adminField">검사 기록을 정리할 내담자<select value={selectedId} onChange={e => { if (!dirty || confirm("저장하지 않은 검사 내용을 버리고 다른 내담자를 열까요?")) { setSelectedId(e.target.value); setDirty(false); } }}><option value="">내담자를 선택해 주세요</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name} · {c.clientCode}</option>)}</select></label>
-      {selected && <div className="assessmentClientPanel"><h2>{selected.name}</h2><Link href={`/admin/clients?client=${selected.id}`}>내담자 기록 열기 ↗</Link><AssessmentRecords key={selected.id} clientName={selected.name} clientId={selected.id} initial={selected.assessments || []} onDirty={setDirty} onRecordsChange={records => setClients(current => current.map(c => c.id === selected.id ? { ...c, assessments: records } : c))} /></div>}
-      {!selected && <div className="sessionList">{rows.map(({ client, record }) => <article key={record.id}><div><b>{client.name} · {record.testName}</b><span>{assessmentStatus(record.status)}</span></div><small>{record.date || "실시일 미정"} · {client.clientCode}</small><button className="clientConvert" onClick={() => setSelectedId(client.id)}>검사 기록 열기</button></article>)}{!rows.length && <p className="adminEmpty">표시할 검사 기록이 없습니다. 위에서 내담자를 선택해 검사 기록을 추가해 주세요.</p>}</div>}</>}
-    </section>
-  </main>;
+'use client';
+import Link from 'next/link';
+import { useEffect,useState } from 'react';
+import { tatCards } from '../../lib/tat-cards';
+import type { TatRow } from '../../lib/tat';
+import TatAssetUpload from './TatAssetUpload';
+import CardViewport from '../../test-room/CardViewport';
+import '../../test-room/tat.css';
+type Client={id:string;name:string;clientCode:string};
+async function api(path:string,method='GET',body?:unknown){const r=await fetch(path,{method,cache:'no-store',...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const d=await r.json();if(!r.ok)throw new Error(d.error||'요청을 처리하지 못했습니다.');return d;}
+export default function ProjectiveTests(){
+ const [available,setAvailable]=useState<string[]>([]);const [clients,setClients]=useState<Client[]>([]);const [clientId,setClientId]=useState('');const [order,setOrder]=useState<string[]>([]);const [sessions,setSessions]=useState<TatRow[]>([]);const [session,setSession]=useState<TatRow|null>(null);const [code,setCode]=useState('');const [note,setNote]=useState('');const [error,setError]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);const [loading,setLoading]=useState(true);const [drag,setDrag]=useState<number|null>(null);
+ useEffect(()=>{Promise.all([api('/api/admin/clients'),api('/api/admin/tat'),api('/api/admin/tat-assets')]).then(([c,s,assets])=>{setClients(c);setSessions(s);setAvailable(assets);setClientId(new URLSearchParams(location.search).get('client')||'');}).catch(e=>setError(e.message)).finally(()=>setLoading(false));},[]);
+ useEffect(()=>{if(!session)return;let stopped=false;let timer:ReturnType<typeof setTimeout>;async function poll(){try{const s=await api('/api/admin/tat?id='+session!.id);if(!stopped)setSession(s);}catch(e){if(!stopped)setError((e as Error).message);}if(!stopped)timer=setTimeout(poll,2000);}timer=setTimeout(poll,2000);return()=>{stopped=true;clearTimeout(timer);};},[session?.id]);
+ async function act(action:string,extra:object={}){if(!session||busy)return;setBusy(true);setError('');try{const s=await api('/api/admin/tat','PATCH',{id:session.id,action,...extra});setSession(s);if(s.code)setCode(s.code);if(action==='note')setNotice('관찰 메모를 저장했습니다.');if(action==='end')setNotice('검사를 종료했습니다. 내담자 화면에서도 종료됩니다.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{if(!session||busy||session.data.endedAt||Date.parse(session.data.expiresAt)<=Date.now()||(e.target instanceof HTMLElement&&e.target.closest('input,textarea,select,[contenteditable]')))return;const next=e.key==='ArrowRight'?session.data.index+1:e.key==='ArrowLeft'?session.data.index-1:-1;if(next>=0&&next<session.data.order.length){e.preventDefault();void act('present',{index:next,hidden:false});}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[session,busy]);
+ async function create(){setBusy(true);setError('');setNotice('');try{const s=await api('/api/admin/tat','POST',{clientId,order});setSession(s);setCode(s.code);setNote('');setSessions(x=>[s,...x]);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ function choose(card:string){setOrder(x=>x.includes(card)?x.filter(c=>c!==card):[...x,card]);}
+ function move(from:number,to:number){if(to<0||to>=order.length)return;setOrder(x=>{const a=[...x];a.splice(to,0,a.splice(from,1)[0]);return a;});}
+ async function copy(text:string){try{await navigator.clipboard.writeText(text);setNotice('복사했습니다.');}catch{setError('복사하지 못했습니다. 표시된 내용을 직접 복사해 주세요.');}}
+ const d=session?.data;const active=!!d&&!d.endedAt&&Date.parse(d.expiresAt)>Date.now();const invite=session?`${typeof location==='undefined'?'':location.origin}/test-room?id=${session.id}`:'';
+ return <main className="adminShell tatPage"><header className="adminHeader workspaceHeader"><div><Link className="adminBrand" href="/admin">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link href="/admin/clients">내담자</Link><Link className="active" href="/admin/assessments">투사검사</Link></nav><Link className="adminHomeLink" href="/" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>
+ <section className="adminDashboard workspacePage"><div className="tatHero"><div><p className="tatKicker">PROJECTIVE ASSESSMENT · PRIVATE ROOM</p><h1>이야기를 만나는 공간</h1><p>TAT 도판을 제시하고, 내담자의 이야기를 기록합니다.</p></div><div className="tatEmblem">TAT</div></div>
+ {error&&<p className="tatError" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
+ {loading?<p>검사 공간을 불러오는 중…</p>:!session?<div className="tatLayout"><div><TatAssetUpload available={available} onUpdated={setAvailable}/><div className="tatRow"><h2>도판 선택</h2><button onClick={()=>setOrder(tatCards.filter(c=>available.includes(c)))}>전체 선택</button><button onClick={()=>setOrder([])}>선택 해제</button></div><div className="tatGrid">{tatCards.map(card=><button key={card} className={'tatCard'+(order.includes(card)?' isSelected':'')} aria-pressed={order.includes(card)} disabled={!available.includes(card)} onClick={()=>choose(card)}>{available.includes(card)?<img loading="lazy" src={'/api/tat/image?card='+card} alt={card==='16'?'16 · 백지':card+' 도판'}/>:<div className="tatMissing">TAT</div>}<span>{card==='16'?'16 · 백지':card}</span>{order.includes(card)&&<em>{order.indexOf(card)+1}</em>}</button>)}</div></div>
+ <aside><div className="tatPanel"><p className="tatKicker">PREPARE YOUR SESSION</p><h2>검사 준비</h2><label className="tatLabel">내담자<select value={clientId} onChange={e=>setClientId(e.target.value)}><option value="">내담자를 선택해 주세요</option>{clients.map(c=><option key={c.id} value={c.id}>{c.name} · {c.clientCode}</option>)}</select></label><b>제시 순서 · {order.length}장</b><p>도판을 선택한 순서대로 제시합니다. 드래그하거나 화살표로 순서를 바꿔 주세요.</p><ol className="tatOrder">{order.map((card,n)=><li key={card} draggable onDragStart={()=>setDrag(n)} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(drag!==null)move(drag,n);setDrag(null);}}><small>{n+1}</small><b>{card}</b><button aria-label={card+' 앞으로'} onClick={()=>move(n,n-1)}>↑</button><button aria-label={card+' 뒤로'} onClick={()=>move(n,n+1)}>↓</button><button aria-label={card+' 선택 해제'} onClick={()=>choose(card)}>×</button></li>)}</ol><button className="tatPrimary tatFull" disabled={busy||!clientId||!order.length||order.some(c=>!available.includes(c))} onClick={create}>{busy?'준비 중…':'검사 공간 만들기'}</button><p>접속 코드는 24시간 동안 유효합니다. 첫 도판은 ‘제시’를 누른 뒤 표시됩니다.</p></div><div className="tatPanel" style={{marginTop:16}}><p className="tatKicker">COMING LATER</p><h2>로샤</h2><p>로샤 검사 공간은 추후 준비됩니다.</p></div></aside></div>:d&&<>
+ <div className="tatRow"><h2>{d.clientName} · TAT</h2><Link href={'/admin/clients?client='+d.clientId}>내담자 기록 ↗</Link><button disabled={busy} onClick={()=>{if(note!==d.note&&!confirm('저장하지 않은 메모를 버릴까요?'))return;setSession(null);setCode('');api('/api/admin/tat').then(setSessions).catch(e=>setError(e.message));}}>검사 목록</button></div>
+ <div className="tatLayout"><div><div className="tatLive"><span>{active?'검사 진행 가능':'검사 종료·만료'}</span><span>{d.joinedAt?'내담자 접속 이력 있음':'내담자 접속 대기'}</span><span>{d.consentedAt?'녹음 동의 완료':'녹음 동의 전'}</span></div>{active&&!d.hidden?<CardViewport src={'/api/tat/image?card='+d.order[d.index]}/>:<div className="tatWait"><strong>TAT</strong><p>{active?'내담자에게는 대기 화면이 표시됩니다.':'검사가 종료되었거나 접속 시간이 만료되었습니다.'}</p></div>}
+ <div className="tatRow" style={{marginTop:18}}><button disabled={busy||!active||d.index===0} onClick={()=>act('present',{index:d.index-1,hidden:false})}>← 이전</button><b>{d.order[d.index]} · {d.index+1}/{d.order.length}</b><button disabled={busy||!active||d.index===d.order.length-1} onClick={()=>act('present',{index:d.index+1,hidden:false})}>다음 →</button><button className="tatPrimary" disabled={busy||!active} onClick={()=>act('present',{index:d.index,hidden:!d.hidden})}>{d.hidden?'도판 제시':'화면 가리기'}</button></div>
+ <div className="tatRow">{d.order.map((c,n)=><button key={c} disabled={busy||!active} className={n===d.index?'tatPrimary':''} onClick={()=>act('present',{index:n,hidden:false})}>{c}</button>)}</div>
+ {d.view&&<p>내담자 조작 · {d.view.card} · 확대 {Math.round(d.view.scale*100)}% · 회전 {d.view.angle}° <small>({new Date(d.view.seenAt).toLocaleTimeString('ko-KR')})</small></p>}
+ <div className="tatPanel"><h2>관찰 메모</h2><textarea rows={6} value={note} onChange={e=>setNote(e.target.value)} placeholder="반응과 관찰 내용을 기록해 주세요. 내담자에게 표시되지 않습니다."/><button disabled={busy} onClick={()=>act('note',{note})} style={{marginTop:12}}>메모 저장</button></div>
+ </div><aside><div className="tatPanel"><h2>내담자 접속</h2><p>줌으로 만난 뒤 아래 링크와 접속 코드를 전달해 주세요.</p>{code?<div className="tatInvite"><small>이번 접속 코드</small><code>{code}</code><button onClick={()=>copy(`TAT 검사 접속\n${invite}\n접속 코드: ${code}`)}>링크·코드 복사</button></div>:<p>기존 코드는 다시 표시되지 않습니다. 필요하면 새 코드를 발급해 주세요.</p>}<button onClick={()=>copy(invite)}>접속 링크 복사</button><p style={{fontSize:12}}>유효기간 · {new Date(d.expiresAt).toLocaleString('ko-KR')}</p><button disabled={busy} onClick={()=>{if(confirm('새 코드를 발급하면 기존 접속은 해제됩니다. 발급할까요?'))act('renew');}}>새 접속 코드 발급</button>{active&&<button className="tatDanger tatFull" disabled={busy} style={{marginTop:18}} onClick={()=>{if(confirm('검사를 종료할까요? 내담자 화면이 닫히고 녹음도 중지됩니다.'))act('end');}}>검사 종료</button>}</div>
+ <div className="tatPanel" style={{marginTop:18}}><h2>응답 녹음</h2><p>내담자가 동의하고 녹음을 시작하면 저장됩니다.</p>{d.recordings.map((r,n)=><div key={r.id} className="tatAudio"><b>응답 녹음 {n+1}</b><small>{new Date(r.startedAt).toLocaleString('ko-KR')} · {r.finished?'저장 완료':r.parts?'저장 중·미완료':'녹음 준비'}</small>{r.parts>0&&<><audio controls preload="none" src={`/api/tat/audio?id=${session.id}&recording=${r.id}`}/><a href={`/api/tat/audio?id=${session.id}&recording=${r.id}&download=1`}>녹음 내려받기</a></>}</div>)}{!d.recordings.length&&<small>아직 녹음이 없습니다.</small>}</div>
+ <details className="tatPanel" style={{marginTop:18}}><summary>도판 제시 시각</summary>{d.events.map((e,n)=><p key={n} style={{fontSize:12}}>{new Date(e.at).toLocaleTimeString('ko-KR')} · {e.card} · {e.hidden?'가림':'제시'}</p>)}</details>
+ {!active&&<button className="tatDanger tatFull" style={{marginTop:16}} disabled={busy} onClick={async()=>{if(!confirm('이 검사 공간과 녹음을 영구 삭제할까요?'))return;setBusy(true);try{await api('/api/admin/tat?id='+session.id,'DELETE');setSession(null);setSessions(await api('/api/admin/tat'));setNotice('검사 공간과 녹음을 삭제했습니다.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>검사 공간·녹음 삭제</button>}
+ </aside></div></>}
+ {!session&&sessions.length>0&&<div className="tatSessionList"><h2>검사 기록</h2>{sessions.map(s=><button key={s.id} onClick={()=>{setSession(s);setNote(s.data.note||'');setCode('');setError('');setNotice('');}}><b>{s.data.clientName} · TAT</b><span>{new Date(s.created_at).toLocaleDateString('ko-KR')} · {s.data.endedAt||Date.parse(s.data.expiresAt)<Date.now()?'종료·만료':'진행 가능'}</span></button>)}</div>}
+ </section></main>;
 }
