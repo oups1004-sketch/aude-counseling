@@ -310,7 +310,7 @@ export default function AdminPage() {
         <nav>
           <Link className="active" href="/admin">접수</Link>
           <Link href="/admin/clients">내담자</Link>
-          <Link href="/admin/assessments">심리검사</Link>
+          <Link href="/admin/assessments">투사검사</Link>
         </nav>
         <Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link>
         <button onClick={logout}>로그아웃</button>
