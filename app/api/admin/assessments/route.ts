@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const file = params.get("kind") === "summary" ? record?.summaryFile : record?.resultFile;
     if (!file) return NextResponse.json({ error: "파일을 찾지 못했습니다." }, { status: 404 });
     const response = await supabaseAdminRequest(`/storage/v1/object/authenticated/${bucket}/${file.path}`);
-    return new Response(response.body, { headers: { "Content-Type": "application/pdf", "Content-Disposition": "attachment; filename*=UTF-8''" + encodeURIComponent(file.name), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+    return new Response(response.body, { headers: { "Content-Type": "application/pdf", "Content-Disposition": "inline; filename*=UTF-8''" + encodeURIComponent(file.name), "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
   } catch {
     return NextResponse.json({ error: "파일을 불러오지 못했습니다." }, { status: 400 });
   }
