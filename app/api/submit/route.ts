@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCounselingOpen } from "../../lib/counseling-status";
+import { getApplicationStatus } from "../../lib/counseling-status";
 
 export const runtime = "nodejs";
 
@@ -96,8 +96,12 @@ export async function POST(request: Request) {
         privacyVersion: "2026-10",
       });
     } else {
-      if (!(await getCounselingOpen())) {
+      const { counselingOpen, assessmentOpen } = await getApplicationStatus();
+      if (clean.service === "개인상담" && !counselingOpen) {
         return NextResponse.json({ error: "현재 상담 신청이 마감되었습니다." }, { status: 409 });
+      }
+      if (clean.service === "심리검사·해석상담" && !assessmentOpen) {
+        return NextResponse.json({ error: "현재 심리검사 신청이 마감되었습니다." }, { status: 409 });
       }
       if (!clean.name || !clean.ageGroup || !clean.contact || !clean.service || !clean.preferredTime) {
         return NextResponse.json({ error: "필수 입력 항목을 확인해 주세요." }, { status: 400 });
