@@ -15,3 +15,9 @@
 .opsFinanceTable .opsBadge{border-radius:999px}
 .opsFinanceTable .opsQuickPay{border-radius:14px;padding:6px;background:#f7f3ee;box-shadow:none}
 @media (max-width:700px){.opsFinanceTable th:nth-child(2),.opsFinanceTable td:nth-child(2){display:none}.opsFinanceTable th:nth-child(1){width:40%}.opsFinanceTable th:nth-child(3){width:25%}.opsPaymentCell{gap:5px}.opsDueHint{font-size:11px}}
+
+.opsLedger{margin:22px 0;padding:18px;border:1px solid #e8e1d8;border-radius:18px;background:#fcfaf7}
+.opsLedgerTotals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.opsLedgerTotals div{padding:12px;border-radius:12px;background:#f4eee7}.opsLedgerTotals small{display:block;color:#766d63}.opsLedgerTotals strong{display:block;margin-top:5px;font-size:17px}
+.opsLedger h3{margin:0 0 10px}.opsLedgerTable{border-top:1px solid #e8e1d8}.opsLedgerHead,.opsLedgerRow{display:grid;grid-template-columns:.7fr 2fr 1fr 1fr;gap:8px;padding:11px 4px;align-items:center}.opsLedgerHead{color:#7c746c;font-size:12px}.opsLedgerRow{border-top:1px solid #eee8e0;font-size:13px}.opsDetailMore{margin-top:20px;border-top:1px solid #e8e1d8;padding-top:14px}.opsDetailMore summary{cursor:pointer;font-weight:750;color:#5c5147}
+@media(max-width:600px){.opsLedgerTotals{grid-template-columns:1fr}.opsLedgerHead,.opsLedgerRow{grid-template-columns:.65fr 1.45fr 1fr}.opsLedgerHead span:last-child,.opsLedgerRow span:last-child{display:none}}
