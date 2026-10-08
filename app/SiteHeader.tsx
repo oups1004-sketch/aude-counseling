@@ -16,12 +16,16 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
   const [counselingOpen, setCounselingOpen] = useState(true);
+  const [assessmentOpen, setAssessmentOpen] = useState(true);
 
   useEffect(() => {
     if (isAdmin) return;
     fetch("/api/counseling-status", { cache: "no-store" })
       .then((response) => response.json())
-      .then((data) => setCounselingOpen(data.counselingOpen !== false))
+      .then((data) => {
+        setCounselingOpen(data.counselingOpen !== false);
+        setAssessmentOpen(data.assessmentOpen !== false);
+      })
       .catch(() => undefined);
 
     const updateActive = () => {
@@ -45,7 +49,7 @@ export default function SiteHeader() {
 
   const openCounseling = () => {
     setMenuOpen(false);
-    if (!counselingOpen) {
+    if (!counselingOpen && !assessmentOpen) {
       window.dispatchEvent(new Event("aude-counseling-closed"));
       return;
     }
@@ -82,8 +86,8 @@ export default function SiteHeader() {
             {label}
           </a>
         ))}
-        <button className={`siteConsultCta${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={openCounseling}>
-          {counselingOpen ? "상담 신청하기" : "상담 신청 마감"}
+        <button className={`siteConsultCta${counselingOpen || assessmentOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen && !assessmentOpen} onClick={openCounseling}>
+          {counselingOpen ? "상담 신청하기" : assessmentOpen ? "심리검사 신청하기" : "현재 신청 마감"}
         </button>
       </nav>
     </header>
