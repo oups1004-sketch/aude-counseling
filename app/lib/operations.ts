@@ -20,7 +20,7 @@ export async function validateOperation(type:OperationType,input:Record<string,u
   const duration=amount(input.duration,true);if(duration<10||duration>480)throw new Error('일정은 10~480분으로 입력해 주세요.');
   if(!appointmentKinds.includes(input.kind as never)||!appointmentStatuses.includes(input.status as never))throw new Error('일정 종류와 상태를 확인해 주세요.');
   const sessionNo=Number(input.sessionNo);if(!Number.isInteger(sessionNo)||sessionNo<1||sessionNo>999)throw new Error('회기 번호를 확인해 주세요.');
-  const chargeId=String(input.chargeId||'');if(chargeId){const charge=await getOperation(chargeId);if(charge.data.type!=='aude-charge'||charge.data.clientId!==fields.clientId||(charge.data.archived&&old?.chargeId!==chargeId))throw new Error('같은 내담자의 유효한 결제 항목을 선택해 주세요.');}Object.assign(fields,{startAt:new Date(local+':00+09:00').toISOString(),duration,kind:input.kind,status:input.status,sessionNo,chargeId});
+  const chargeId=String(input.chargeId||'');if(chargeId){const charge=await getOperation(chargeId);if(charge.data.type!=='aude-charge'||charge.data.clientId!==fields.clientId||(charge.data.archived&&old?.chargeId!==chargeId))throw new Error('같은 내담자의 유효한 결제 항목을 선택해 주세요.');}Object.assign(fields,{startAt:new Date(local+':00+09:00').toISOString(),duration,kind:input.kind,status:input.status,sessionNo,chargeId,amount:amount(input.amount,true)});
  }else{if(!validDate(input.date))throw new Error('날짜를 확인해 주세요.');fields.date=input.date;fields.amount=amount(input.amount);if(type==='aude-expense'){if(!expenseCategories.includes(input.category as never))throw new Error('지출 분류를 확인해 주세요.');fields.category=String(input.category);}else if(old&&(fields.amount||0)<chargeTotals(old).received)throw new Error('받을 금액을 이미 수납한 금액보다 낮출 수 없습니다. 환불은 입출금 기록으로 남겨 주세요.');}
  return fields;
 }
