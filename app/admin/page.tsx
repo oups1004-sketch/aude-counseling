@@ -53,6 +53,7 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<Submission | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [counselingOpen, setCounselingOpen] = useState(true);
+  const [assessmentOpen, setAssessmentOpen] = useState(true);
   const [statusBusy, setStatusBusy] = useState(false);
   const [onlyNew, setOnlyNew] = useState(false);
   const [decisionFilter, setDecisionFilter] = useState("전체");
@@ -94,7 +95,11 @@ export default function AdminPage() {
     }
     setItems(await response.json());
     const statusResponse = await fetch("/api/admin/counseling-status", { cache: "no-store" });
-    if (statusResponse.ok) setCounselingOpen((await statusResponse.json()).counselingOpen !== false);
+    if (statusResponse.ok) {
+      const status = await statusResponse.json();
+      setCounselingOpen(status.counselingOpen !== false);
+      setAssessmentOpen(status.assessmentOpen !== false);
+    }
     setAuth("ready");
   }, []);
 
@@ -134,24 +139,28 @@ export default function AdminPage() {
     setAuth("login");
   }
 
-  async function toggleCounselingStatus() {
-    const next = !counselingOpen;
-    const message = next
-      ? "상담 신청을 다시 받으시겠습니까? 본 사이트의 신청 버튼이 즉시 활성화됩니다."
-      : "상담 신청을 중지하시겠습니까? 본 사이트에 마감 안내가 표시되고 신청이 차단됩니다.";
+  async function toggleApplicationStatus(kind: "counseling" | "assessment") {
+    const nextCounselingOpen = kind === "counseling" ? !counselingOpen : counselingOpen;
+    const nextAssessmentOpen = kind === "assessment" ? !assessmentOpen : assessmentOpen;
+    const label = kind === "counseling" ? "개인상담" : "심리검사";
+    const opening = kind === "counseling" ? nextCounselingOpen : nextAssessmentOpen;
+    const message = opening
+      ? `${label} 신청을 다시 받으시겠습니까? 본 사이트에 즉시 반영됩니다.`
+      : `${label} 신청을 중지하시겠습니까? 본 사이트에 마감 안내가 표시되고 해당 신규 접수가 차단됩니다.`;
     if (!confirm(message)) return;
     setStatusBusy(true);
     const response = await fetch("/api/admin/counseling-status", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ counselingOpen: next }),
+      body: JSON.stringify({ counselingOpen: nextCounselingOpen, assessmentOpen: nextAssessmentOpen }),
     });
     setStatusBusy(false);
     if (!response.ok) {
       const result = await response.json().catch(() => ({}));
       return alert(`${result.error || "상담 신청 상태를 변경하지 못했습니다."}${result.detail ? `\n${result.detail}` : ""}`);
     }
-    setCounselingOpen(next);
+    setCounselingOpen(nextCounselingOpen);
+    setAssessmentOpen(nextAssessmentOpen);
   }
 
   async function save(item: Submission, status: string, adminNote: string) {
@@ -346,7 +355,11 @@ export default function AdminPage() {
         <OperationsOverview />
         <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
           <div><span>상담 신청 상태</span><strong>{counselingOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{counselingOpen ? "본 사이트에서 개인상담 신청이 가능합니다." : "본 사이트의 신청 버튼과 신규 접수가 차단되어 있습니다."}</p></div>
-          <button type="button" disabled={statusBusy} onClick={toggleCounselingStatus}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
+          <button type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
+        </div>
+        <div className={`intakeControl ${assessmentOpen ? "isOpen" : "isClosed"}`}>
+          <div><span>심리검사 신청 상태</span><strong>{assessmentOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{assessmentOpen ? "본 사이트에서 심리검사·해석상담 신청이 가능합니다." : "본 사이트에서 심리검사 카드가 마감으로 표시되고 신규 접수가 차단됩니다."}</p></div>
+          <button type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}>{statusBusy ? "변경 중…" : assessmentOpen ? "심리검사 신청 중지" : "심리검사 신청 다시 열기"}</button>
         </div>
 
         {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
