@@ -2,7 +2,6 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import OperationsOverview from "./OperationsOverview";
 import "./story-management.css";
 
 type Kind = "intake" | "assessment" | "story";
@@ -347,19 +346,9 @@ export default function AdminPage() {
       </header>
 
       <section className="adminDashboard">
-        <div className="adminTitle">
-          <div><p className="sectionNumber">PRIVATE OFFICE</p><h1>접수 관리</h1></div>
+        <div className="adminTitle intakeTitle">
+          <div><div className="intakeEyebrow"><p className="sectionNumber">PRIVATE OFFICE</p><div className="intakeStatusToggles"><button className={counselingOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}><i />상담 {counselingOpen ? "받는 중" : "중지"}</button><button className={assessmentOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}><i />검사 {assessmentOpen ? "받는 중" : "중지"}</button></div></div><h1>접수 관리</h1><p className="intakeLead">새로 들어온 신청을 확인하고, 필요한 사람부터 결정하세요.</p></div>
           <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => (item.status === "신규" || (item.kind === "story" && item.status === "미답장"))).length}</strong><span>새 접수 ↗</span></button>
-        </div>
-
-        <OperationsOverview />
-        <div className={`intakeControl ${counselingOpen ? "isOpen" : "isClosed"}`}>
-          <div><span>상담 신청 상태</span><strong>{counselingOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{counselingOpen ? "본 사이트에서 개인상담 신청이 가능합니다." : "본 사이트의 신청 버튼과 신규 접수가 차단되어 있습니다."}</p></div>
-          <button type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}>{statusBusy ? "변경 중…" : counselingOpen ? "상담 신청 중지" : "상담 신청 다시 열기"}</button>
-        </div>
-        <div className={`intakeControl ${assessmentOpen ? "isOpen" : "isClosed"}`}>
-          <div><span>심리검사 신청 상태</span><strong>{assessmentOpen ? "신청 받는 중" : "신청 중지됨"}</strong><p>{assessmentOpen ? "본 사이트에서 심리검사·해석상담 신청이 가능합니다." : "본 사이트에서 심리검사 카드가 마감으로 표시되고 신규 접수가 차단됩니다."}</p></div>
-          <button type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}>{statusBusy ? "변경 중…" : assessmentOpen ? "심리검사 신청 중지" : "심리검사 신청 다시 열기"}</button>
         </div>
 
         {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
