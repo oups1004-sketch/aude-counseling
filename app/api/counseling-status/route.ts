@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { getCounselingOpen } from "../../lib/counseling-status";
+import { getApplicationStatus } from "../../lib/counseling-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return NextResponse.json({ counselingOpen: await getCounselingOpen() });
+    return NextResponse.json(await getApplicationStatus());
   } catch (error) {
     console.error("Counseling status read failed", error);
-    return NextResponse.json({ counselingOpen: true });
+    return NextResponse.json({ counselingOpen: true, assessmentOpen: true });
   }
 }
