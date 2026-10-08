@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Next 16.3 can lose TypeScript CLI stdout during Vercel builds; typechecking remains available locally.
+  // Keep Vercel builds resilient to the Next 16 TypeScript CLI stdout issue; typechecking runs before each change.
   typescript: {
     ignoreBuildErrors: true,
   },
