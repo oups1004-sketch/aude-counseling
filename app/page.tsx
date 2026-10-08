@@ -71,16 +71,19 @@ export default function Home() {
   const [assessmentCatalogOpen, setAssessmentCatalogOpen] = useState(false);
   const [capacityModalOpen, setCapacityModalOpen] = useState(false);
   const [counselingOpen, setCounselingOpen] = useState(true);
+  const [assessmentOpen, setAssessmentOpen] = useState(true);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/counseling-status", { cache: "no-store" })
       .then((response) => response.json())
-      .then(({ counselingOpen: open }) => {
-        const isOpen = open !== false;
+      .then(({ counselingOpen: counseling, assessmentOpen: assessment }) => {
+        const isOpen = counseling !== false;
+        const isAssessmentOpen = assessment !== false;
         setCounselingOpen(isOpen);
+        setAssessmentOpen(isAssessmentOpen);
         const today = new Date().toLocaleDateString("en-CA");
-        if (!isOpen && localStorage.getItem("aude-capacity-notice-hidden") !== today) setCapacityModalOpen(true);
+        if (!isOpen && !isAssessmentOpen && localStorage.getItem("aude-capacity-notice-hidden") !== today) setCapacityModalOpen(true);
       })
       .catch(() => undefined);
 
@@ -108,7 +111,7 @@ export default function Home() {
   }, [testModalOpen, counselingModalOpen, capacityModalOpen, privacyModalOpen]);
 
   function openCounselingForm() {
-    if (!counselingOpen) return setCapacityModalOpen(true);
+    if (!counselingOpen && !assessmentOpen) return setCapacityModalOpen(true);
     setApplicationType("choice");
     setCounselingStatus("idle");
     setCounselingModalOpen(true);
@@ -254,8 +257,8 @@ export default function Home() {
             <a className="primaryButton heroChoice" href="#story">
               <span className="heroChoiceCopy"><small>STORY</small><strong>익명으로 사연 보내기</strong></span><ArrowIcon />
             </a>
-            <button className={`secondaryButton heroChoice${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={() => counselingOpen ? document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth" }) : setCapacityModalOpen(true)}>
-              <span className="heroChoiceCopy"><small>COUNSELING</small><strong>온라인 상담 신청하기</strong></span><ArrowIcon />
+            <button className={`secondaryButton heroChoice${counselingOpen || assessmentOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen && !assessmentOpen} onClick={() => counselingOpen || assessmentOpen ? document.getElementById("counseling")?.scrollIntoView({ behavior: "smooth" }) : setCapacityModalOpen(true)}>
+              <span className="heroChoiceCopy"><small>COUNSELING</small><strong>{counselingOpen ? "온라인 상담 신청하기" : assessmentOpen ? "심리검사 신청하기" : "현재 신청 마감"}</strong></span><ArrowIcon />
             </button>
           </div>
         </div>
@@ -286,14 +289,14 @@ export default function Home() {
           <p>ZOOM을 통해 익숙하고 편안한 공간에서 만납니다. 관계, 진로, 감정의 어려움을 혼자 정리하기 벅찰 때, 자신의 속도에 맞춰 이야기를 시작할 수 있습니다.</p>
         </div>
         <div className="serviceGrid">
-          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 단순히 고쳐야 할 문제로 보지 않습니다. 지금까지 어떤 방식으로 삶을 견뎌왔는지, 무엇을 중요하게 여겨왔는지를 함께 살피며 앞으로 내가 원하는 선택과 방향을 찾아갑니다.</p><strong>온라인 · 60분 · 100,000원</strong><small className="studentPrice">대학생 재학증명서 인증 시 80,000원</small></article>
-          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">70,000원부터 · 해석상담 포함</strong><small className="studentPrice">단일·기본 성격·맞춤형 심층, 세 가지 패키지</small><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
+          <article><span>01</span><h3>개인상담</h3><p>반복되는 관계와 감정의 패턴을 단순히 고쳐야 할 문제로 보지 않습니다. 지금까지 어떤 방식으로 삶을 견뎌왔는지, 무엇을 중요하게 여겨왔는지를 함께 살피며 앞으로 내가 원하는 선택과 방향을 찾아갑니다.</p><strong>온라인 · 60분</strong></article>
+          <article className="assessmentService"><span>02</span><h3>심리검사·해석상담</h3><p>상담을 시작하는 것이 아직 부담스럽다면, 심리검사와 해석상담을 통해 지금의 나를 먼저 이해해볼 수 있습니다.</p><strong className="servicePrice">전문가 해석상담 · 요약 해석본 제공</strong><button className="testModalTrigger" type="button" onClick={() => setTestModalOpen(true)}>검사 종류 살펴보기 <ArrowIcon /></button></article>
         </div>
 
         <div className="counselingCta">
           <div className="counselingCtaInner">
             <p><span>신청만으로 바로 결제되거나 상담이 확정되지는 않습니다.</span><strong>신청 → 일정·비용 안내 → 확인 후 상담 확정</strong></p>
-            <button className={`counselingApplyButton${counselingOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen} onClick={openCounselingForm}>{counselingOpen ? "상담 신청하기" : "현재 상담 신청 마감"} <ArrowIcon /></button>
+            <button className={`counselingApplyButton${counselingOpen || assessmentOpen ? "" : " isDisabled"}`} type="button" aria-disabled={!counselingOpen && !assessmentOpen} onClick={openCounselingForm}>{counselingOpen ? "상담 신청하기" : assessmentOpen ? "심리검사 신청하기" : "현재 신청 마감"} <ArrowIcon /></button>
           </div>
         </div>
       </section>
@@ -392,18 +395,18 @@ export default function Home() {
                 <h2 id="counseling-modal-title">어떤 도움을<br />원하시나요?</h2>
                 <p className="testModalLead">원하는 방식을 선택하면 해당 신청서로 이어집니다. 신청만으로 결제되거나 일정이 확정되지는 않습니다.</p>
                 <div className="applicationChoices">
-                  <button type="button" onClick={() => { setApplicationType("counseling"); setCounselingStatus("idle"); }}>
+                  <button className={!counselingOpen ? "isUnavailable" : ""} type="button" disabled={!counselingOpen} onClick={() => { setApplicationType("counseling"); setCounselingStatus("idle"); }}>
                     <span>01 · COUNSELING</span>
-                    <strong>개인상담 신청하기</strong>
-                    <p>온라인 · 60분 · 100,000원<br />대학생 재학증명서 인증 시 80,000원</p>
-                    <small>3회기 이상 진행 시 심리검사비 무료</small>
+                    <strong>{counselingOpen ? "개인상담 신청하기" : "현재 상담 신청 마감"}</strong>
+                    <p>{counselingOpen ? "온라인 상담으로, 자신의 속도에 맞춰 이야기를 시작할 수 있습니다." : "현재 새로운 개인상담 신청을 잠시 받고 있지 않습니다."}</p>
+                    <small>{counselingOpen ? "3회기 이상 진행 시 심리검사비 무료" : "상담 가능 인원이 생기면 다시 열겠습니다."}</small>
                     <ArrowIcon />
                   </button>
-                  <button type="button" onClick={() => { setApplicationType("assessment"); setSelectedAssessmentPackage(""); setAssessmentCatalogOpen(false); setCounselingStatus("idle"); }}>
+                  <button className={!assessmentOpen ? "isUnavailable" : ""} type="button" disabled={!assessmentOpen} onClick={() => { setApplicationType("assessment"); setSelectedAssessmentPackage(""); setAssessmentCatalogOpen(false); setCounselingStatus("idle"); }}>
                     <span>02 · ASSESSMENT</span>
-                    <strong>심리검사 신청하기</strong>
-                    <p>단일 70,000원부터 · 기본 성격 150,000원<br />맞춤형 심층 220,000원</p>
-                    <small>심리검사 해석본 제공</small>
+                    <strong>{assessmentOpen ? "심리검사 신청하기" : "현재 심리검사 신청 마감"}</strong>
+                    <p>{assessmentOpen ? "검사와 해석상담을 통해 현재의 나를 구체적으로 이해합니다." : "현재 새로운 심리검사 신청을 잠시 받고 있지 않습니다."}</p>
+                    <small>{assessmentOpen ? "전문가 해석상담 · 요약 해석본 제공" : "신청 가능 시 다시 안내하겠습니다."}</small>
                     <ArrowIcon />
                   </button>
                 </div>
