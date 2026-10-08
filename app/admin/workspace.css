@@ -176,6 +176,14 @@
  .adminShell .adminModalClose:hover{background:#e9ecdf}
  .adminShell .clientRow:hover{background:#e7ecdf}
 }
+
+/* Quiet, tactile client roster */
+.clientTable{overflow:hidden;border:1px solid #d5ccbf;border-radius:20px;background:#fbf9f4;box-shadow:0 10px 28px rgba(52,45,34,.06)}
+.clientTableHead{padding:13px 20px;background:#f2ede4;color:#7e756a}
+.clientRow{padding:19px 20px;border-bottom-color:#e7e0d6}.clientRow:last-child{border-bottom:0}
+.adminShell .clientRow:hover{background:#f3f0e8}
+
+.intakeEyebrow{display:flex;align-items:center;gap:14px}.intakeEyebrow .sectionNumber{margin:0}.intakeStatusToggles{display:flex;gap:6px}.intakeStatusToggles button{display:flex;align-items:center;gap:6px;border:1px solid #d5ccbf;border-radius:999px;background:#faf8f2;padding:7px 10px;color:#645d54;font-size:12px;cursor:pointer}.intakeStatusToggles button i{width:7px;height:7px;border-radius:50%;background:#6f8c64}.intakeStatusToggles button.closed i{background:#b87761}.intakeLead{margin:0;color:#777067;line-height:1.6}
 @media(min-width:1200px){
  .intakeWorkspace.hasDetail .adminDashboard{width:calc(100% - 620px);margin-left:30px;margin-right:590px}
  .intakeWorkspace.hasDetail .submissionOpen{grid-template-columns:75px minmax(0,1fr) 80px;gap:12px}
