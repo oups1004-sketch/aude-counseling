@@ -23,6 +23,7 @@ type Submission = {
   admin_note: string | null;
   client_status?: string | null;
   important?: boolean;
+  reviewed_at?: string | null;
 };
 
 const tabs: Array<{ key: "all" | Kind; label: string }> = [
@@ -37,6 +38,10 @@ const kindLabel: Record<Kind, string> = {
   assessment: "심리검사",
   story: "사연",
 };
+
+function isNew(item: Submission) {
+  return item.kind === "story" ? !item.reviewed_at : item.status === "신규";
+}
 
 function displayName(item: Submission) {
   return item.name || item.nickname || "익명";
@@ -76,10 +81,21 @@ export default function AdminPage() {
     setSelected(null);
     setDirty(false);
   }
-  function openDetail(item: Submission) {
+  async function openDetail(item: Submission) {
     if (busy || selected?.id === item.id || (dirty && !confirm("저장하지 않은 변경사항을 버릴까요?"))) return;
-    setSelected(item);
     setDirty(false);
+    if (!isNew(item)) { setSelected(item); return; }
+    setBusy(true);
+    try {
+      const response = await fetch("/api/admin/submissions", {method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({id:item.id, action:"review"})});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "확인 상태를 저장하지 못했습니다.");
+      const updated: Submission = result.item;
+      setItems(current => current.map(entry => entry.id === item.id ? updated : entry));
+      setSelected(updated);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "확인 상태를 저장하지 못했습니다.");
+    } finally { setBusy(false); }
   }
 
   const load = useCallback(async () => {
@@ -213,7 +229,7 @@ export default function AdminPage() {
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return items.filter((item) => {
-      if (activeTab !== "story" && onlyNew && item.status !== "신규" && !(item.kind === "story" && item.status === "미답장")) return false;
+      if (activeTab !== "story" && onlyNew && !isNew(item)) return false;
       if (activeTab === "story" && ((onlyImportant && !item.important) || (storyFilter !== "전체" && item.status !== storyFilter))) return false;
       if (activeTab !== "story" && decisionFilter !== "전체" && (item.kind === "story" || item.status !== decisionFilter)) return false;
       if (activeTab !== "all" && item.kind !== activeTab) return false;
@@ -347,11 +363,11 @@ export default function AdminPage() {
 
       <section className="adminDashboard">
         <div className="adminTitle intakeTitle">
-          <div><div className="intakeEyebrow"><p className="sectionNumber">PRIVATE OFFICE</p><div className="intakeStatusToggles"><button className={counselingOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}><i />상담 {counselingOpen ? "받는 중" : "중지"}</button><button className={assessmentOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}><i />검사 {assessmentOpen ? "받는 중" : "중지"}</button></div></div><h1>접수 관리</h1><p className="intakeLead">새로 들어온 신청을 확인하고, 필요한 사람부터 결정하세요.</p></div>
-          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter((item) => (item.status === "신규" || (item.kind === "story" && item.status === "미답장"))).length}</strong><span>새 접수 ↗</span></button>
+          <div><div className="intakeEyebrow"><p className="sectionNumber">PRIVATE OFFICE</p><div className="intakeStatusToggles"><button className={counselingOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}><i />상담 {counselingOpen ? "받는 중" : "중지"}</button><button className={assessmentOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}><i />검사 {assessmentOpen ? "받는 중" : "중지"}</button></div></div><h1>접수 관리</h1><p className="intakeLead">신규는 아직 확인하지 않은 접수입니다. 상세 내용을 열면 확인으로 바뀝니다.</p></div>
+          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter(isNew).length}</strong><span>미확인 접수 ↗</span></button>
         </div>
 
-        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
+        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "확인", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
@@ -477,7 +493,7 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNot
           {item.kind === "story" && <Detail label="콘텐츠 활용" value={item.content_consent ? "동의" : "동의하지 않음"} />}
         </div>
         <label className="adminField">상태<select disabled={busy || (item.kind !== "story" && !!item.client_status)} value={status} onChange={(event) => setStatus(event.target.value)}>
-          {(item.kind === "story" ? ["미답장", "답장 완료", "답장 안 함"] : ["신규", "보류", "확정", "거절"]).map((value) => <option key={value}>{value}</option>)}
+          {(item.kind === "story" ? ["미답장", "답장 완료", "답장 안 함"] : ["확인", "보류", "확정", "거절"]).map((value) => <option key={value}>{value}</option>)}
         </select></label>
         {item.kind === "story" && <p className="editHint">메일을 보낸 뒤 상태를 ‘답장 완료’로 변경하고 저장해 주세요.</p>}
         {item.kind !== "story" && <p className="editHint">{item.client_status ? "확정된 내담자의 상담·휴식·종결은 내담자 화면에서 관리합니다." : "확정으로 저장하면 내담자로 등록되고 상담 중으로 전환됩니다."}</p>}
@@ -499,6 +515,7 @@ function Detail({ label, value, wide = false }: { label: string; value: string |
   if (!value) return null;
   return <div className={wide ? "detailWide" : ""}><dt>{label}</dt><dd>{value}</dd></div>;
 }
+
 
 
 

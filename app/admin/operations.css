@@ -23,3 +23,6 @@
 @media(max-width:600px){.opsLedgerTotals{grid-template-columns:1fr}.opsLedgerHead,.opsLedgerRow{grid-template-columns:.65fr 1.45fr 1fr}.opsLedgerHead span:last-child,.opsLedgerRow span:last-child{display:none}}
 
 .opsFinanceStats{grid-template-columns:1.5fr repeat(4,1fr);gap:10px}.opsFinanceStats>div{min-height:122px;background:#fbf9f4;border-radius:18px;box-shadow:0 8px 22px rgba(48,43,35,.045)}.opsFinanceStats .opsIncomeStat{background:#354638;border-color:#354638}.opsFinanceStats .opsIncomeStat span,.opsFinanceStats .opsIncomeStat small{color:#dbe4d7}.opsFinanceStats .opsIncomeStat strong{color:#fff;font-size:29px}.opsFinanceStats strong{font-family:Georgia,serif;font-weight:400}.opsFinanceStats>div:last-child{background:#f0ece4}@media(max-width:1100px){.opsFinanceStats{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.opsFinanceStats{grid-template-columns:1fr 1fr}.opsFinanceStats>div:first-child{grid-column:span 2}}
+
+
+.opsDetailActions .opsDanger{margin-top:0}.opsDetailMore>.opsTabs{margin-bottom:16px}.opsRefundPicker{display:grid;gap:8px;max-width:100%;font-size:14px}.opsRefundPicker select{width:100%;max-width:520px}

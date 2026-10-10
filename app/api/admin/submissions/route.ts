@@ -28,6 +28,7 @@ function storyItem(row: DbRow) {
     kind: "story" as const,
     status: ["미답장", "답장 완료", "답장 안 함"].includes(stringValue(data.replyStatus)) ? stringValue(data.replyStatus) : row.status === "연락 완료" ? "답장 완료" : "미답장",
     important: data.important === true,
+    reviewed_at: stringValue(data.reviewedAt) || (data.replyStatus && data.replyStatus !== "미답장" || row.status === "연락 완료" ? row.created_at : null),
     created_at: row.created_at,
     name: null,
     nickname: stringValue(data.nickname) || "익명",
@@ -52,7 +53,8 @@ function counselingItem(row: DbRow) {
     id: `counseling:${row.id}`,
     reference_code: `COUNSEL-${row.id.slice(0, 8).toUpperCase()}`,
     kind: service === "심리검사·해석상담" ? ("assessment" as const) : ("intake" as const),
-    status: data.adminManagedClient ? "확정" : stringValue(data.admissionStatus) || (["진행", "종결"].includes(row.status) ? "확정" : ["확인", "연락 완료"].includes(row.status) ? "신규" : row.status || "신규"),
+    status: data.adminManagedClient ? "확정" : (data.admissionStatus === "신규" && data.reviewedAt ? "확인" : stringValue(data.admissionStatus)) || (["진행", "종결"].includes(row.status) ? "확정" : ["확인", "연락 완료"].includes(row.status) ? "확인" : row.status || "신규"),
+    reviewed_at: stringValue(data.reviewedAt) || (data.adminManagedClient || data.admissionStatus && data.admissionStatus !== "신규" || ["확인", "연락 완료", "진행", "종결"].includes(row.status) ? row.created_at : null),
     client_status: data.adminManagedClient ? stringValue(data.clientStatus || "진행") : null,
     created_at: row.created_at,
     name: stringValue(data.name) || null,
@@ -109,9 +111,11 @@ export async function PATCH(request: Request) {
   if (!(await authorized())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const { id, status, adminNote, important } = await request.json();
+    const { id, status: requestedStatus, adminNote, important, action } = await request.json();
+    let status = requestedStatus;
     const parsed = parseAdminId(id);
-    if (!parsed || (parsed.source === "story" ? ((status !== undefined && !["미답장", "답장 완료", "답장 안 함"].includes(status)) || (important !== undefined && typeof important !== "boolean") || (status === undefined && important === undefined && adminNote === undefined)) : !["신규", "보류", "확정", "거절"].includes(status))) {
+    if (action === "review" && (requestedStatus !== undefined || adminNote !== undefined || important !== undefined)) return NextResponse.json({error:"Invalid update"},{status:400});
+    if (!parsed || (action !== undefined && action !== "review") || (action !== "review" && (parsed.source === "story" ? ((status !== undefined && !["미답장", "답장 완료", "답장 안 함"].includes(status)) || (important !== undefined && typeof important !== "boolean") || (status === undefined && important === undefined && adminNote === undefined)) : !["확인", "보류", "확정", "거절"].includes(status)))) {
       return NextResponse.json({ error: "Invalid update" }, { status: 400 });
     }
 
@@ -119,11 +123,12 @@ export async function PATCH(request: Request) {
     const currentRows = (await currentResponse.json()) as Array<{ data: Record<string, unknown> | null }>;
     if (!currentRows[0]) return NextResponse.json({ error: "접수를 찾지 못했습니다." }, { status: 404 });
     const currentData = currentRows[0].data || {};
+    if (action === "review") status = currentData.adminManagedClient ? "확정" : ["확인", "보류", "확정", "거절"].includes(stringValue(currentData.admissionStatus)) ? currentData.admissionStatus : "확인";
     if (["aude-appointment", "aude-charge", "aude-expense", "tat-session", "site-settings"].includes(String(currentData.type))) return NextResponse.json({error:"접수 기록이 아닙니다."},{status:400});
     if (parsed.source === "counseling" && currentData.adminManagedClient && status !== "확정") {
       return NextResponse.json({ error: "확정된 내담자의 진행 상태는 내담자 화면에서 변경해 주세요." }, { status: 409 });
     }
-    const confirming = parsed.source === "counseling" && status === "확정";
+    const confirming = action !== "review" && parsed.source === "counseling" && status === "확정";
     const registration = confirming && !currentData.adminManagedClient ? {
       adminManagedClient: true,
       clientCode: `C-${new Date().getFullYear()}-${parsed.id.slice(0, 5).toUpperCase()}`,
@@ -140,18 +145,20 @@ export async function PATCH(request: Request) {
       method: "PATCH",
       headers: { Prefer: "return=representation" },
       body: JSON.stringify({
-        ...(parsed.source === "counseling" ? { status: confirming ? (currentData.clientStatus === "종결" ? "종결" : "진행") : "신규" } : {}),
+        ...(parsed.source === "counseling" && action !== "review" ? { status: confirming ? (currentData.clientStatus === "종결" ? "종결" : "진행") : "신규" } : {}),
         data: {
           ...currentData,
           ...registration,
-          ...(parsed.source === "counseling" ? { admissionStatus: status } : { ...(status !== undefined ? { replyStatus: status } : {}), ...(important !== undefined ? { important } : {}) }),
+          ...(action === "review" || parsed.source === "counseling" ? { reviewedAt: currentData.reviewedAt || new Date().toISOString() } : {}),
+          ...(parsed.source === "counseling" ? { admissionStatus: status } : { ...(action !== "review" && status !== undefined ? { replyStatus: status } : {}), ...(important !== undefined ? { important } : {}) }),
           ...(adminNote !== undefined ? { adminNote: stringValue(adminNote).slice(0, 2000) } : {}),
         },
       }),
     });
 
-    if (!(await savedResponse.json()).length) return NextResponse.json({ error: "다른 변경사항이 저장되었습니다. 새로고침 후 다시 저장해 주세요." }, { status: 409 });
-    return NextResponse.json({ ok: true });
+    const savedRows = await savedResponse.json() as DbRow[];
+    if (!savedRows.length) return NextResponse.json({ error: "다른 변경사항이 저장되었습니다. 새로고침 후 다시 저장해 주세요." }, { status: 409 });
+    return NextResponse.json({ ok: true, item: parsed.source === "story" ? storyItem(savedRows[0]) : counselingItem(savedRows[0]) });
   } catch (error) {
     console.error("Admin update failed", error);
     return NextResponse.json({ error: "수정하지 못했습니다." }, { status: 500 });
@@ -182,6 +189,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+
 
 
 
