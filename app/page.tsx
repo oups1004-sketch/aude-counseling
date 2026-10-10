@@ -455,7 +455,7 @@ export default function Home() {
                   <div className="requestSuccess" role="status">
                     <span>신청서가 정상적으로 접수되었습니다.</span>
                     <strong>일정 안내를 위해 오픈채팅으로 들어와 주세요.</strong>
-                    <p>오픈채팅 입장 후 신청서에 적은 이름 또는 닉네임을 남겨주시면 확인해 드립니다.</p>
+                    <p>오픈채팅 입장 후 신청서에 적은 이름을 남겨주시면 확인해 드립니다.</p>
                     <a className="openChatButton" href={openChatUrl} target="_blank" rel="noreferrer">
                       카카오톡 오픈채팅으로 이동하기 <ArrowIcon />
                     </a>
@@ -468,7 +468,7 @@ export default function Home() {
                 ) : applicationType === "counseling" ? (
                   <form className="requestForm" onSubmit={submitCounseling}>
                     <div className="requestFormGrid">
-                      <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
+                      <label><span>이름</span><input name="name" required maxLength={40} autoComplete="name" placeholder="정식 이름을 입력해 주세요" /></label>
                       <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
                       <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
                     </div>
@@ -482,7 +482,7 @@ export default function Home() {
                 ) : (
                   <form className="requestForm assessmentForm" onSubmit={submitAssessment}>
                     <div className="requestFormGrid">
-                      <label><span>이름 또는 닉네임</span><input name="name" required maxLength={40} placeholder="편하게 불릴 이름" /></label>
+                      <label><span>이름</span><input name="name" required maxLength={40} autoComplete="name" placeholder="정식 이름을 입력해 주세요" /></label>
                       <label><span>연령대</span><select name="ageGroup" required defaultValue=""><option value="" disabled>선택해 주세요</option><option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대 이상</option></select></label>
                       <label><span>연락처</span><input name="contact" required maxLength={80} placeholder="전화번호 또는 이메일" /></label>
                       <label><span>희망 요일·시간</span><input name="preferredTime" required maxLength={100} placeholder="예: 토요일 오전" /></label>
@@ -545,7 +545,7 @@ export default function Home() {
             <p className="testModalEyebrow">PRIVACY</p>
             <h2 id="privacy-modal-title">개인정보 처리 안내</h2>
             <div className="privacyCopy">
-              <p><strong>수집 항목</strong><span>사이트 접수 양식을 통해 이용자가 직접 제공한 이름·닉네임·연령대·성별·연락처·답장받을 이메일(선택)·상담 또는 사연 내용</span></p>
+              <p><strong>수집 항목</strong><span>상담·심리검사 신청 시 이름·연령대·연락처·희망 일정·신청 내용, 사연 보내기 시 닉네임·연령대·성별·이메일(선택)·사연 내용</span></p>
               <p><strong>이용 목적</strong><span>상담 및 사연 접수 확인, 일정 안내와 답변. 선택한 이메일 주소는 사연 답장을 위해 이용합니다.</span></p>
               <p><strong>보유 기간</strong><span>이용 목적 달성 후 지체 없이 파기합니다. 관계 법령에 따라 보관이 필요한 경우에는 해당 기간 동안 보관합니다.</span></p>
               <p><strong>보관 방식</strong><span>접수 내용은 접근이 제한된 관리 시스템에 보관하며, 상담 진행과 답변을 위한 목적으로만 확인합니다.</span></p>
