@@ -145,7 +145,7 @@ export default function Home() {
     const consent = data.get("contentConsent") ? "동의" : "동의하지 않음";
     setStoryError("");
     const email = String(data.get("email") || "").trim();
-    if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setStoryError("이메일 주소를 확인해 주세요. 예: name@example.com. 답장을 원하지 않으면 비워두셔도 됩니다.");
       setStoryStatus("error");
       return;
