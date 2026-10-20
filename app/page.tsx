@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import "./story-email.css";
 
-const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "hello@example.com";
+const contactEmail = "oups1004@gmail.com";
 const openChatUrl = "https://m.site.naver.com/2hPA6";
 
 function ArrowIcon() {
@@ -575,7 +575,12 @@ export default function Home() {
       <footer>
         <div className="footerBrand"><strong>AUDE</strong><span>아우데 심리상담</span></div>
         <div><p>온라인 심리상담</p><a href={`mailto:${contactEmail}`}>{contactEmail}</a><button className="footerPrivacy" type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button></div>
-        <div><p>© {new Date().getFullYear()} AUDE COUNSELING</p><p>본 사이트의 내용은 의료적 진단이나 치료를 대체하지 않습니다.</p></div>
+        <div aria-label="사업자 정보" style={{ gridColumn: "1 / -1", borderTop: "1px solid rgba(128,128,128,.25)", paddingTop: 20, fontSize: 12, lineHeight: 1.9, color: "#86877f", textAlign: "left", overflowWrap: "anywhere" }}>
+          <p style={{ margin: 0 }}>아우데 심리상담센터 | 대표 노재인 | 사업자등록번호 296-94-02291</p>
+          <p style={{ margin: 0 }}>사업장 소재지: 충청북도 청주시 흥덕구 오송읍 오송생명5로 202</p>
+          <p style={{ margin: 0 }}><a href="tel:01048691732" style={{ color: "inherit" }}>전화 010-4869-1732</a> | <a href={`mailto:${contactEmail}`} style={{ color: "inherit" }}>이메일 {contactEmail}</a></p>
+        </div>
+        <div style={{ gridColumn: "1 / -1" }}><p>© {new Date().getFullYear()} AUDE COUNSELING</p><p>본 사이트의 내용은 의료적 진단이나 치료를 대체하지 않습니다.</p></div>
       </footer>
     </main>
   );
