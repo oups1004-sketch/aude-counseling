@@ -96,6 +96,9 @@ export async function POST(request: Request) {
         privacyVersion: "2026-10",
       });
     } else {
+      if (!["개인상담", "심리검사·해석상담"].includes(clean.service)) {
+        return NextResponse.json({ error: "신청 서비스를 확인해 주세요." }, { status: 400 });
+      }
       const { counselingOpen, assessmentOpen } = await getApplicationStatus();
       if (clean.service === "개인상담" && !counselingOpen) {
         return NextResponse.json({ error: "현재 상담 신청이 마감되었습니다." }, { status: 409 });
