@@ -103,7 +103,7 @@ export default function ClientsPage() {
 }
 
 function AdminHeader() {
-  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/assessments">투사검사</Link><Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
+  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><Link href="/admin/assessments" className="projectiveShortcut">투사검사 ↗</Link></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
 }
 
 function Metric({ value, label }: { value: number; label: string }) {
@@ -147,5 +147,6 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
 
 function toLocalInput(value: string | null) { return value ? value.slice(0, 16) : ""; }
 function formatDateTime(value: string | null) { if (!value) return "미정"; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" }); }
+
 
 

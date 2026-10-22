@@ -29,13 +29,13 @@ type Submission = {
 const tabs: Array<{ key: "all" | Kind; label: string }> = [
   { key: "all", label: "전체 접수" },
   { key: "intake", label: "상담 신청" },
-  { key: "assessment", label: "심리검사" },
+  { key: "assessment", label: "심리검사 신청" },
   { key: "story", label: "사연" },
 ];
 
 const kindLabel: Record<Kind, string> = {
   intake: "상담 신청",
-  assessment: "심리검사",
+  assessment: "심리검사 신청",
   story: "사연",
 };
 
@@ -351,11 +351,11 @@ export default function AdminPage() {
   return (
     <main className={`adminShell intakeWorkspace ${selected ? "hasDetail" : ""}`}>
       <header className="adminHeader workspaceHeader">
-        <div><Link href="/" className="adminBrand">AUDE</Link><span>통합 관리</span></div>
+        <div><Link href="/" className="adminBrand">AUDE</Link><Link href="/admin/assessments" className="projectiveShortcut">투사검사 ↗</Link></div>
         <nav>
           <Link className="active" href="/admin">접수</Link>
           <Link href="/admin/clients">내담자</Link>
-          <Link href="/admin/assessments">투사검사</Link>
+          
         <Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav>
         <Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link>
         <button onClick={logout}>로그아웃</button>
@@ -367,11 +367,11 @@ export default function AdminPage() {
           <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter(isNew).length}</strong><span>미확인 접수 ↗</span></button>
         </div>
 
-        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "확인", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
+
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
-              <button key={tab.key} className={activeTab === tab.key ? "active" : ""} onClick={() => { setActiveTab(tab.key); setOnlyNew(false); setDecisionFilter("전체"); }}>
+              <button key={tab.key} className={`kindTab kind-${tab.key} ${activeTab === tab.key ? "active" : ""}`} aria-pressed={activeTab === tab.key} onClick={() => { setActiveTab(tab.key); setOnlyNew(false); setDecisionFilter("전체"); }}>
                 {tab.label}<span>{tab.key === "all" ? items.length : items.filter((item) => item.kind === tab.key).length}</span>
               </button>
             ))}
@@ -383,6 +383,7 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "확인", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (activeTab === "all" || i.kind === activeTab) && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
         {activeTab === "story" && <div className="storyManagementFilters">
           <button className={onlyImportant ? "active" : ""} aria-pressed={onlyImportant} onClick={() => setOnlyImportant(!onlyImportant)}>★ 중요 사연만 보기</button>
           <div>{["전체", "미답장", "답장 완료", "답장 안 함"].map(value => <button key={value} className={storyFilter === value ? "active" : ""} aria-pressed={storyFilter === value} onClick={() => setStoryFilter(value)}>{value}<span>{items.filter(item => item.kind === "story" && (!onlyImportant || item.important) && (value === "전체" || item.status === value)).length}</span></button>)}</div>
@@ -410,7 +411,7 @@ export default function AdminPage() {
             const storyMeta = item.kind === "story" ? [item.age_group, item.gender].filter(Boolean).join(" · ") : "";
             const isChecked = selectedIds.has(item.id);
             return (
-              <div className={`submissionRow ${item.kind === "story" ? "storySubmissionRow" : ""} ${isChecked ? "submissionRowSelected" : ""} ${selected?.id === item.id ? "isViewing" : ""}`} key={item.id}>
+              <div className={`submissionRow kind-${item.kind} ${item.kind === "story" ? "storySubmissionRow" : ""} ${isChecked ? "submissionRowSelected" : ""} ${selected?.id === item.id ? "isViewing" : ""}`} key={item.id}>
                 <label className="submissionSelect" title={`${displayName(item)} 선택`}>
                   <input type="checkbox" checked={isChecked} onChange={() => toggleSelected(item.id)} />
                   <span aria-hidden="true" />
@@ -472,9 +473,9 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNot
   }
   return (
     <div className="submissionDrawerWrap">
-      <section className="adminModal submissionDrawer" role="dialog" aria-label="접수 상세">
+      <section className={`adminModal submissionDrawer kind-${item.kind}`} role="dialog" aria-label="접수 상세">
         <button ref={closeRef} className="adminModalClose" disabled={busy} onClick={onClose} aria-label="닫기">×</button>
-        <p className="sectionNumber">{item.reference_code}</p>
+        <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span><p className="sectionNumber">{item.reference_code}</p>
         <h2>{displayName(item)}</h2>
         <div className="detailQuickActions">
           {item.contact && <button onClick={() => copy(item.contact!)}>{item.kind === "story" ? "이메일 복사" : "연락처 복사"}</button>}
@@ -515,6 +516,7 @@ function Detail({ label, value, wide = false }: { label: string; value: string |
   if (!value) return null;
   return <div className={wide ? "detailWide" : ""}><dt>{label}</dt><dd>{value}</dd></div>;
 }
+
 
 
 
