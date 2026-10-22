@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import AdminHeader from "./AdminHeader";
 import Link from "next/link";
 import "./story-management.css";
 
@@ -326,12 +327,12 @@ export default function AdminPage() {
   }
 
   if (auth === "checking") {
-    return <main className="adminShell"><div className="adminLoading">AUDE · 관리자 확인 중</div></main>;
+    return <main className="adminShell adminDesign"><div className="adminLoading">AUDE · 관리자 확인 중</div></main>;
   }
 
   if (auth === "login") {
     return (
-      <main className="adminShell">
+      <main className="adminShell adminDesign">
         <section className="adminLogin">
           <Link href="/" className="adminBrand">AUDE</Link>
           <p className="sectionNumber">PRIVATE OFFICE</p>
@@ -349,25 +350,15 @@ export default function AdminPage() {
   }
 
   return (
-    <main className={`adminShell intakeWorkspace ${selected ? "hasDetail" : ""}`}>
-      <header className="adminHeader workspaceHeader">
-        <div><Link href="/" className="adminBrand">AUDE</Link><Link href="/admin/assessments" className="projectiveShortcut">투사검사 ↗</Link></div>
-        <nav>
-          <Link className="active" href="/admin">접수</Link>
-          <Link href="/admin/clients">내담자</Link>
-          
-        <Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav>
-        <Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link>
-        <button onClick={logout}>로그아웃</button>
-      </header>
+    <main className={`adminShell adminDesign intakeWorkspace ${selected ? "hasDetail" : ""}`}>
+      <AdminHeader active="intake" onLogout={logout} />
 
       <section className="adminDashboard">
         <div className="adminTitle intakeTitle">
-          <div><div className="intakeEyebrow"><p className="sectionNumber">PRIVATE OFFICE</p><div className="intakeStatusToggles"><button className={counselingOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}><i />상담 {counselingOpen ? "받는 중" : "중지"}</button><button className={assessmentOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}><i />검사 {assessmentOpen ? "받는 중" : "중지"}</button></div></div><h1>접수 관리</h1><p className="intakeLead">신규는 아직 확인하지 않은 접수입니다. 상세 내용을 열면 확인으로 바뀝니다.</p></div>
-          <button className={`adminStats newShortcut ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}><strong>{items.filter(isNew).length}</strong><span>미확인 접수 ↗</span></button>
+          <div><h1>접수 관리</h1><button className={`intakeUnread ${onlyNew ? "active" : ""}`} onClick={() => { setActiveTab("all"); setDecisionFilter("전체"); setOnlyNew(!onlyNew); }} aria-pressed={onlyNew}>아직 확인하지 않은 접수 <strong>{items.filter(isNew).length}건</strong></button></div>
+          <div className="intakeStatusToggles"><button className={counselingOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("counseling")}><i />상담 {counselingOpen ? "받는 중" : "중지"}</button><button className={assessmentOpen ? "open" : "closed"} type="button" disabled={statusBusy} onClick={() => toggleApplicationStatus("assessment")}><i />검사 {assessmentOpen ? "받는 중" : "중지"}</button></div>
         </div>
-
-
+        <section className="intakePanel" aria-label="접수 목록">
         <div className="adminToolbar">
           <div className="adminTabs">
             {tabs.map((tab) => (
@@ -376,18 +367,22 @@ export default function AdminPage() {
               </button>
             ))}
           </div>
+
+        </div>
+
+        <div className="intakeFilterbar">
+        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "확인", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (activeTab === "all" || i.kind === activeTab) && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
+        {activeTab === "story" && <div className="storyManagementFilters">
+          <button className={onlyImportant ? "active" : ""} aria-pressed={onlyImportant} onClick={() => setOnlyImportant(!onlyImportant)}>★ 중요 사연만 보기</button>
+          <div>{["전체", "미답장", "답장 완료", "답장 안 함"].map(value => <button key={value} className={storyFilter === value ? "active" : ""} aria-pressed={storyFilter === value} onClick={() => setStoryFilter(value)}>{value}<span>{items.filter(item => item.kind === "story" && (!onlyImportant || item.important) && (value === "전체" || item.status === value)).length}</span></button>)}</div>
+        </div>}
+
           <div className="adminActions">
             <input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="접수 검색" placeholder="이름·연령·성별·내용 검색" />
             {activeTab !== "story" && <button aria-pressed={onlyNew} className={onlyNew ? "newFilter active" : "newFilter"} onClick={() => { setDecisionFilter("전체"); setOnlyNew(!onlyNew); }}>신규만 보기</button>}
             <button onClick={exportCsv}>CSV 저장</button>
           </div>
         </div>
-
-        {activeTab !== "story" && <div className="decisionFilters">{["전체", "신규", "확인", "보류", "확정", "거절"].map((value) => <button key={value} className={decisionFilter === value ? "active" : ""} aria-pressed={decisionFilter === value} onClick={() => { setOnlyNew(false); setDecisionFilter(value); }}>{value}<span>{items.filter((i) => i.kind !== "story" && (activeTab === "all" || i.kind === activeTab) && (value === "전체" || i.status === value)).length}</span></button>)}</div>}
-        {activeTab === "story" && <div className="storyManagementFilters">
-          <button className={onlyImportant ? "active" : ""} aria-pressed={onlyImportant} onClick={() => setOnlyImportant(!onlyImportant)}>★ 중요 사연만 보기</button>
-          <div>{["전체", "미답장", "답장 완료", "답장 안 함"].map(value => <button key={value} className={storyFilter === value ? "active" : ""} aria-pressed={storyFilter === value} onClick={() => setStoryFilter(value)}>{value}<span>{items.filter(item => item.kind === "story" && (!onlyImportant || item.important) && (value === "전체" || item.status === value)).length}</span></button>)}</div>
-        </div>}
 
         {filtered.length > 0 && (
           <div className="bulkBar">
@@ -405,6 +400,7 @@ export default function AdminPage() {
           </div>
         )}
 
+        <div className="intakeTableHeading" aria-hidden="true"><span /><div><span>접수 유형</span><span>이름 / 내용</span><span>접수일</span><span>상태</span></div></div>
         <div className="adminList">
           {filtered.length === 0 && <div className="adminEmpty">{items.length ? "검색 조건에 맞는 접수가 없어요. 검색어나 필터를 바꿔보세요." : "새로운 접수가 들어오면 여기에 표시됩니다."}</div>}
           {filtered.map((item) => {
@@ -416,7 +412,7 @@ export default function AdminPage() {
                   <input type="checkbox" checked={isChecked} onChange={() => toggleSelected(item.id)} />
                   <span aria-hidden="true" />
                 </label>
-                {item.kind === "story" && <button className={`storyStar ${item.important ? "active" : ""}`} type="button" disabled={busy} aria-pressed={!!item.important} aria-label={`${displayName(item)} 중요 사연 ${item.important ? "해제" : "표시"}`} onClick={() => toggleImportant(item)}>{item.important ? "★" : "☆"}</button>}
+                {item.kind === "story" ? <button className={`storyStar ${item.important ? "active" : ""}`} type="button" disabled={busy} aria-pressed={!!item.important} aria-label={`${displayName(item)} 중요 사연 ${item.important ? "해제" : "표시"}`} onClick={() => toggleImportant(item)}>{item.important ? "★" : "☆"}</button> : <span className="storyStarSpacer" aria-hidden="true" />}
                 <button className="submissionOpen" type="button" onClick={() => openDetail(item)} aria-expanded={selected?.id === item.id}>
                   <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
                   <span className="submissionMain">
@@ -430,6 +426,8 @@ export default function AdminPage() {
             );
           })}
         </div>
+        </section>
+        <p className="intakeListFootnote">{filtered.length}건 표시 · 상세 내용을 열면 확인 상태로 바뀝니다.</p>
       </section>
 
       {notice && <div className="adminToast" role="status">{notice}</div>}

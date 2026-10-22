@@ -1,5 +1,6 @@
 "use client";
 
+import AdminHeader from "../AdminHeader";
 import Link from "next/link";
 import AssessmentRecords, { AssessmentRecord } from "../AssessmentRecords";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -55,15 +56,15 @@ export default function ClientsPage() {
     .filter((client) => client.nextSessionAt && client.status !== "종결")
     .sort((a, b) => String(a.nextSessionAt).localeCompare(String(b.nextSessionAt))), [clients]);
 
-  if (auth === "checking") return <main className="adminShell"><div className="adminLoading">AUDE · 내담자 목록 확인 중</div></main>;
-  if (auth === "login") return <main className="adminShell"><section className="adminLogin"><Link href="/admin" className="adminBrand">AUDE</Link><h1>로그인이 필요합니다.</h1><p>관리자 페이지에서 로그인한 뒤 이용해 주세요.</p><Link href="/admin" className="adminBack">← 관리자 로그인</Link></section></main>;
+  if (auth === "checking") return <main className="adminShell adminDesign"><div className="adminLoading">AUDE · 내담자 목록 확인 중</div></main>;
+  if (auth === "login") return <main className="adminShell adminDesign"><section className="adminLogin"><Link href="/admin" className="adminBrand">AUDE</Link><h1>로그인이 필요합니다.</h1><p>관리자 페이지에서 로그인한 뒤 이용해 주세요.</p><Link href="/admin" className="adminBack">← 관리자 로그인</Link></section></main>;
 
   return (
-    <main className="adminShell">
-      <AdminHeader />
+    <main className="adminShell adminDesign">
+      <AdminHeader active="clients" />
       <section className="adminDashboard workspacePage">
         <div className="workspaceHeading">
-          <div><p className="sectionNumber">COUNSELING DESK</p><h1>내담자 관리</h1><p>접수에서 확정한 내담자의 기본정보, 다음 상담일과 회기 기록을 관리합니다.</p></div>
+          <div><h1>내담자 관리</h1><p>접수에서 확정한 내담자의 기본정보, 다음 상담일과 회기 기록을 관리합니다.</p></div>
           <Link className="clientConvert" href="/admin">접수에서 확정하기 ↗</Link>
         </div>
 
@@ -102,9 +103,6 @@ export default function ClientsPage() {
   );
 }
 
-function AdminHeader() {
-  return <header className="adminHeader workspaceHeader"><div><Link href="/" className="adminBrand">AUDE</Link><Link href="/admin/assessments" className="projectiveShortcut">투사검사 ↗</Link></div><nav><Link href="/admin">접수</Link><Link className="active" href="/admin/clients">내담자</Link><Link href="/admin/calendar">일정</Link><Link href="/admin/finance">수납·지출</Link></nav><Link href="/" className="adminHomeLink" target="_blank" rel="noopener noreferrer">홈페이지 보기 ↗</Link></header>;
-}
 
 function Metric({ value, label }: { value: number; label: string }) {
   return <div className="workspaceMetric"><strong>{value}</strong><span>{label}</span></div>;
