@@ -1,8 +1,9 @@
 'use client';
 import { useCallback,useEffect,useRef,useState } from 'react';
-import { rorschachCards,recordsCsv } from '../../lib/rorschach-records';
+import { rorschachCards,recordsCsv,responseQuestions } from '../../lib/rorschach-records';
 import type { RorschachDraft,RorschachResponse,RorschachRow,RorschachRoom,RorschachPoint } from '../../lib/rorschach-records';
 import RorschachAssetUpload from './RorschachAssetUpload';
+import type { DrawingCommand } from '../../rorschach-room/RorschachViewport';
 import RorschachViewport from '../../rorschach-room/RorschachViewport';
 import '../../rorschach-room/rorschach.css';
 import './rorschach-records.css';
@@ -52,7 +53,7 @@ export default function RorschachRecords({clients,initialClientId,onDirty}:{clie
  function canLeave(){return !busy&&!saving&&(!dirty||confirm('저장하지 않은 로르샤흐 기록을 버릴까요?'));}
  function start(){if(!canLeave())return;const d=blank();setDraft(d);setBaseline(JSON.stringify(d));setRow(null);setRoom(null);setCode('');roomVersion.current=-1;setEditing(true);setCard('I');setSelected('');setError('');setSaveError('');setNotice('');}
  async function open(id:string){if(!canLeave())return;setBusy(true);setError('');try{const saved:RorschachRow=await api('GET',undefined,id);setRow(saved);setRoom(saved.data.room||null);roomVersion.current=saved.data.version;setClientId(saved.data.clientId);const d=draftOf(saved);setDraft(d);setBaseline(JSON.stringify(d));setEditing(true);setCard('I');setSelected('');setCode('');setSaveError('');setNotice('');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
- function add(){if(draft.responses.length>=300)return;const orientation=room?.card===card&&room.view?.card===card?String(room.view.angle):'미기록';const response:RorschachResponse={id:crypto.randomUUID(),card,response:'',inquiry:'',location:'',orientation,observation:'',coding:''};setDraft(d=>({...d,responses:[...d.responses,response]}));setSelected(response.id);setSaveError('');}
+ function add(){if(draft.responses.length>=300)return;const orientation=room?.card===card&&room.view?.card===card?String(room.view.angle):'미기록';const response:RorschachResponse={id:crypto.randomUUID(),card,questions:Array.from({length:3},()=>({question:'',answer:''})),note:'',response:'',inquiry:'',location:'',orientation,observation:'',coding:''};setDraft(d=>({...d,responses:[...d.responses,response]}));setSelected(response.id);setSaveError('');}
  function update(id:string,key:keyof RorschachResponse,value:string){setDraft(d=>({...d,responses:d.responses.map(r=>r.id===id?{...r,[key]:value}:r)}));setNotice('');}
  async function act(action:string,extra:object={},needsSave=false){if(busy)return;setBusy(true);setError('');try{const saved=needsSave||!rowRef.current?await flush():rowRef.current!;const result=await api('PATCH',{id:saved.id,action,...extra},undefined,true);acceptRoom(result);if(result.code)setCode(result.code);if(action==='end')setNotice('검사를 종료했습니다. 기록은 계속 보완할 수 있습니다.');return result;}catch(e){setError((e as Error).message);throw e;}finally{setBusy(false);}}
  function run(action:string,extra:object={},needsSave=false){void act(action,extra,needsSave).catch(()=>undefined);}
@@ -60,7 +61,12 @@ export default function RorschachRecords({clients,initialClientId,onDirty}:{clie
  async function copy(){try{await navigator.clipboard.writeText(`아우데 검사실\n${location.origin}/rorschach-room?id=${row!.id}${code?'\n접속 코드: '+code:''}`);setNotice(code?'링크와 코드를 복사했습니다.':'검사실 링크를 복사했습니다.');}catch{setError('복사하지 못했습니다. 표시된 링크와 코드를 직접 복사해 주세요.');}}
  function download(){const url=URL.createObjectURL(new Blob([recordsCsv(draft,room?.marks)],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`AUDE-Rorschach-${draft.examDate}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  const visibleMarks=room?.activeResponseId?room.marks[room.activeResponseId]||[]:[];
- const mark=async(points:RorschachPoint[])=>{if(!room?.activeResponseId)throw new Error('위치를 기록할 반응을 선택해 주세요.');await act('mark',{responseId:room.activeResponseId,points});};
+ const mark=async(command:DrawingCommand)=>{if(!room?.activeResponseId)throw new Error('윤곽을 표시할 반응을 선택해 주세요.');await act(command.action,{...command,responseId:room.activeResponseId,revision:room.revision});};
+ function chooseResponse(response:RorschachResponse){setCard(response.card);setSelected(response.id);if(active&&room?.stage==='inquiry')run('target',{responseId:response.id},true);}
+ async function changeStage(stage:'response'|'inquiry'){
+  try{await act('stage',{stage},true);if(stage==='inquiry'){const response=draftRef.current.responses.find(r=>r.id===selected)||draftRef.current.responses[0];if(response){setCard(response.card);setSelected(response.id);await act('target',{responseId:response.id},true);}}}catch{/* Error is displayed by act. */}
+ }
+ function updateQuestion(id:string,index:number,key:'question'|'answer',value:string){setDraft(d=>({...d,responses:d.responses.map(r=>r.id===id?{...r,questions:responseQuestions(r).map((q,n)=>n===index?{...q,[key]:value}:q)}:r)}));}
  return <section className="rorWorkspace" aria-label="로르샤흐 검사실">
  <div className="tatRow"><h2>{editing?'로르샤흐 검사실':'로르샤흐'}</h2>{!editing?<button className="tatPrimary" disabled={busy||loading} onClick={start}>새 검사 준비</button>:<button disabled={busy||saving} onClick={()=>{if(canLeave()){setEditing(false);setRow(null);setRoom(null);onDirty(false);api().then(setRows).catch(e=>setError(e.message));}}}>검사 목록</button>}</div>
  <p className="rorIntro">상담자가 도판을 제시하고, 반응과 질문단계 내용을 기록합니다.</p>
@@ -74,30 +80,35 @@ export default function RorschachRecords({clients,initialClientId,onDirty}:{clie
  {room&&<details className="rorInvite" open={!!code}><summary>내담자 접속 정보{code?' · 새 코드가 발급되었습니다.':''}</summary><p className="rorLink">{typeof location==='undefined'?'':location.origin}/rorschach-room?id={row?.id}</p>{code?<code>{code}</code>:<p>기존 코드는 다시 표시되지 않습니다. 필요하면 새 코드를 발급해 주세요.</p>}<small>유효기간 · {new Date(room.expiresAt).toLocaleString('ko-KR')}</small></details>}
  {!room&&<p className="rorIntro">화상통화는 별도로 연결합니다. 시작 전에 공식 원본과 화면의 색·명암, 도판 크기를 확인해 주세요.</p>}
  <div className="rorLiveGrid"><div className="rorPresentation">
- <div className="rorStage" aria-label="검사 단계">{(['response','inquiry'] as const).map(stage=><button key={stage} aria-pressed={(room?.stage||'response')===stage} disabled={!active||busy||!connected} onClick={()=>{if(stage!==room?.stage)run('stage',{stage},true);}}>{stage==='response'?'01 반응단계':'02 질문단계'}</button>)}</div>
- {!active&&available.includes(card)?<><p className="rorIntro">기록 도판 미리보기 · 내담자에게는 표시되지 않습니다.</p><RorschachViewport src={'/api/rorschach/image?card='+card} resetKey={card} marks={currentResponse?room?.marks[currentResponse.id]||[]:[]}/></>:active&&!room?.hidden?<RorschachViewport src={'/api/rorschach/image?card='+presented} resetKey={`${presented}:${room?.stage}`} marks={visibleMarks} canMark={room?.stage==='inquiry'&&!!room.activeResponseId} onMark={mark}/>:<div className="tatWait"><strong>Rorschach</strong><p>{!room?'검사실을 만든 뒤 첫 도판을 제시해 주세요.':active?'내담자에게는 대기 화면이 표시됩니다.':'검사가 종료되었거나 접속 시간이 만료되었습니다.'}</p></div>}
+ <div className="rorStage" aria-label="검사 단계">{(['response','inquiry'] as const).map(stage=><button key={stage} aria-pressed={(room?.stage||'response')===stage} disabled={!active||busy||!connected} onClick={()=>{if(stage!==room?.stage)void changeStage(stage);}}>{stage==='response'?'01 반응단계':'02 질문단계'}</button>)}</div>
+ {!active&&available.includes(card)?<><p className="rorIntro">기록 도판 미리보기 · 내담자에게는 표시되지 않습니다.</p><RorschachViewport src={'/api/rorschach/image?card='+card} resetKey={card} marks={currentResponse?room?.marks[currentResponse.id]||[]:[]}/></>:active&&!room?.hidden?<RorschachViewport src={'/api/rorschach/image?card='+presented} resetKey={`${presented}:${room?.stage}:${room?.activeResponseId||''}`} marks={visibleMarks} canMark={room?.stage==='inquiry'&&!!room.activeResponseId} author="counselor" onDraw={mark}/>:<div className="tatWait"><strong>Rorschach</strong><p>{!room?'검사실을 만든 뒤 첫 도판을 제시해 주세요.':active?'내담자에게는 대기 화면이 표시됩니다.':'검사가 종료되었거나 접속 시간이 만료되었습니다.'}</p></div>}
  <div className="rorPresentControls"><button disabled={!active||busy||!connected||presented==='I'} onClick={()=>present(rorschachCards[rorschachCards.indexOf(presented as typeof rorschachCards[number])-1])}>← 이전</button><b>제시 도판 {presented||'I'}</b><button disabled={!active||busy||!connected||presented==='X'} onClick={()=>present(rorschachCards[rorschachCards.indexOf(presented as typeof rorschachCards[number])+1])}>다음 →</button><button className="tatPrimary" disabled={!active||busy||!connected} onClick={()=>run('present',{card:presented||'I',hidden:!room?.hidden})}>{room?.hidden||!room?'도판 제시':'화면 가리기'}</button></div>
  <div className="rorPresentCards" aria-label="내담자에게 도판 제시">{rorschachCards.map(c=><button key={c} disabled={!active||busy||!connected} aria-pressed={presented===c} onClick={()=>present(c)}>{c}</button>)}</div>
  {room?.view&&<p className="rorViewInfo">내담자 조작 · {room.view.card} · {room.view.angle}° · {Math.round(room.view.scale*100)}% <small>{new Date(room.view.at).toLocaleTimeString('ko-KR')}</small></p>}
- {room?.stage==='inquiry'&&<p className="rorIntro">오른쪽 반응에서 ‘이 반응의 위치 기록’을 누르면 내담자가 위치와 윤곽을 표시할 수 있습니다.</p>}
- {room?.activeResponseId&&<div className="tatRow"><span>위치 표시 {visibleMarks.length}개</span><button disabled={busy||!visibleMarks.length} onClick={()=>run('undoMark',{responseId:room.activeResponseId})}>마지막 표시 삭제</button></div>}
+ {room?.stage==='inquiry'&&<p className="rorIntro">오른쪽에서 반응을 선택하면 함께 윤곽을 그릴 수 있습니다. 내담자는 빨강, 상담자는 파랑입니다.</p>}
+
  </div><div className="rorRecordPane">
  <div className="rorRecordHeading"><h3>반응 기록</h3><span role="status">{saving?'저장 중…':saveError?'저장 실패':dirty?'저장 대기':row?'저장됨':'검사실을 만들면 자동 저장됩니다.'}</span></div>
- <div className="rorCards" aria-label="도판별 기록 선택">{rorschachCards.map(c=><button type="button" key={c} aria-pressed={card===c} className={card===c?'active':''} onClick={()=>{setCard(c);setSelected('');}}>{c}<small>{draft.responses.filter(r=>r.card===c).length}</small></button>)}</div>
+ <div className="rorCards" aria-label="도판별 기록 선택">{rorschachCards.map(c=><button type="button" key={c} aria-pressed={card===c} className={card===c?'active':''} onClick={()=>{const first=draft.responses.find(r=>r.card===c);if(first)chooseResponse(first);else{setCard(c);setSelected('');}}}>{c}<small>{draft.responses.filter(r=>r.card===c).length}</small></button>)}</div>
  <div className="tatRow"><b>기록 도판 {card}</b><button disabled={busy||draft.responses.length>=300} onClick={add}>＋ 반응 추가</button>{presented&&card!==presented&&<button onClick={()=>{setCard(presented);setSelected('');}}>제시 도판 기록으로 이동</button>}</div>
- <div className="rorResponseTabs">{draft.responses.filter(r=>r.card===card).map((r,n)=><button key={r.id} aria-pressed={currentResponse?.id===r.id} onClick={()=>setSelected(r.id)}>반응 {n+1}</button>)}</div>
+ <div className="rorResponseTabs">{draft.responses.filter(r=>r.card===card).map((r,n)=><button key={r.id} aria-pressed={currentResponse?.id===r.id} onClick={()=>chooseResponse(r)}>반응 {n+1}</button>)}</div>
  {!currentResponse?<p className="rorEmpty">반응을 선택하거나 ‘반응 추가’를 눌러 기록해 주세요.</p>:<article className="rorResponse"><div className="tatRow"><strong>도판 {card} · 반응 {draft.responses.filter(r=>r.card===card).indexOf(currentResponse)+1}</strong><button disabled={busy||saving} onClick={()=>{if(confirm('이 반응을 삭제할까요?')){setDraft(d=>({...d,responses:d.responses.filter(r=>r.id!==currentResponse.id)}));setSelected('');}}}>반응 삭제</button></div>
- {room?.stage==='inquiry'&&<button className="tatPrimary" disabled={!active||busy||!connected||room.hidden||room.card!==card} onClick={()=>run('target',{responseId:currentResponse.id},true)}>{room.activeResponseId===currentResponse.id?'이 반응의 위치 기록 중':'이 반응의 위치 기록'}</button>}
  <fieldset className="rorFields" disabled={busy}><legend className="rorSrOnly">반응 기록 편집</legend><div className="rorSingleGrid">
- <label>반응 원문<textarea rows={room?.stage==='inquiry'?3:6} maxLength={12000} value={currentResponse.response} onChange={e=>update(currentResponse.id,'response',e.target.value)}/></label>
- <label>질문단계 기록<textarea rows={room?.stage==='inquiry'?6:3} maxLength={12000} value={currentResponse.inquiry} onChange={e=>update(currentResponse.id,'inquiry',e.target.value)}/></label>
- <label>반응 위치<input maxLength={2000} value={currentResponse.location} onChange={e=>update(currentResponse.id,'location',e.target.value)}/></label>
- <label>반응 당시 도판 방향<select value={currentResponse.orientation} onChange={e=>update(currentResponse.id,'orientation',e.target.value)}><option value="미기록">미기록</option>{[0,90,180,270].map(a=><option key={a} value={String(a)}>{a===0?'정방향 · ':''}{a}°</option>)}</select></label>
- {room?.view?.card===card&&<button type="button" onClick={()=>update(currentResponse.id,'orientation',String(room.view!.angle))}>현재 내담자 방향으로 기록 · {room.view.angle}°</button>}
- <label>행동관찰<textarea rows={2} maxLength={6000} value={currentResponse.observation} onChange={e=>update(currentResponse.id,'observation',e.target.value)}/></label>
- <label>채점 메모 · 상담자 전용<textarea rows={2} maxLength={4000} value={currentResponse.coding} onChange={e=>update(currentResponse.id,'coding',e.target.value)}/></label>
+ {room?.stage==='inquiry'?<>
+ <div className="rorOriginal"><small>반응 원문</small><p>{currentResponse.response||'기록된 반응이 없습니다.'}</p></div>
+ <div className="tatRow"><h4>질문단계 기록</h4>{active&&room.activeResponseId!==currentResponse.id&&<button type="button" onClick={()=>run('target',{responseId:currentResponse.id},true)}>이 반응 함께 보기</button>}</div>
+ {responseQuestions(currentResponse).map((q,n)=><div className="rorQuestionPair" key={n}>
+ <label>질문 {n+1}<textarea rows={2} maxLength={6000} placeholder="상담자의 질문을 작성해 주세요." value={q.question} onChange={e=>updateQuestion(currentResponse.id,n,'question',e.target.value)}/></label>
+ <label>내담자 응답 {n+1}<textarea rows={3} maxLength={12000} placeholder="내담자의 응답을 작성해 주세요." value={q.answer} onChange={e=>updateQuestion(currentResponse.id,n,'answer',e.target.value)}/></label>
+ </div>)}
+ <button type="button" disabled={responseQuestions(currentResponse).length>=60} onClick={()=>setDraft(d=>({...d,responses:d.responses.map(r=>r.id===currentResponse.id?{...r,questions:[...responseQuestions(r),{question:'',answer:''}]}:r)}))}>＋ 질문 추가</button>
+ </>:<>
+ <label>반응 원문<textarea rows={8} maxLength={12000} value={currentResponse.response} onChange={e=>update(currentResponse.id,'response',e.target.value)}/></label>
+ <label>메모<textarea rows={3} maxLength={6000} value={currentResponse.note??currentResponse.observation} onChange={e=>update(currentResponse.id,'note',e.target.value)}/></label>
+ <small className="rorViewInfo">반응 당시 방향 · {currentResponse.orientation==='미기록'?'미기록':currentResponse.orientation+'°'}</small>
+ </>}
  </div></fieldset>
- {(room?.marks[currentResponse.id]?.length||0)>0&&<p className="rorIntro">이 반응에 위치 표시 {room!.marks[currentResponse.id].length}개가 저장되어 있습니다.</p>}
+ {(room?.marks[currentResponse.id]?.length||0)>0&&<p className="rorIntro">이 반응에 윤곽 표시 {room!.marks[currentResponse.id].length}개가 저장되어 있습니다.</p>}
  </article>}
  </div></div>
  <label className="rorSummary rorFields">종합 메모 · 상담자 전용<textarea rows={4} maxLength={30000} value={draft.summary} onChange={e=>setDraft(d=>({...d,summary:e.target.value}))}/></label>

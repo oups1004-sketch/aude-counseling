@@ -80,8 +80,9 @@ const request=(url,data)=>new Request('https://test.invalid'+url,{method:data===
  visible=await(await state.GET(request('/state?id='+made.id))).json();assert.equal(visible.marks.length,1);assert.equal(visible.markTarget,'test-1');assert.equal('responses' in visible,false);assert.equal('codeHash' in visible,false);
  admin=true;
  assert.equal((await a.PATCH(request('/records',{...draft,id:made.id,recordsVersion:2,summary:'keep locations'}))).status,200);assert.equal(rows.get(made.id).data.room.marks['test-1'].length,1);
- assert.equal((await rooms.PATCH(request('/room',{id:made.id,action:'undoMark',responseId:'test-1'}))).status,200);
- assert.equal(rows.get(made.id).data.room.marks['test-1'].length,0);
+ assert.equal((await rooms.PATCH(request('/room',{id:made.id,action:'undoMark',responseId:'test-1',revision:targeted.room.revision}))).status,200);
+ assert.equal(rows.get(made.id).data.room.marks['test-1'].length,1);
+ admin=false;assert.equal((await state.POST(request('/state',{...mark,action:'clearMarks'}))).status,200);assert.equal(rows.get(made.id).data.room.marks['test-1'].length,0);admin=true;
  const renewed=await(await rooms.PATCH(request('/room',{id:made.id,action:'renew'}))).json();assert.notEqual(renewed.code,code);
  admin=false;assert.equal((await state.GET(request('/state?id='+made.id))).status,401);assert.equal((await image.GET(request('/image?card=I&id='+made.id))).status,403);
  assert.equal((await login.POST(request('/login',{id:made.id,code:renewed.code}))).status,200);
@@ -93,6 +94,24 @@ const request=(url,data)=>new Request('https://test.invalid'+url,{method:data===
  assert.equal((await login.POST(request('/login',{id:made.id,code:renewed.code}))).status,401);
  const oldRecord=structuredClone(made);oldRecord.id=crypto.randomUUID();delete oldRecord.data.room;delete oldRecord.data.recordsVersion;rows.set(oldRecord.id,oldRecord);
  assert.equal((await a.PATCH(request('/records',{...draft,id:oldRecord.id,recordsVersion:0,summary:'legacy'}))).status,200);
+
+ const questions=[{question:'어디에서 그렇게 보였나요?',answer:'이 부분이요.'},{question:'무엇 때문에요?',answer:'모양 때문이에요.'},{question:'',answer:''},{question:'추가 질문',answer:'추가 응답'}];
+ assert.deepEqual(JSON.parse(JSON.stringify(v.validateDraft({...draft,responses:[{...draft.responses[0],questions,note:'관찰 메모'}]}).responses[0].questions)),questions);
+ assert.throws(()=>v.validateDraft({...draft,responses:[{...draft.responses[0],questions:[{question:3,answer:''}]}]}));
+ assert.equal(v.responseQuestions(draft.responses[0]).length,3);assert.equal(v.responseQuestions(draft.responses[0])[0].answer,'질문 기록');
+ const drawing=load('app/lib/rorschach-room.ts');
+ let board={...created.room,marks:{}};
+ board=drawing.changeDrawing(board,'r1','participant',{action:'mark',points:[{x:.1,y:.1},{x:.2,y:.2}]});
+ const red=board.marks.r1[0];assert.equal(red.author,'participant');
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'mark',points:[{x:.3,y:.3},{x:.4,y:.4}]});
+ const blue=board.marks.r1[1];assert.equal(blue.author,'counselor');
+ assert.throws(()=>drawing.changeDrawing(board,'r1','participant',{action:'eraseMark',markId:blue.id}));
+ board=drawing.changeDrawing(board,'r1','participant',{action:'eraseMark',markId:red.id});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r1[0].id,blue.id);
+ board=drawing.changeDrawing(board,'r1','participant',{action:'undoMark'});assert.equal(board.marks.r1.length,2);
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'clearMarks'});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r1[0].author,'participant');
+ board=drawing.changeDrawing(board,'r2','participant',{action:'mark',points:[{x:.5,y:.5}]});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r2.length,1);
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'undoMark'});assert.equal(board.marks.r1.length,2);assert.equal(board.marks.r2.length,1);
+ console.log('PASS: numbered question/answer persistence, legacy inquiry preservation, red/blue author isolation, erasing, clear, undo and response-specific drawings');
  console.log('PASS: Rorschach rooms, login, card access, privacy, stale marks, rotation, content versioning, location persistence, renewal, end and legacy records');
  console.log('PASS: admin-only record create/read/update, signed-record filtering, conflict preservation, validation and Excel formula escaping');
 })().catch(e=>{console.error(e);process.exit(1);});

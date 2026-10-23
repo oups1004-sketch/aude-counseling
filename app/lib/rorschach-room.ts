@@ -41,3 +41,23 @@ export function validatePoints(input:unknown):RorschachPoint[] {
  if(!Array.isArray(input)||input.length<1||input.length>200)throw new Error('위치 표시를 확인해 주세요.');
  return input.map(p=>{if(!p||typeof p.x!=='number'||typeof p.y!=='number'||!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>1||p.y<0||p.y>1)throw new Error('위치 표시 좌표를 확인해 주세요.');return {x:p.x,y:p.y};});
 }
+
+export function changeDrawing(room:RorschachRoom,responseId:string,actor:'participant'|'counselor',input:{action:string;points?:unknown;markId?:string}):RorschachRoom {
+ const marks=room.marks[responseId]||[];
+ const own=(m:import('./rorschach-records').RorschachMark)=>(m.author||'participant')===actor;
+ const key=responseId+':'+actor;const history=room.drawingUndo?.[key]||[];
+ if(input.action==='undoMark'){
+  if(!history.length)return {...room,marks:{...room.marks,[responseId]:marks.filter((m,n)=>!own(m)||n!==marks.map(own).lastIndexOf(true))}};
+  return {...room,marks:{...room.marks,[responseId]:[...marks.filter(m=>!own(m)),...history[history.length-1]]},drawingUndo:{...room.drawingUndo,[key]:history.slice(0,-1)}};
+ }
+ let next=marks;
+ if(input.action==='mark'){
+  if(marks.length>=200)throw new Error('반응당 윤곽 표시는 200개 이내로 저장해 주세요.');
+  next=[...marks,{id:crypto.randomUUID(),author:actor,points:validatePoints(input.points)}];
+ }else if(input.action==='eraseMark'){
+  if(!marks.some(m=>m.id===input.markId&&own(m)))throw new Error('자신이 그린 선만 지울 수 있습니다.');
+  next=marks.filter(m=>m.id!==input.markId);
+ }else if(input.action==='clearMarks')next=marks.filter(m=>!own(m));
+ else throw new Error('그리기 요청을 확인해 주세요.');
+ return {...room,marks:{...room.marks,[responseId]:next},drawingUndo:{...room.drawingUndo,[key]:[...history,marks.filter(own)].slice(-10)}};
+}
