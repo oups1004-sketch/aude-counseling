@@ -4,7 +4,7 @@ export type RorschachResponse = {questions?:InquiryTurn[];note?:string;id:string
 export type RorschachDraft = {examDate:string;responses:RorschachResponse[];summary:string};
 export type RorschachPoint = {x:number;y:number};
 export type RorschachMark = {id:string;author?:'participant'|'counselor';points:RorschachPoint[]};
-export type RorschachRoom = {codeHash:string;expiresAt:string;endedAt?:string;joinedAt?:string;stage:'response'|'inquiry';card:string;hidden:boolean;revision:number;activeResponseId?:string;view?:{card:string;angle:number;scale:number;at:string};drawingUndo?:Record<string,RorschachMark[][]>;marks:Record<string,RorschachMark[]>};
+export type RorschachRoom = {codeHash:string;expiresAt:string;endedAt?:string;joinedAt?:string;stage:'response'|'inquiry';card:string;hidden:boolean;revision:number;activeResponseId?:string;view?:{card:string;angle:number;scale:number;at:string};drawingUndoAfter?:Record<string,(RorschachMark[]|null)[]>;drawingUndo?:Record<string,RorschachMark[][]>;marks:Record<string,RorschachMark[]>};
 export type RorschachData = RorschachDraft & {recordsVersion?:number;room?:RorschachRoom;type:'rorschach-record';clientId:string;clientName:string;creationNonce:string;creationSignature:string;version:number};
 export type RorschachRow = {id:string;created_at:string;data:RorschachData};
 export function validateDraft(input:unknown):RorschachDraft {

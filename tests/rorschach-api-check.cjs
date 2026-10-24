@@ -14,7 +14,7 @@ async function database(path,init={},publicInsert=false){const u=new URL('https:
  if(method==='PATCH'){const row=rows.get(id),version=u.searchParams.get('data->>version');if(version&&(version==='is.null'?row.data.version!==undefined:String(row.data.version)!==version.replace('eq.','')))return json([]);rows.set(id,{...row,...JSON.parse(init.body)});return json([rows.get(id)]);}
  return json(id?(rows.has(id)?[structuredClone(rows.get(id))]:[]):[...rows.values()]);}
 const cache={};function load(file){if(cache[file])return cache[file];const exports={},source=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
- const req=name=>{if(name==='next/headers')return {cookies:async()=>({get:key=>cookies[key]?{value:cookies[key]}:undefined})};if(name==='next/server')return {NextResponse:{json(v,o){const r=new Response(JSON.stringify(v),{status:o?.status||200});r.cookies={set(n,v){cookies[n]=v;}};return r;}}};if(name.endsWith('/supabase')||name==='./supabase')return {verifyAdminSession:()=>admin,supabaseAdminRequest:database};if(name.endsWith('/client-eligibility'))return load('app/lib/client-eligibility.ts');if(name.endsWith('/operations'))return {getOperations:async()=>[]};if(name.endsWith('/rorschach-room'))return load('app/lib/rorschach-room.ts');if(name.endsWith('/rorschach-records'))return load('app/lib/rorschach-records.ts');if(name.endsWith('/tat-records'))return load('app/lib/tat-records.ts');if(name.endsWith('/tat'))return load('app/lib/tat.ts');return require(name);};
+ const req=name=>{if(name==='next/headers')return {cookies:async()=>({get:key=>cookies[key]?{value:cookies[key]}:undefined})};if(name==='next/server')return {NextResponse:{json(v,o){const r=new Response(JSON.stringify(v),{status:o?.status||200});r.cookies={set(n,v){cookies[n]=v;}};return r;}}};if(name.endsWith('/supabase')||name==='./supabase')return {verifyAdminSession:()=>admin,supabaseAdminRequest:database};if(name.endsWith('/client-eligibility'))return load('app/lib/client-eligibility.ts');if(name.endsWith('/operations'))return {getOperations:async()=>[]};if(name.endsWith('/rorschach-erasing'))return load('app/lib/rorschach-erasing.ts');if(name.endsWith('/rorschach-room'))return load('app/lib/rorschach-room.ts');if(name.endsWith('/rorschach-records'))return load('app/lib/rorschach-records.ts');if(name.endsWith('/tat-records'))return load('app/lib/tat-records.ts');if(name.endsWith('/tat'))return load('app/lib/tat.ts');return require(name);};
  vm.runInNewContext(source,{require:req,exports,process,Buffer,Date,Response,Request,URL,ReadableStream,Uint8Array,crypto,console,fetch:async(url,init)=>database(new URL(url).pathname,init,true)});cache[file]=exports;return exports;}
 const request=(url,data)=>new Request('https://test.invalid'+url,{method:data===undefined?'GET':'POST',body:data===undefined?undefined:JSON.stringify(data)});
 
@@ -108,9 +108,26 @@ const request=(url,data)=>new Request('https://test.invalid'+url,{method:data===
  assert.throws(()=>drawing.changeDrawing(board,'r1','participant',{action:'eraseMark',markId:blue.id}));
  board=drawing.changeDrawing(board,'r1','participant',{action:'eraseMark',markId:red.id});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r1[0].id,blue.id);
  board=drawing.changeDrawing(board,'r1','participant',{action:'undoMark'});assert.equal(board.marks.r1.length,2);
- board=drawing.changeDrawing(board,'r1','counselor',{action:'clearMarks'});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r1[0].author,'participant');
- board=drawing.changeDrawing(board,'r2','participant',{action:'mark',points:[{x:.5,y:.5}]});assert.equal(board.marks.r1.length,1);assert.equal(board.marks.r2.length,1);
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'clearMarks'});assert.equal(board.marks.r1.length,0);
+ board=drawing.changeDrawing(board,'r2','participant',{action:'mark',points:[{x:.5,y:.5}]});assert.equal(board.marks.r1.length,0);assert.equal(board.marks.r2.length,1);
  board=drawing.changeDrawing(board,'r1','counselor',{action:'undoMark'});assert.equal(board.marks.r1.length,2);assert.equal(board.marks.r2.length,1);
+
+ const eraser=load('app/lib/rorschach-erasing.ts');
+ const lines=[{id:'red',author:'participant',points:[{x:.1,y:.5},{x:.9,y:.5}]},{id:'blue',author:'counselor',points:[{x:.1,y:.6},{x:.9,y:.6}]}];
+ const path=[{x:.5,y:.2},{x:.5,y:.8}];
+ const cut=eraser.eraseDrawing(lines,path,'counselor');assert.equal(cut.length,4);
+ for(const color of ['participant','counselor']){const pieces=cut.filter(m=>m.author===color);assert.equal(pieces.length,2);assert.ok(pieces[0].points.at(-1).x<.49);assert.ok(pieces[1].points[0].x>.51);}
+ const participantCut=eraser.eraseDrawing(lines,path,'participant');assert.equal(participantCut.length,3);assert.equal(participantCut.find(m=>m.id==='blue'),lines[1]);
+ const before=structuredClone(board.marks.r1);
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'erasePath',points:[{x:.15,y:.15},{x:.35,y:.35}]});
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'undoMark'});assert.equal(JSON.stringify([...board.marks.r1].sort((a,b)=>a.id.localeCompare(b.id))),JSON.stringify([...before].sort((a,b)=>a.id.localeCompare(b.id))));
+ assert.throws(()=>drawing.changeDrawing(board,'r1','counselor',{action:'erasePath',points:[{x:2,y:0}]}));
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'clearMarks'});
+ board=drawing.changeDrawing(board,'r1','participant',{action:'mark',points:[{x:.8,y:.8}]});
+ const concurrent=board.marks.r1[0].id;
+ board=drawing.changeDrawing(board,'r1','counselor',{action:'undoMark'});
+ assert.ok(board.marks.r1.some(m=>m.id===concurrent));assert.equal(board.marks.r1.length,before.length+1);
+ console.log('PASS: swept partial erasing across both colors, participant permissions, counselor undo and path validation');
  console.log('PASS: numbered question/answer persistence, legacy inquiry preservation, red/blue author isolation, erasing, clear, undo and response-specific drawings');
  console.log('PASS: Rorschach rooms, login, card access, privacy, stale marks, rotation, content versioning, location persistence, renewal, end and legacy records');
  console.log('PASS: admin-only record create/read/update, signed-record filtering, conflict preservation, validation and Excel formula escaping');

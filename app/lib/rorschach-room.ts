@@ -1,3 +1,4 @@
+import { eraseDrawing } from './rorschach-erasing';
 import { cookies } from 'next/headers';
 import { timingSafeEqual } from 'node:crypto';
 import { sign, validId } from './tat';
@@ -44,20 +45,33 @@ export function validatePoints(input:unknown):RorschachPoint[] {
 
 export function changeDrawing(room:RorschachRoom,responseId:string,actor:'participant'|'counselor',input:{action:string;points?:unknown;markId?:string}):RorschachRoom {
  const marks=room.marks[responseId]||[];
- const own=(m:import('./rorschach-records').RorschachMark)=>(m.author||'participant')===actor;
- const key=responseId+':'+actor;const history=room.drawingUndo?.[key]||[];
+ const own=(m:import('./rorschach-records').RorschachMark)=>actor==='counselor'||(m.author||'participant')===actor;
+ const key=responseId+':'+actor;const history=room.drawingUndo?.[key]||[];const afterHistory=room.drawingUndoAfter?.[key]||[];
  if(input.action==='undoMark'){
+  if(!history.length&&actor==='counselor')return room;
   if(!history.length)return {...room,marks:{...room.marks,[responseId]:marks.filter((m,n)=>!own(m)||n!==marks.map(own).lastIndexOf(true))}};
-  return {...room,marks:{...room.marks,[responseId]:[...marks.filter(m=>!own(m)),...history[history.length-1]]},drawingUndo:{...room.drawingUndo,[key]:history.slice(0,-1)}};
+  const before=history[history.length-1],after=afterHistory[history.length-1];
+  // Undo only this operation; keep lines the other person added afterward.
+  const restored=after?[
+   ...marks.filter(m=>!after.some(a=>a.id===m.id&&!before.some(b=>b.id===a.id))),
+   ...before.filter(b=>!after.some(a=>a.id===b.id)&&!marks.some(m=>m.id===b.id))
+  ]:[...marks.filter(m=>(m.author||'participant')!==actor),...before];
+  return {...room,marks:{...room.marks,[responseId]:restored},drawingUndo:{...room.drawingUndo,[key]:history.slice(0,-1)},drawingUndoAfter:{...room.drawingUndoAfter,[key]:afterHistory.slice(0,-1)}};
  }
  let next=marks;
+ if(input.action==='erasePath'){
+  if(!Array.isArray(input.points)||input.points.length<1||input.points.length>1000)throw new Error('지우개 경로를 확인해 주세요.');
+  const path=input.points.flatMap((_,i)=>i%200===0?validatePoints((input.points as unknown[]).slice(i,i+200)):[]);
+  next=eraseDrawing(marks,path,actor);
+  if(next.length===marks.length&&next.every((m,i)=>m===marks[i]))return room;
+ }else
  if(input.action==='mark'){
   if(marks.length>=200)throw new Error('반응당 윤곽 표시는 200개 이내로 저장해 주세요.');
   next=[...marks,{id:crypto.randomUUID(),author:actor,points:validatePoints(input.points)}];
  }else if(input.action==='eraseMark'){
-  if(!marks.some(m=>m.id===input.markId&&own(m)))throw new Error('자신이 그린 선만 지울 수 있습니다.');
+  if(!marks.some(m=>m.id===input.markId&&own(m)))throw new Error('지울 수 없는 선입니다.');
   next=marks.filter(m=>m.id!==input.markId);
  }else if(input.action==='clearMarks')next=marks.filter(m=>!own(m));
  else throw new Error('그리기 요청을 확인해 주세요.');
- return {...room,marks:{...room.marks,[responseId]:next},drawingUndo:{...room.drawingUndo,[key]:[...history,marks.filter(own)].slice(-10)}};
+ return {...room,marks:{...room.marks,[responseId]:next},drawingUndo:{...room.drawingUndo,[key]:[...history,marks.filter(own)].slice(-10)},drawingUndoAfter:{...room.drawingUndoAfter,[key]:[...history.map((_,i)=>afterHistory[i]||null),next.filter(own)].slice(-10)}};
 }
