@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "node tests/operations-check.cjs && node tests/story-api-check.cjs && node tests/finance-regressions.cjs && node tests/rorschach-api-check.cjs"
+    "test": "node tests/operations-check.cjs && node tests/story-api-check.cjs && node tests/finance-regressions.cjs && node tests/rorschach-api-check.cjs && node tests/assessment-hub-check.cjs"
   },
   "dependencies": {
     "fflate": "^0.8.2",

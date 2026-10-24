@@ -62,7 +62,7 @@ function clientItem(row: DbRow) {
 
 async function getRows() {
   const response = await supabaseAdminRequest(
-    "/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=1000&or=(data->>type.is.null,data->>type.eq.counseling)",
+    "/rest/v1/counseling_requests?select=id,created_at,status,data&order=created_at.desc&limit=1000&data->>adminManagedClient=eq.true",
   );
   return (await response.json()) as DbRow[];
 }

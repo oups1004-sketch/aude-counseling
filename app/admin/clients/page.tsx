@@ -98,7 +98,7 @@ export default function ClientsPage() {
         </div>
       </section>
 
-      {selected && <ClientModal client={selected} busy={busy} setBusy={setBusy} onClose={() => setSelected(null)} onSaved={async () => { await load(); setSelected(null); }} />}
+      {selected && <ClientModal client={selected} busy={busy} setBusy={setBusy} onClose={() => setSelected(null)} onAssessmentsChange={records=>{setClients(cs=>cs.map(c=>c.id===selected.id?{...c,assessments:records}:c));setSelected(c=>c?{...c,assessments:records}:c);}} onSaved={async () => { await load(); setSelected(null); }} />}
     </main>
   );
 }
@@ -108,7 +108,7 @@ function Metric({ value, label }: { value: number; label: string }) {
   return <div className="workspaceMetric"><strong>{value}</strong><span>{label}</span></div>;
 }
 
-function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Client; busy: boolean; setBusy: (v: boolean) => void; onClose: () => void; onSaved: () => void }) {
+function ClientModal({ client, busy, setBusy, onClose, onSaved, onAssessmentsChange }: { client: Client; busy: boolean; setBusy: (v: boolean) => void; onClose: () => void; onSaved: () => void; onAssessmentsChange:(records:AssessmentRecord[])=>void }) {
   const [name, setName] = useState(client.name);
   const [contact, setContact] = useState(client.contact || "");
   const [status, setStatus] = useState(client.status);
@@ -139,7 +139,7 @@ function ClientModal({ client, busy, setBusy, onClose, onSaved }: { client: Clie
     {client.sourceReason && <div className="sourceReason"><small>최초 신청 내용</small><p>{client.sourceReason}</p></div>}
     <div className="sessionSection"><div className="sessionHeading"><h3>회기 기록 <span>{client.sessionCount}</span></h3><button onClick={() => setSessionOpen((v) => !v)}>+ 회기 기록</button></div>{sessionOpen && <form className="sessionForm" onSubmit={addSession}><label>회기<input name="sessionNo" type="number" min="1" defaultValue={client.sessionCount + 1} /></label><label>상담일<input name="date" type="date" defaultValue={new Date().toISOString().slice(0,10)} /></label><label className="wide">회기 요약<textarea name="summary" rows={5} required placeholder="주요 호소, 상담 내용, 관찰 등을 기록" /></label><label className="wide">다음 회기 계획<textarea name="nextPlan" rows={3} /></label><button className="workspacePrimary wide" disabled={busy}>{busy ? "저장 중…" : "회기 저장"}</button></form>}
       <div className="sessionList">{[...client.sessions].reverse().map((session) => <article key={session.id}><div><b>{session.sessionNo}회기</b><span>{session.date}</span></div><p>{session.summary || "요약 없음"}</p>{session.nextPlan && <small>다음 계획 · {session.nextPlan}</small>}</article>)}{client.sessions.length === 0 && <p className="sessionEmpty">아직 회기 기록이 없습니다.</p>}</div></div>
-    <AssessmentRecords clientName={client.name} clientId={client.id} initial={client.assessments || []} onDirty={setAssessmentDirty} />
+    <AssessmentRecords onRecordsChange={onAssessmentsChange} clientName={client.name} clientId={client.id} initial={client.assessments || []} onDirty={setAssessmentDirty} />
     <div className="adminModalActions"><button className="danger" onClick={close}>닫기</button><button className="save" onClick={save} disabled={busy}>{busy ? "저장 중…" : "변경사항 저장"}</button></div></section></div>;
 }
 

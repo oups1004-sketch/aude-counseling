@@ -2,6 +2,7 @@ import { createHmac,timingSafeEqual } from 'node:crypto';
 import { supabaseAdminRequest } from './supabase';
 import { validId } from './tat';
 import { Operation,OperationRow,OperationType,operationTypes,appointmentKinds,appointmentStatuses,expenseCategories,amount,text,validDate,paymentMethods,evidenceStatuses,chargeTotals } from './operations-model';
+import { assessmentSources } from './assessment-hub';
 import { isConfirmedClient } from './client-eligibility';
 function signature(type:string,nonce:string){const secret=process.env.ADMIN_PASSWORD;if(!secret)throw new Error('관리자 설정을 확인해 주세요.');return createHmac('sha256',secret).update('aude-operations:'+type+':'+nonce).digest('hex');}
 export function trustedOperation(row:OperationRow|undefined){if(!row||!validId(row.id)||!operationTypes.includes(row.data?.type)||!validId(row.data.creationNonce))return false;const expected=signature(row.data.type,row.data.creationNonce),actual=row.data.creationSignature;return typeof actual==='string'&&actual.length===expected.length&&timingSafeEqual(Buffer.from(actual),Buffer.from(expected));}
@@ -19,6 +20,17 @@ export async function validateOperation(type:OperationType,input:Record<string,u
   const local=text(input.startAt,'예약 시간',16,true);if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(local)||!validDate(local.slice(0,10))||Number(local.slice(11,13))>23||Number(local.slice(14,16))>59)throw new Error('예약 날짜와 시간을 확인해 주세요.');
   const duration=amount(input.duration,true);if(duration<10||duration>480)throw new Error('일정은 10~480분으로 입력해 주세요.');
   if(!appointmentKinds.includes(input.kind as never)||!appointmentStatuses.includes(input.status as never))throw new Error('일정 종류와 상태를 확인해 주세요.');
+  const keys=input.assessmentKeys===undefined?(old?.assessmentKeys||[]):input.assessmentKeys;
+  if(!Array.isArray(keys)||keys.length>200||keys.some(k=>typeof k!=='string')||new Set(keys).size!==keys.length)throw new Error('해석할 검사를 확인해 주세요.');
+  if(keys.length){
+   if(!['개인상담','해석상담'].includes(String(input.kind)))throw new Error('개인상담 또는 해석상담 일정에 검사를 연결해 주세요.');
+   const {entries}=await assessmentSources(String(input.clientId));
+   if(keys.some(k=>!entries.some(e=>e.key===k&&(!e.deletedAt||old?.assessmentKeys?.includes(k)))))throw new Error('해당 내담자의 유효한 검사만 연결할 수 있습니다.');
+   if(keys.some(k=>{const e=entries.find(e=>e.key===k);return e?.date&&local.slice(0,10)<e.date;}))throw new Error('해석 일정은 검사 실시일 이후로 잡아 주세요.');
+   if(input.status==='완료'&&new Date(local+':00+09:00').getTime()>Date.now())throw new Error('미래의 일정은 아직 완료 처리할 수 없습니다.');
+   if(['예약','완료'].includes(String(input.status))){const others=(await getOperations()).filter(r=>r.data.type==='aude-appointment'&&r.data.creationNonce!==(old?.creationNonce||input.requestId)&&r.data.clientId===input.clientId&&['예약','완료'].includes(r.data.status||''));if(keys.some(k=>others.some(r=>r.data.assessmentKeys?.includes(k))))throw new Error('이미 해석 일정에 연결된 검사가 있습니다. 기존 일정을 변경하거나 취소해 주세요.');}
+  }
+  fields.assessmentKeys=keys;
   const sessionNo=Number(input.sessionNo);if(!Number.isInteger(sessionNo)||sessionNo<1||sessionNo>999)throw new Error('회기 번호를 확인해 주세요.');
   if(old&&input.chargeId!==undefined&&String(input.chargeId||'')!==(old.chargeId||''))throw new Error('연결된 수납 항목은 변경할 수 없습니다. 새 일정을 등록해 주세요.');const chargeId=old?.chargeId||'';if(chargeId){const charge=await getOperation(chargeId);if(charge.data.type!=='aude-charge'||charge.data.clientId!==fields.clientId||(charge.data.archived&&old?.chargeId!==chargeId))throw new Error('같은 내담자의 유효한 결제 항목을 선택해 주세요.');}Object.assign(fields,{startAt:new Date(local+':00+09:00').toISOString(),duration,kind:input.kind,status:input.status,sessionNo,chargeId,amount:amount(input.amount,true)});
  }else{if(!validDate(input.date))throw new Error('날짜를 확인해 주세요.');fields.date=input.date;fields.amount=amount(input.amount);if(type==='aude-expense'){if(!expenseCategories.includes(input.category as never))throw new Error('지출 분류를 확인해 주세요.');fields.category=String(input.category);}else if(old&&(fields.amount||0)<chargeTotals(old).received)throw new Error('받을 금액을 이미 수납한 금액보다 낮출 수 없습니다. 환불은 입출금 기록으로 남겨 주세요.');}

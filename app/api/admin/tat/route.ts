@@ -8,7 +8,7 @@ export async function GET(request:Request){
  if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});
  try{const id=new URL(request.url).searchParams.get('id');if(id){const row=await getSession(id);return NextResponse.json({...row,active:alive(row.data)},{headers:privateHeaders});}
  const r=await supabaseAdminRequest('/rest/v1/counseling_requests?data->>type=eq.tat-session&select=id,created_at,data&order=created_at.desc&limit=100');
- return NextResponse.json((await r.json()).filter(isTrustedSession),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
+ return NextResponse.json((await r.json()).filter((row:import('../../../lib/tat').TatRow)=>isTrustedSession(row)&&!row.data.deletedAt),{headers:privateHeaders});}catch(e){return NextResponse.json({error:error(e)},{status:400});}
 }
 export async function POST(request:Request){
  if(!await admin())return NextResponse.json({error:'관리자 로그인이 필요합니다.'},{status:401});

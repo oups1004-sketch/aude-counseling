@@ -13,7 +13,7 @@ export function trustedRecord(row:RorschachRow|undefined):row is RorschachRow {
 export async function getRecord(id:string):Promise<RorschachRow> {
  if(!validId(id))throw new Error('기록 번호를 확인해 주세요.');
  const r=await supabaseAdminRequest(`/rest/v1/counseling_requests?id=eq.${id}&select=id,created_at,data&limit=1`);
- const row=(await r.json())[0];if(!trustedRecord(row))throw new Error('검사 기록을 찾지 못했습니다.');return row;
+ const row=(await r.json())[0];if(!trustedRecord(row)||row.data.deletedAt)throw new Error('검사 기록을 찾지 못했습니다.');return row;
 }
 export async function mutateRecord(id:string,change:(data:RorschachData)=>RorschachData) {
  for(let n=0;n<8;n++) {

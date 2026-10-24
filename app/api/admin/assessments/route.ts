@@ -1,3 +1,5 @@
+import { validDate } from '../../../lib/operations-model';
+import { stockMovements } from '../../../lib/assessment-hub';
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
@@ -9,7 +11,7 @@ const bucket = "aude-assessment-private";
 const states = assessmentStates;
 const clean = (v: unknown, max = 2000) => String(v ?? "").trim().slice(0, max);
 type Attachment = { path: string; name: string };
-type RecordItem = { id: string; testName: string; date: string; status: string; scores: string; note: string; deliveryText?: string; interpretationDate: string; reaction: string; resultFile?: Attachment; summaryFile?: Attachment; updatedAt: string };
+type RecordItem = { id: string; testName: string; date: string; status: string; scores: string; note: string; deliveryText?: string; interpretationDate: string; reaction: string; resultFile?: Attachment; summaryFile?: Attachment; updatedAt: string; stockItemId?: string; deletedAt?: string };
 async function authorized() {
   return verifyAdminSession((await cookies()).get("aude_admin_token")?.value);
 }
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
     const params = new URL(request.url).searchParams;
     const data = await client(params.get("clientId") || "");
     const records = (Array.isArray(data.assessments) ? data.assessments : []) as RecordItem[];
-    const record = records.find((r) => r.id === params.get("recordId"));
+    const record = records.find((r) => r.id === params.get("recordId") && !r.deletedAt);
     const file = params.get("kind") === "summary" ? record?.summaryFile : record?.resultFile;
     if (!file) return NextResponse.json({ error: "파일을 찾지 못했습니다." }, { status: 404 });
     const response = await supabaseAdminRequest(`/storage/v1/object/authenticated/${bucket}/${file.path}`);
@@ -65,13 +67,22 @@ export async function POST(request: Request) {
     const records = (Array.isArray(data.assessments) ? [...data.assessments] : []) as RecordItem[];
     const editId = clean(form.get("recordId"), 80);
     const old = records.find((r) => r.id === editId);
+    const requestId=clean(form.get("requestId"),80);
+    if(requestId&&!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(requestId))throw new Error("저장 요청을 확인해 주세요.");
+    if(!editId&&requestId&&records.some(r=>r.id===requestId))return NextResponse.json({records});
+    if (old?.deletedAt) throw new Error("먼저 검사 기록을 복원해 주세요.");
     if (editId && !old) throw new Error("수정할 검사 기록을 찾지 못했습니다.");
     if (!old && records.length >= 200) throw new Error("내담자별 검사 기록은 최대 200개까지 등록할 수 있습니다.");
     if (old && clean(form.get("updatedAt"), 80) !== old.updatedAt) throw new Error("기록이 변경되었습니다. 새로고침 후 다시 확인해 주세요.");
     const testName = clean(form.get("testName"), 100);
-    const status = assessmentStatus(clean(form.get("status"), 40));
+    const date=clean(form.get("date"),20), interpretationDate=clean(form.get("interpretationDate"),20);
+    if ((date&&!validDate(date))||(interpretationDate&&!validDate(interpretationDate))) throw new Error("날짜를 확인해 주세요.");
+    if(date&&interpretationDate&&interpretationDate<date) throw new Error("해석일은 실시일보다 빠를 수 없습니다.");
+    const stockItemId=old?.stockItemId||clean(form.get("stockItemId"),80);
+    if(stockItemId&&!(await stockMovements()).some(m=>m.itemId===stockItemId)) throw new Error("보유 검사지를 확인해 주세요.");
+    const status=interpretationDate||(old&&!old.interpretationDate&&assessmentStatus(old.status)==="해석 완료")?"해석 완료":"해석 대기";
     if (!testName || !states.includes(status)) throw new Error("검사명과 진행 상태를 확인해 주세요.");
-    const record: RecordItem = { ...old, id: old?.id || crypto.randomUUID(), testName, date: clean(form.get("date"), 20), status, deliveryText: form.has("deliveryText") ? clean(form.get("deliveryText"), 16000) : old?.deliveryText || "", scores: clean(form.get("scores"), 16000), note: clean(form.get("note"), 8000), interpretationDate: clean(form.get("interpretationDate"), 20), reaction: clean(form.get("reaction"), 4000), updatedAt: new Date().toISOString() };
+    const record: RecordItem = { ...old, id: old?.id || requestId || crypto.randomUUID(), testName, stockItemId, date: clean(form.get("date"), 20), status, deliveryText: form.has("deliveryText") ? clean(form.get("deliveryText"), 16000) : old?.deliveryText || "", scores: clean(form.get("scores"), 16000), note: clean(form.get("note"), 8000), interpretationDate: clean(form.get("interpretationDate"), 20), reaction: clean(form.get("reaction"), 4000), updatedAt: new Date().toISOString() };
     for (const key of ["resultFile", "summaryFile"] as const) {
       const file = form.get(key);
       if (!(file instanceof File) || !file.size) continue;

@@ -1,90 +1,44 @@
 "use client";
-
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { assessmentStatus } from "../lib/assessment-status";
-import { assessmentReport, ReportData } from "./AssessmentReport";
-import { sealData } from "./AssessmentSeal";
-
-export type AssessmentRecord = {
-  id: string; testName: string; date: string; status: string; scores: string; note: string;
-  deliveryText?: string; interpretationDate: string; reaction: string; updatedAt: string;
-  resultFile?: { name: string }; summaryFile?: { name: string };
-};
-
-const suggestions = ["MMPI-2", "TCI", "SCT", "HTP", "KFD", "TAT", "Rorschach", "MBTI", "기타 검사"];
-
-export default function AssessmentRecords({ clientId, clientName, initial, onRecordsChange, onDirty }: { clientId: string; clientName: string; initial: AssessmentRecord[]; onRecordsChange?: (records: AssessmentRecord[]) => void; onDirty?: (dirty: boolean) => void }) {
-  const [records, setRecords] = useState(initial);
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<AssessmentRecord | null | undefined>(undefined);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
-  const [dirty, setDirty] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [previewReady, setPreviewReady] = useState(false);
-  const previewRef = useRef<HTMLIFrameElement>(null);
-  const fileCount = records.reduce((count, record) => count + Number(!!record.resultFile) + Number(!!record.summaryFile), 0);
-
-  useEffect(() => { onDirty?.(dirty || busy); }, [dirty, busy, onDirty]);
-  useEffect(() => { if (!open) { setEditing(undefined); setDirty(false); } }, [open]);
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
-  function start(record: AssessmentRecord | null) {
-    if (busy || (dirty && !confirm("저장하지 않은 검사 파일 내용을 버릴까요?"))) return;
-    setEditing(record); setDirty(false); setMessage("");
-  }
-  function showReport(record: AssessmentRecord) {
-    const scores = [record.scores, record.note].filter(Boolean).join("\n\n");
-    if (!scores.trim()) { setMessage("해석 내용을 먼저 기록해 주세요."); return; }
-    const data: ReportData = { ...record, clientName, scores };
-    setPreviewReady(false); setPreview(assessmentReport(data, sealData));
-  }
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setMessage("");
-    const form = new FormData(event.currentTarget);
-    form.set("clientId", clientId);
-    if (editing) { form.set("recordId", editing.id); form.set("updatedAt", editing.updatedAt); }
-    try {
-      const response = await fetch("/api/admin/assessments", { method: "POST", body: form });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "저장하지 못했습니다.");
-      setRecords(result.records); onRecordsChange?.(result.records); setEditing(undefined); setDirty(false); setMessage("심리검사지 파일을 저장했습니다.");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "연결을 확인해 주세요."); }
-    finally { setBusy(false); }
-  }
-  const fileUrl = (record: AssessmentRecord, kind: "result" | "summary") => `/api/admin/assessments?clientId=${encodeURIComponent(clientId)}&recordId=${encodeURIComponent(record.id)}&kind=${kind}`;
-
-  return <section className="sessionSection assessmentDrawer">
-    <button type="button" className="assessmentDrawerTrigger" aria-expanded={open} onClick={() => setOpen(value => !value)}>
-      <span><small>PRIVATE FILE DRAWER</small><strong>심리검사지</strong><em>{fileCount ? `${fileCount}개 파일` : "파일 없음"}</em></span><b aria-hidden="true">{open ? "−" : "+"}</b>
-    </button>
-    {open && <div className="assessmentDrawerBody">
-      <p className="editHint">검사별로 PDF 한 장씩 보관합니다. 저장한 뒤에는 파일명을 눌러 다시 열 수 있어요.</p>
-      {message && <p className="assessmentMessage" role="status">{message}</p>}
-      <div className="assessmentSlots">
-        {records.map(record => <article className="assessmentSlot" key={record.id}>
-          <div className="assessmentSlotTitle"><div><b>{record.testName}</b><small>{record.date || "실시일 미정"} · {assessmentStatus(record.status)}</small></div><button type="button" onClick={() => start(record)}>파일 {record.resultFile || record.summaryFile ? "교체" : "첨부"}</button></div>
-          {record.resultFile || record.summaryFile ? <div className="assessmentStoredFiles">{record.resultFile && <a target="_blank" rel="noreferrer" href={fileUrl(record, "result")}>⌁ {record.resultFile.name}<span>열기 ↗</span></a>}{record.summaryFile && <a target="_blank" rel="noreferrer" href={fileUrl(record, "summary")}>⌁ {record.summaryFile.name}<span>열기 ↗</span></a>}</div> : <p className="assessmentSlotEmpty">아직 첨부된 파일이 없습니다.</p>}
-          {(record.scores || record.reaction) && <details className="assessmentRecordNotes"><summary>검사 기록 보기</summary>{record.scores && <p><strong>심리검사 해석</strong><br />{record.scores}</p>}{record.reaction && <p><strong>상담 내용</strong><br />{record.reaction}</p>}</details>}
-          <button type="button" className="assessmentReportButton" onClick={() => showReport(record)}>해석본 PDF 만들기</button>
-        </article>)}
-      </div>
-      {editing === null ? <form className="assessmentSlotForm" onSubmit={submit} onChange={() => setDirty(true)}>
-        <label>검사명<input name="testName" list="assessment-tests" required placeholder="예: MMPI-2" autoFocus /></label><datalist id="assessment-tests">{suggestions.map(name => <option key={name} value={name} />)}</datalist>
-        <label>실시일<input name="date" type="date" /></label><input type="hidden" name="status" value="해석 대기" /><input type="hidden" name="scores" value="" /><input type="hidden" name="note" value="" /><input type="hidden" name="interpretationDate" value="" /><input type="hidden" name="reaction" value="" />
-        <label className="assessmentDropzone"><span>심리검사지 PDF</span><input name="resultFile" type="file" accept="application/pdf,.pdf" required /><small>PDF · 최대 3MB</small></label>
-        <div className="assessmentSlotActions"><button type="button" disabled={busy} onClick={() => { setEditing(undefined); setDirty(false); }}>취소</button><button className="workspacePrimary" disabled={busy}>{busy ? "저장 중…" : "파일 저장"}</button></div>
-      </form> : editing ? <form className="assessmentSlotForm assessmentReplaceForm" onSubmit={submit} onChange={() => setDirty(true)}>
-        <input type="hidden" name="testName" value={editing.testName} /><input type="hidden" name="date" value={editing.date} /><input type="hidden" name="status" value={assessmentStatus(editing.status)} /><input type="hidden" name="scores" value={editing.scores || ""} /><input type="hidden" name="note" value={editing.note || ""} /><input type="hidden" name="interpretationDate" value={editing.interpretationDate || ""} /><input type="hidden" name="reaction" value={editing.reaction || ""} />
-        <label className="assessmentDropzone"><span>{editing.testName} 파일 {editing.resultFile ? "교체" : "첨부"}</span><input name="resultFile" type="file" accept="application/pdf,.pdf" required /><small>새 파일을 저장하면 기존 파일을 대체합니다.</small></label>
-        <div className="assessmentSlotActions"><button type="button" disabled={busy} onClick={() => { setEditing(undefined); setDirty(false); }}>취소</button><button className="workspacePrimary" disabled={busy}>{busy ? "저장 중…" : "파일 저장"}</button></div>
-      </form> : <button type="button" className="assessmentAddSlot" onClick={() => start(null)}>+ 심리검사지 슬롯 추가</button>}
-    </div>}
-    {preview && <div role="dialog" aria-modal="true" aria-label="해석본 PDF 미리보기" className="assessmentPreview"><section><div><strong>해석본 PDF 미리보기</strong><span>인쇄 창에서 ‘PDF로 저장’을 선택해 주세요.</span><button type="button" disabled={!previewReady} onClick={() => { previewRef.current?.contentWindow?.focus(); previewRef.current?.contentWindow?.print(); }}>PDF 저장</button><button type="button" autoFocus onClick={() => setPreview(null)}>닫기</button></div><iframe ref={previewRef} title="해석보고서 미리보기" srcDoc={preview} onLoad={() => setPreviewReady(true)} /></section></div>}
-  </section>;
+import Link from 'next/link';
+import { FormEvent,useCallback,useEffect,useRef,useState } from 'react';
+import { assessmentReport,ReportData } from './AssessmentReport';
+import { sealData } from './AssessmentSeal';
+import { seoulLocal,seoulDate } from '../lib/operations-model';
+import type { AssessmentEntry,StockItem } from '../lib/assessment-hub-model';
+import './assessment-hub.css';
+export type AssessmentRecord={id:string;testName:string;date:string;status:string;scores:string;note:string;deliveryText?:string;interpretationDate:string;reaction:string;updatedAt:string;stockItemId?:string;deletedAt?:string;resultFile?:{name:string};summaryFile?:{name:string}};
+const suggestions=['MMPI-2','MMPI-A','TCI 성인용','JTCI 청소년용','SCT','HTP','KFD','TAT','Rorschach','MBTI'];
+export default function AssessmentRecords({clientId,clientName,initial,onRecordsChange,onDirty}:{clientId:string;clientName:string;initial:AssessmentRecord[];onRecordsChange?:(records:AssessmentRecord[])=>void;onDirty?:(dirty:boolean)=>void}){
+ const [requestId,setRequestId]=useState(()=>crypto.randomUUID());
+ const [records,setRecords]=useState(initial),[entries,setEntries]=useState<AssessmentEntry[]>([]),[stock,setStock]=useState<StockItem[]>([]),[open,setOpen]=useState(false),[trash,setTrash]=useState(false),[editing,setEditing]=useState<AssessmentRecord|null|undefined>(),[projective,setProjective]=useState<AssessmentEntry|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[dirty,setDirty]=useState(false),[loaded,setLoaded]=useState(false);
+ const [preview,setPreview]=useState<string|null>(null),[previewReady,setPreviewReady]=useState(false);const previewRef=useRef<HTMLIFrameElement>(null);
+ const reload=useCallback(async()=>{const r=await fetch('/api/admin/assessment-hub?clientId='+clientId,{cache:'no-store'});const d=await r.json();if(!r.ok)throw new Error(d.error);setEntries(d.entries);setStock(d.stock);setLoaded(true);},[clientId]);
+ useEffect(()=>{reload().catch(e=>setMessage(e.message));},[reload]);
+ useEffect(()=>{const refresh=()=>{if(!dirty&&!busy)void reload().catch(e=>setMessage(e.message));};window.addEventListener('focus',refresh);return()=>window.removeEventListener('focus',refresh);},[dirty,busy,reload]);
+ useEffect(()=>{onDirty?.(dirty||busy);},[dirty,busy,onDirty]);
+ useEffect(()=>{if(!dirty)return;const warn=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[dirty]);
+ function start(r:AssessmentRecord|null){if(busy||(dirty&&!confirm('저장하지 않은 검사 내용을 버릴까요?')))return;setRequestId(crypto.randomUUID());setEditing(r);setProjective(null);setDirty(false);setMessage('');}
+ function cancel(){if(busy)return;setEditing(undefined);setProjective(null);setDirty(false);}
+ async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setMessage('');const form=new FormData(e.currentTarget);form.set('clientId',clientId);form.set('requestId',requestId);if(editing){form.set('recordId',editing.id);form.set('updatedAt',editing.updatedAt);}try{const r=await fetch('/api/admin/assessments',{method:'POST',body:form});const d=await r.json();if(!r.ok)throw new Error(d.error);setRecords(d.records);onRecordsChange?.(d.records);setEditing(undefined);setDirty(false);await reload();setMessage('검사 기록을 저장했습니다.');}catch(e){setMessage((e as Error).message);}finally{setBusy(false);}}
+ async function action(entry:AssessmentEntry,action:string,extra:object={}){setBusy(true);setMessage('');try{const r=await fetch('/api/admin/assessment-hub',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientId,key:entry.key,action,...extra})});const d=await r.json();if(!r.ok)throw new Error(d.error);if(entry.source==='slot'){const r=await fetch('/api/admin/clients',{cache:'no-store'});if(!r.ok)throw new Error('내담자 기록을 다시 불러와 주세요.');const clients=await r.json();const next=clients.find((c:{id:string})=>c.id===clientId)?.assessments||[];setRecords(next);onRecordsChange?.(next);}setProjective(null);setDirty(false);await reload();}catch(e){setMessage((e as Error).message);}finally{setBusy(false);}}
+ const fileUrl=(r:AssessmentRecord,kind:string)=>`/api/admin/assessments?clientId=${clientId}&recordId=${r.id}&kind=${kind}`;
+ function showReport(r:AssessmentRecord){const scores=[r.scores,r.note].filter(Boolean).join('\n\n');if(!scores.trim()){setMessage('해석 내용을 먼저 기록해 주세요.');return;}setPreviewReady(false);setPreview(assessmentReport({...r,clientName,scores} as ReportData,sealData));}
+ const visible=entries.filter(e=>!!e.deletedAt===trash);
+ return <section className="sessionSection assessmentDrawer" onClickCapture={e=>{if(dirty&&(e.target as HTMLElement).closest('a')&&!confirm('저장하지 않은 검사 내용을 버리고 이동할까요?')){e.preventDefault();e.stopPropagation();}}}><button type="button" className="assessmentDrawerTrigger" aria-expanded={open} onClick={()=>{if(dirty&&!confirm('저장하지 않은 검사 내용을 버릴까요?'))return;cancel();setOpen(v=>!v);}}><span><small>ASSESSMENTS</small><strong>심리검사</strong><em>{entries.filter(e=>!e.deletedAt).length}건 · 투사검사 포함</em></span><b>{open?'−':'＋'}</b></button>
+ {message&&<p className="assessmentMessage" role="status">{message}</p>}
+ {open&&<div className="assessmentDrawerBody"><div className="hubActions"><span>실시일과 해석일을 따로 기록합니다.</span><button type="button" disabled={busy||dirty} onClick={()=>{setTrash(v=>!v);cancel();}}>{trash?'검사 목록':'휴지통'}</button><Link href={'/admin/assessments?view=projective&client='+clientId}>투사검사 열기 ↗</Link></div>
+ {!loaded?<p>검사 기록을 불러오는 중…</p>:!visible.length?<p className="hubEmpty">{trash?'삭제한 검사가 없습니다.':'등록된 검사가 없습니다.'}</p>:<div className="assessmentSlots">{visible.map(entry=>{const r=records.find(r=>r.id===entry.id);return <article className="assessmentSlot" key={entry.key}><div className="assessmentSlotTitle"><div><b>{entry.testName}</b><small>{entry.status}</small></div>{trash?<button disabled={busy} onClick={()=>action(entry,'restore')}>복원</button>:<button type="button" disabled={busy||dirty} onClick={()=>{if(entry.source==='slot')start(r||null);else{setProjective(entry);setEditing(undefined);}}}>기록 수정</button>}</div>
+ <dl className="assessmentDates"><div><dt>실시일</dt><dd>{entry.date||'날짜 미입력'}</dd></div><div><dt>해석 예정</dt><dd>{entry.scheduledAt?seoulLocal(entry.scheduledAt).replace('T',' '):'—'}</dd></div><div><dt>실제 해석일</dt><dd>{entry.interpretationDate||(entry.legacyCompleted?'완료 · 날짜 미입력':'—')}</dd></div></dl>
+ {!trash&&<>{entry.source!=='slot'?<Link href={`/admin/assessments?view=projective&type=${entry.source}&record=${entry.id}&client=${clientId}`}>검사 기록 열기 ↗</Link>:r&&<><div className="assessmentStoredFiles">{r.resultFile&&<a target="_blank" rel="noreferrer" href={fileUrl(r,'result')}>{r.resultFile.name} ↗</a>}{r.summaryFile&&<a target="_blank" rel="noreferrer" href={fileUrl(r,'summary')}>{r.summaryFile.name} ↗</a>}</div>{(r.scores||r.note||r.reaction)&&<details className="assessmentRecordNotes"><summary>해석·상담 기록</summary><p>{r.scores}</p><p>{r.note}</p><p>{r.reaction}</p></details>}<button type="button" className="assessmentReportButton" onClick={()=>showReport(r)}>해석본 PDF 만들기</button></>}
+ <div className="hubActions">{entry.status!=='해석 완료'&&<Link href={entry.appointmentId?`/admin/calendar?client=${clientId}&appointment=${entry.appointmentId}`:`/admin/calendar?client=${clientId}&interpret=${encodeURIComponent(entry.key)}`}>{entry.scheduledAt?'해석 일정 보기':'해석 일정 잡기'}</Link>}<button type="button" disabled={busy||dirty} onClick={()=>{if(confirm(`${entry.testName} · ${entry.date||'날짜 미입력'} 검사를 휴지통으로 옮길까요? 사용한 검사지는 재고로 돌아가지 않습니다.`))void action(entry,'trash');}}>삭제</button></div></>}
+ </article>;})}</div>}
+ {!trash&&editing!==undefined&&<form key={editing?.id||'new'} className="assessmentSlotForm" onSubmit={submit} onChange={()=>setDirty(true)}><fieldset disabled={busy} className="hubFieldset"><label>검사명<input name="testName" list="assessment-tests" required defaultValue={editing?.testName||''} placeholder="예: MMPI-2"/></label><datalist id="assessment-tests">{suggestions.map(n=><option key={n}>{n}</option>)}</datalist><div className="hubFormGrid"><label>실시일<input name="date" type="date" defaultValue={editing?.date??seoulDate()}/></label><label>실제 해석일<input name="interpretationDate" type="date" defaultValue={editing?.interpretationDate||''}/></label></div><small>해석 일정을 완료 처리하면 실제 해석일이 자동 표시됩니다. 지난 기록은 직접 입력할 수 있습니다.</small>
+ <label>보유 검사지 사용<select name="stockItemId" defaultValue={editing?.stockItemId||''} disabled={!!editing?.stockItemId}><option value="">재고 사용 안 함 · 외부 결과/과거 자료</option>{stock.map(s=><option key={s.id} value={s.id}>{s.name} · {s.format} · 잔여 {s.remaining}개</option>)}</select></label>{editing?.stockItemId&&<small>사용 기록은 보존됩니다. 오입력은 재고 탭에서 수량을 정정해 주세요.</small>}
+ <label className="assessmentDropzone">검사지·결과 PDF<input name="resultFile" type="file" accept="application/pdf,.pdf"/><small>선택 · 최대 3MB · 파일 없이도 검사 기록을 저장할 수 있습니다.</small></label>
+ <label>해석 내용<textarea name="scores" rows={4} maxLength={16000} defaultValue={editing?.scores||''}/></label><label>메모<textarea name="note" rows={2} maxLength={8000} defaultValue={editing?.note||''}/></label><input type="hidden" name="reaction" value={editing?.reaction||''}/><input type="hidden" name="deliveryText" value={editing?.deliveryText||''}/></fieldset><div className="assessmentSlotActions"><button type="button" disabled={busy} onClick={cancel}>취소</button><button className="workspacePrimary" disabled={busy}>{busy?'저장 중…':'검사 저장'}</button></div></form>}
+ {projective&&<form className="assessmentSlotForm" onChange={()=>setDirty(true)} onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void action(projective,'metadata',{date:f.get('date'),interpretationDate:f.get('interpretationDate'),updatedAt:projective.updatedAt});}}><b>{projective.testName} 날짜 수정</b><label>실시일<input name="date" type="date" defaultValue={projective.date}/></label><label>실제 해석일<input name="interpretationDate" type="date" defaultValue={projective.manualInterpretationDate}/></label><div className="assessmentSlotActions"><button type="button" disabled={busy} onClick={cancel}>취소</button><button disabled={busy}>저장</button></div></form>}
+ {!trash&&editing===undefined&&!projective&&<button type="button" className="assessmentAddSlot" onClick={()=>start(null)}>＋ 심리검사 슬롯 추가</button>}
+ </div>}
+ {preview&&<div role="dialog" aria-modal="true" aria-label="해석본 PDF 미리보기" className="assessmentPreview"><section><div><strong>해석본 PDF 미리보기</strong><button type="button" disabled={!previewReady} onClick={()=>{previewRef.current?.contentWindow?.focus();previewRef.current?.contentWindow?.print();}}>PDF 저장</button><button type="button" onClick={()=>setPreview(null)}>닫기</button></div><iframe ref={previewRef} title="해석보고서 미리보기" srcDoc={preview} onLoad={()=>setPreviewReady(true)}/></section></div>}
+ </section>;
 }
