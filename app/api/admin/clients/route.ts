@@ -1,3 +1,4 @@
+import { studentVerification } from '../../../lib/student-verification';
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { supabaseAdminRequest, verifyAdminSession } from "../../../lib/supabase";
@@ -52,6 +53,7 @@ function clientItem(row: DbRow) {
     startedAt: text(data.startedAt, 20) || row.created_at.slice(0, 10),
     nextSessionAt: text(data.nextSessionAt, 40) || null,
     memo: text(data.clientMemo, 5000) || null,
+    studentVerification: studentVerification(data.studentVerification),
     assessments: Array.isArray(data.assessments) ? data.assessments : [],
     sessions,
     sessionCount: sessions.length,
