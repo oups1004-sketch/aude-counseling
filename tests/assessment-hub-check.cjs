@@ -1,9 +1,11 @@
 const {PGlite}=require('@electric-sql/pglite');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto'),ts=require('typescript');
-const db=new PGlite();let authorized=true;
+const db=new PGlite();let authorized=true;let failStorage=false;const removedFiles=[];
 const json=(v,o={})=>new Response(JSON.stringify(v),{status:o.status||200,headers:o.headers});
 async function rest(route,init={}){
  const u=new URL('https://test.invalid'+route);const q=u.searchParams;
+ if(u.pathname.startsWith('/storage/v1/object/')){if(failStorage)throw Error('storage unavailable');removedFiles.push(...JSON.parse(init.body).prefixes);return json({});}
+ if(u.pathname.endsWith('/rpc/delete_aude_assessment')){const i=JSON.parse(init.body);return json((await db.query('select public.delete_aude_assessment($1,$2,$3,$4) as saved',[i.target_client,i.target_key,i.expected_record,i.cleanup_files])).rows[0].saved);}
  if(u.pathname.endsWith('/rpc/save_aude_appointment')){const i=JSON.parse(init.body);return json((await db.query('select public.save_aude_appointment($1,$2,$3,$4,$5,$6) as saved',[i.appointment_id,i.appointment_data,i.appointment_version,i.charge_id,i.charge_data,i.charge_version])).rows[0].saved);}
  assert.equal(u.pathname,'/rest/v1/counseling_requests');
  const args=[],where=[];const param=v=>{args.push(v);return '$'+args.length;};
@@ -23,6 +25,7 @@ async function ok(response){const d=await response.json();assert.equal(response.
 (async()=>{
  await db.exec('create role anon;create role authenticated;create role service_role;create table counseling_requests(id uuid primary key,created_at timestamptz default now(),status text default \'신규\',data jsonb not null)');
  await db.exec(fs.readFileSync('supabase/migrations/20261022_atomic_appointment.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/20261026074425_permanent_assessment_deletion.sql','utf8'));
  const client=crypto.randomUUID(),other=crypto.randomUUID(),rorschach=crypto.randomUUID(),tat=crypto.randomUUID();
  for(const id of [client,other])await db.query('insert into counseling_requests(id,data) values ($1,$2)',[id,{type:'counseling',adminManagedClient:true,admissionStatus:'확정',name:'테스트',service:id===client?'개인상담':'심리검사·해석상담',assessments:[]}]);
  const signatures=load(path.resolve('app/lib/tat.ts'));
@@ -44,14 +47,38 @@ async function ok(response){const d=await response.json();assert.equal(response.
  await edit({status:'완료',startAt:'2026-10-12T14:00'});overview=await ok(await hub.GET(get(client)));for(const key of keys){const e=overview.entries.find(e=>e.key===key);assert.equal(e.status,'해석 완료');assert.equal(e.interpretationDate,'2026-10-12');}
  assert.equal((await ops.POST(req({...booking,requestId:crypto.randomUUID()}))).status,400);
  await edit({status:'취소'});overview=await ok(await hub.GET(get(client)));assert.equal(overview.entries.find(e=>e.key===keys[0]).status,'해석 대기');
- await ok(await hub.PATCH(req({action:'trash',clientId:client,key:keys[0]})));overview=await ok(await hub.GET(get()));assert.ok(overview.entries.find(e=>e.key===keys[0]).deletedAt);assert.equal(overview.stock[0].remaining,9);
- await ok(await hub.PATCH(req({action:'restore',clientId:client,key:keys[0]})));overview=await ok(await hub.GET(get()));assert.equal(overview.stock[0].remaining,9);
- await ok(await hub.PATCH(req({action:'metadata',clientId:client,key:'rorschach:'+rorschach,date:'2026-10-02',interpretationDate:'2026-10-14',updatedAt:'0'})));overview=await ok(await hub.GET(get(client)));assert.equal(overview.entries.find(e=>e.id===rorschach).interpretationDate,'2026-10-14');
- await ok(await hub.PATCH(req({action:'trash',clientId:client,key:'rorschach:'+rorschach})));assert.equal((await load(path.resolve('app/api/admin/rorschach/route.ts')).GET(new Request('https://test.invalid?id='+rorschach))).status,400);
- await ok(await hub.PATCH(req({action:'restore',clientId:client,key:'rorschach:'+rorschach})));await ok(await load(path.resolve('app/api/admin/rorschach/route.ts')).GET(new Request('https://test.invalid?id='+rorschach)));
- await ok(await hub.PATCH(req({action:'trash',clientId:client,key:'tat:'+tat})));await assert.rejects(()=>signatures.getSession(tat));await ok(await hub.PATCH(req({action:'restore',clientId:client,key:'tat:'+tat})));await signatures.getSession(tat);
- assert.equal((await hub.PATCH(req({action:'trash',clientId:other,key:'tat:'+tat}))).status,400);
+ // Delete one of two linked tests; keep appointment, other test, fee and consumed stock.
+ await edit({status:'예약'});
+ const stored=(await db.query('select data from counseling_requests where id=$1',[client])).rows[0].data;stored.assessments.find(r=>r.id===mmpi.id).resultFile={path:client+'/'+mmpi.id+'/result.pdf',name:'private.pdf'};await db.query('update counseling_requests set data=$1 where id=$2',[stored,client]);
+ await assert.rejects(()=>db.query('select public.delete_aude_assessment($1,$2,$3,$4)',[client,keys[0],{id:mmpi.id},[]]));
+ assert.ok((await db.query('select data from counseling_requests where id=$1',[client])).rows[0].data.assessments.some(r=>r.id===mmpi.id));
+ failStorage=true;
+ const oldVersion=appointment.data.version, oldCharge=appointment.data.chargeId;
+ assert.equal((await hub.PATCH(req({action:'delete',clientId:other,key:keys[0]}))).status,400);
+ await ok(await hub.PATCH(req({action:'delete',clientId:client,key:keys[0]})));
+ overview=await ok(await hub.GET(get()));assert.ok(!overview.entries.some(e=>e.key===keys[0]));assert.equal(overview.stock[0].remaining,9);
+ const deletedClient=(await db.query('select data from counseling_requests where id=$1',[client])).rows[0].data;
+ assert.ok(!deletedClient.assessments.some(r=>r.id===mmpi.id));assert.equal(deletedClient.assessmentUsage[stockId],1);
+ assert.equal(deletedClient.assessmentFileCleanup.length,1);assert.ok(!JSON.stringify(deletedClient).includes('private.pdf'));failStorage=false;await ok(await hub.GET(get(client)));assert.ok(removedFiles.includes(client+'/'+mmpi.id+'/result.pdf'));
+ assert.equal((await db.query('select data from counseling_requests where id=$1',[client])).rows[0].data.assessmentFileCleanup.length,0);
+ const forgedQueue=(await db.query('select data from counseling_requests where id=$1',[client])).rows[0].data;forgedQueue.assessmentFileCleanup=[{bucket:'aude-assessment-private',path:'other-client/private.pdf',signature:'forged'}];await db.query('update counseling_requests set data=$1 where id=$2',[forgedQueue,client]);await ok(await hub.GET(get(client)));assert.ok(!removedFiles.includes('other-client/private.pdf'));
+ const kept=(await db.query('select data from counseling_requests where id=$1',[appointment.id])).rows[0].data;
+ assert.deepEqual(kept.assessmentKeys,[keys[1]]);assert.equal(kept.amount,100000);assert.equal(kept.chargeId,oldCharge);assert.equal(kept.version,oldVersion+1);
+ assert.equal((await ops.PATCH(req({...booking,id:appointment.id,version:oldVersion,action:'edit'}))).status,400);
+ await ok(await hub.PATCH(req({action:'delete',clientId:client,key:keys[0]})));overview=await ok(await hub.GET(get()));assert.equal(overview.stock[0].remaining,9);
+ assert.equal((await ops.POST(req({...booking,requestId:crypto.randomUUID()}))).status,400);
+ // Database protection also rejects a booking which passed app validation before deletion.
+ const unsafeId=crypto.randomUUID(),unsafeCharge=crypto.randomUUID();
+ await assert.rejects(()=>db.query('select public.save_aude_appointment($1,$2,null,$3,$4,null)',[unsafeId,{...kept,version:0,chargeId:unsafeCharge,assessmentKeys:[keys[0]]},unsafeCharge,{type:'aude-charge',version:0,clientId:client,amount:100000,creationSignature:'test'}]));
+ await ok(await hub.PATCH(req({action:'metadata',clientId:client,key:'rorschach:'+rorschach,date:'2026-10-02',interpretationDate:'2026-10-14',updatedAt:'0'})));
+ await ok(await hub.PATCH(req({action:'delete',clientId:client,key:'rorschach:'+rorschach})));
+ assert.equal((await db.query('select id from counseling_requests where id=$1',[rorschach])).rows.length,0);
+ assert.equal((await load(path.resolve('app/api/admin/rorschach/route.ts')).GET(new Request('https://test.invalid?id='+rorschach))).status,400);
+ await ok(await hub.PATCH(req({action:'delete',clientId:client,key:'tat:'+tat})));await assert.rejects(()=>signatures.getSession(tat));
+ assert.equal((await db.query('select id from counseling_requests where id=$1',[tat])).rows.length,0);
+ const perms=(await db.query("select has_function_privilege('anon','public.delete_aude_assessment(uuid,text,jsonb,jsonb)','EXECUTE') as anon, has_function_privilege('authenticated','public.delete_aude_assessment(uuid,text,jsonb,jsonb)','EXECUTE') as auth,has_function_privilege('service_role','public.delete_aude_assessment(uuid,text,jsonb,jsonb)','EXECUTE') as service")).rows[0];
+ assert.deepEqual(perms,{anon:false,auth:false,service:true});
  const forgedId=crypto.randomUUID();await db.query('insert into counseling_requests(id,data) values ($1,$2)',[forgedId,{type:'aude-test-stock',creationNonce:forgedId,creationSignature:'0'.repeat(64),movement:{...purchase,quantity:999}}]);overview=await ok(await hub.GET(get()));assert.equal(overview.stock[0].remaining,9);
- console.log('PASS: authenticated assessment hub, signed inventory and retry, slot-driven consumption, grouped booking/move/no-show/cancel/completion, cross-client rejection, soft delete/restore without stock refund, projective dates and access revocation');
+ console.log('PASS: authenticated assessment hub, signed inventory and retry, slot-driven consumption, grouped booking/move/no-show/cancel/completion, cross-client rejection, permanent deletion without stock refund, atomic unlink and stale booking rejection, projective dates and access revocation');
  await db.close();
 })().catch(e=>{console.error(e);process.exit(1)});

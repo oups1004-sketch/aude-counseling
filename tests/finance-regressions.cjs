@@ -77,6 +77,7 @@ function load(file) {
   await db.exec(`create role anon; create role authenticated; create role service_role;
     create table counseling_requests(id uuid primary key, created_at timestamptz default now(), status text default '신규', data jsonb not null);`);
   await db.exec(fs.readFileSync('supabase/migrations/20261022_atomic_appointment.sql', 'utf8'));
+  await db.exec(fs.readFileSync('supabase/migrations/20261026074425_permanent_assessment_deletion.sql', 'utf8'));
   const privileges = await db.query(`select
     has_function_privilege('anon','public.save_aude_appointment(uuid,jsonb,integer,uuid,jsonb,integer)','execute') as anon,
     has_function_privilege('authenticated','public.save_aude_appointment(uuid,jsonb,integer,uuid,jsonb,integer)','execute') as authenticated,
@@ -167,6 +168,32 @@ function load(file) {
   assert.equal((await patch(rebook, edit(rebook, { title: '오래된 창' }))).status, 400);
   assert.deepEqual(await snapshot(), before);
 
+  const finance={appointments:[],charges:[{id:'mixed',data:{type:'aude-charge',amount:200000,payments:[
+    {date:'2026-10-01',direction:'receipt',amount:80000,method:'카드결제'},
+    {date:'2026-10-02',direction:'receipt',amount:50000,method:'상담자 이성민 계좌'},
+    {date:'2026-10-03',direction:'receipt',amount:70000,method:'아우데 사업자 계좌'},
+    {date:'2026-10-04',direction:'refund',amount:10000,method:'카드결제'},
+    {date:'2026-10-05',direction:'receipt',amount:99999,method:'아우데 사업자 계좌',voided:true},
+    {date:'2026-11-01',direction:'refund',amount:30000,method:'상담자 이성민 계좌'}
+  ]}}],expenses:[{data:{date:'2026-10-01',amount:20000,account:'aude'}},{data:{date:'2026-10-01',amount:5000,account:'counselor'}},{data:{date:'2026-10-01',amount:3000}},{data:{date:'2026-10-01',amount:1000,account:'aude',archived:true}}]};
+  assert.equal(model.monthTotals(finance,'2026-10','aude').received,150000);
+  assert.equal(model.monthTotals(finance,'2026-10','aude').refunded,10000);
+  assert.equal(model.monthTotals(finance,'2026-10','aude').balance,120000);
+  assert.equal(model.monthTotals(finance,'2026-10','counselor').balance,45000);
+  assert.equal(model.monthTotals(finance,'2026-11','counselor').net,-30000);
+  assert.equal(model.monthTotals(finance,'2026-10','unknown').spent,3000);
+  assert.equal(model.monthTotals(finance,'2026-10').balance,162000);
+  const scoped=unzipSync(exporter.operationsWorkbook(finance,'2026-10','aude'));
+  const scopedPayments=strFromU8(scoped['xl/worksheets/sheet4.xml']);
+  assert.ok(scopedPayments.includes('카드결제'));assert.ok(scopedPayments.includes('아우데 계좌'));assert.ok(!scopedPayments.includes('상담자 이성민 계좌'));
+  assert.ok(strFromU8(scoped['xl/worksheets/sheet5.xml']).includes('출금 계좌'));
+  const businessExpense={type:'aude-expense',requestId:crypto.randomUUID(),title:'검사 자료',date:'2026-10-26',amount:10000,category:'검사·상담 자료비',account:'aude',memo:''};
+  const exp=await success(await api.POST(request(businessExpense)));assert.equal(exp.data.account,'aude');
+  const expChanged=await success(await patch(exp,{...businessExpense,action:'edit',account:'counselor'}));assert.equal(expChanged.data.account,'counselor');
+  assert.equal((await api.POST(request({...businessExpense,requestId:crypto.randomUUID(),account:'forged'}))).status,400);
+  const addPayment=load('app/lib/operations.ts').addPayment;
+  const card=addPayment({type:'aude-charge',amount:100000,payments:[]},{paymentId:crypto.randomUUID(),date:'2026-10-26',direction:'receipt',amount:80000,method:'카드결제',account:'counselor',evidence:'확인 필요',memo:''});assert.equal(card.payments[0].account,'aude');
+  before=await snapshot();
   failRPC = true;
   assert.equal((await api.POST(request({ ...input, requestId: crypto.randomUUID() }))).status, 400);
   assert.deepEqual(await snapshot(), before); // no sequential fallback

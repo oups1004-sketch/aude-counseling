@@ -11,10 +11,11 @@ export function linkInterpretation(entry:AssessmentEntry,appointments:OperationR
  const done=!!interpretationDate||!!entry.legacyCompleted;
  return {...entry,interpretationDate,scheduledAt:done?'':reserved?.data.startAt||'',appointmentId:completed?.id||reserved?.id||'',status:done?'해석 완료':reserved?'해석 예약':'해석 대기'};
 }
-export function stockSummary(movements:StockMovement[],entries:AssessmentEntry[]):StockItem[]{
+export function stockSummary(movements:StockMovement[],entries:AssessmentEntry[],usage:Record<string,number>={}):StockItem[]{
  const items=new Map<string,StockItem>();
  for(const m of movements){const item=items.get(m.itemId)||{id:m.itemId,name:m.name,format:m.format,purchased:0,adjustment:0,used:0,remaining:0,movements:[]};if(m.kind==='purchase')item.purchased+=m.quantity;else item.adjustment+=m.quantity;item.movements.push(m);items.set(m.itemId,item);}
  // Deleted records retain consumption: deleting a record does not un-use a test code.
  for(const entry of entries)if(entry.stockItemId){const item=items.get(entry.stockItemId);if(item)item.used++;}
+ for(const [id,n] of Object.entries(usage)){const item=items.get(id);if(item)item.used+=n;}
  return Array.from(items.values()).map(i=>({...i,remaining:i.purchased+i.adjustment-i.used})).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
 }

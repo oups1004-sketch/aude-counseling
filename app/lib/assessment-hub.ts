@@ -27,7 +27,8 @@ export async function assessmentSources(clientId?:string){
    entries.push({...base,key,id:r.id,source,testName:source==='tat'?'TAT':'로르샤흐',date:meta.examDate??(source==='tat'?seoulDate(r.created_at):''),manualInterpretationDate:meta.interpretationDate||'',deletedAt:r.data.deletedAt,updatedAt:String(meta.recordsVersion??meta.version??0)});
   }
  }
- return {clients,projectives,entries};
+ const usage:Record<string,number>={};for(const c of clients)for(const [id,n] of Object.entries(c.data.assessmentUsage||{}))usage[id]=(usage[id]||0)+Number(n);
+ return {clients,projectives,entries,usage};
 }
 function stockPayload(m:StockMovement){return JSON.stringify([m.id,m.itemId,m.name,m.format,m.date,m.quantity,m.kind,m.note]);}
 function trustedStock(r:Row){const d=r.data;if(d.type!=='aude-test-stock'||!validId(r.id)||!validId(d.creationNonce))return false;const expected=sign('aude-test-stock:'+d.creationNonce+':'+stockPayload(d.movement));return typeof d.creationSignature==='string'&&d.creationSignature.length===expected.length&&timingSafeEqual(Buffer.from(d.creationSignature),Buffer.from(expected));}
