@@ -95,7 +95,6 @@ export async function POST(request: Request) {
         contentConsent: true,
         contentConsentAt: new Date().toISOString(),
         contentConsentVersion: "2026-10-27-oesamchun",
-        adaptationRequested: input.adaptationRequested === true,
         privacyVersion: "2026-10",
       });
     } else {

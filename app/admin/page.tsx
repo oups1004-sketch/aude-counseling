@@ -22,7 +22,6 @@ type Submission = {
   preferred_time: string | null;
   message: string | null;
   content_consent: boolean;
-  adaptation_requested?: boolean;
   admin_note: string | null;
   client_status?: string | null;
   important?: boolean;
@@ -301,7 +300,7 @@ export default function AdminPage() {
 
   function exportCsv() {
     const rows = [
-      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "성별", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모", "중요 사연", "각색 요청"],
+      ["접수번호", "접수일시", "종류", "상태", "이름·닉네임", "연령대", "성별", "연락처", "서비스", "희망시간", "내용", "콘텐츠동의", "관리자메모", "중요 사연"],
       ...filtered.map((item) => [
         item.reference_code,
         item.created_at,
@@ -317,7 +316,6 @@ export default function AdminPage() {
         item.content_consent ? "동의" : "미동의",
         item.admin_note || "",
         item.kind === "story" && item.important ? "중요" : "",
-        item.kind === "story" && item.adaptation_requested ? "각색 요청" : "",
       ]),
     ];
     const csv = "\uFEFF" + rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
@@ -419,7 +417,7 @@ export default function AdminPage() {
                 <button className="submissionOpen" type="button" onClick={() => openDetail(item)} aria-expanded={selected?.id === item.id}>
                   <span className={`submissionKind ${item.kind}`}>{kindLabel[item.kind]}</span>
                   <span className="submissionMain">
-                    <strong>{displayName(item)}{item.adaptation_requested && <span className="adaptationBadge">각색 요청</span>}</strong>
+                    <strong>{displayName(item)}</strong>
                     <small>{storyMeta ? `${storyMeta} · ${item.message || "사연 내용 없음"}` : item.message || "신청 내용 없음"}</small>
                   </span>
                   <span className="submissionDate">{new Date(item.created_at).toLocaleDateString("ko-KR")}<small>{item.reference_code}</small></span>
@@ -493,7 +491,6 @@ function SubmissionModal({ item, busy, onClose, onSave, onDelete, onDirty, onNot
           <Detail label="상담 유형" value={item.service} />
           <Detail label="희망 시간" value={item.preferred_time} />
           <Detail label={item.kind === "story" ? "사연" : "신청 이유"} value={item.message} wide />
-          {item.kind === "story" && <Detail label="각색 요청" value={item.adaptation_requested ? "요청함 · 인물 관계나 상황 등 일부 내용을 바꾸어 소개" : "요청 없음 · 개인정보는 삭제하거나 변경"} />}
           {item.kind === "story" && <Detail label="콘텐츠 활용" value={item.content_consent ? "동의" : "동의하지 않음"} />}
         </div>
         <label className="adminField">상태<select disabled={busy || (item.kind !== "story" && !!item.client_status)} value={status} onChange={(event) => setStatus(event.target.value)}>
