@@ -61,17 +61,7 @@
 /* Do not expose a placeholder email address if production contact is not configured. */
 footer a[href="mailto:hello@example.com"] { display: none; }
 
-/* Remove the development-only sentence from the visible privacy notice. */
-.privacyFootnote {
-  font-size: 0;
-}
-.privacyFootnote::before {
-  content: "사연 보내기는 ‘옆동네 외삼춘’ 유튜브·인스타그램 등 콘텐츠에서 소개될 수 있다는 점에 동의한 경우에만 접수됩니다. 소개 시에는 이름, 지역, 직장 등 개인을 알아볼 수 있는 정보는 삭제하거나 변경하고 필요한 범위에서 내용을 수정·각색합니다.";
-  display: block;
-  color: #686960;
-  font-size: 12px;
-  line-height: 1.8;
-}
+.privacyFootnote { font-size: 12px; line-height: 1.8; }
 
 @media (min-width:901px) {
   .hero {

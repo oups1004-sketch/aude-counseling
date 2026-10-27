@@ -1,0 +1,8 @@
+.storyConfirmation{position:fixed;inset:0;width:min(520px,calc(100% - 32px));max-height:calc(100dvh - 48px);margin:auto;padding:40px;border:1px solid #deded2;border-radius:20px;background:#faf9f3;color:#343a32;box-shadow:0 24px 80px #17271d26;overflow:auto}
+.storyConfirmation::backdrop{background:#18251d80;backdrop-filter:blur(4px)}
+.storyConfirmation h2{font-size:30px;line-height:1.35;margin:12px 0 20px;letter-spacing:-.04em}
+.storyConfirmation p{line-height:1.8;font-size:14px}.storyConfirmation .check{margin-top:24px;align-items:flex-start;line-height:1.7;font-size:14px}
+.storyConfirmationClose{position:absolute;right:18px;top:12px;background:transparent;border:0;font-size:28px;cursor:pointer;color:inherit}
+.adaptationNotice{padding:14px 16px;border-radius:10px;background:#edf0e6;color:#425a42}.storyAdaptation{padding:16px 18px;border:1px solid #dce1d4;border-radius:12px;background:#f0f2e9;margin-top:16px}.storyAdaptation .check{margin:0;align-items:flex-start}.storyAdaptation small{display:block;line-height:1.7;margin-top:4px;color:#677260}
+.storyConfirmationActions{display:flex;gap:12px;margin-top:28px;align-items:center}.storyConfirmationActions>button{flex:1;min-height:48px;border-radius:9px;cursor:pointer}.storyConfirmationActions>button:first-child{border:1px solid #d2d8ca;background:transparent;color:inherit}.storyConfirmationActions .submitButton{margin:0;padding:12px;font-size:14px}.storyConfirmation button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:540px){.storyConfirmation{padding:32px 24px}.storyConfirmationActions{flex-direction:column}.storyConfirmationActions>button{width:100%;flex:auto}}
