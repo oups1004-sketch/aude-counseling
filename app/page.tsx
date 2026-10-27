@@ -325,7 +325,19 @@ export default function Home() {
       <section className="storyLetter section" id="story" aria-labelledby="story-title">
         <div className="letterHeading">
           <div><p className="sectionNumber">04 / SEND YOUR STORY</p><h2 id="story-title">마음에 걸린 이야기를<br />보내주세요.</h2></div>
-          <p className="letterInvitation">잘 정리된 글이 아니어도 괜찮습니다.<br />요즘 자꾸 떠오르는 장면이나 하지 못했던 말을<br className="letterDesktopBreak" /> 편한 마음으로 남겨주세요.</p>
+          <div className="letterWelcome">
+            <svg className="letterSketch" viewBox="0 0 132 94" fill="none" aria-hidden="true" focusable="false">
+              <ellipse cx="66" cy="83" rx="48" ry="4" fill="currentColor" opacity=".07" />
+              <g stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 36 63 10 113 34 111 77 20 79Z" fill="#f4ede1" strokeWidth="1.3" />
+                <path d="m32 43-2-24 65-3 3 29" fill="#fffdf7" strokeWidth="1.3" />
+                <path d="m42 28 40-2m-39 10 31-1" opacity=".42" />
+                <path d="m18 37 47 28 47-30M21 77l31-25m58 24L80 53" strokeWidth="1.4" />
+                <path d="m23 80 85-2M16 39l2 36" opacity=".25" />
+              </g>
+            </svg>
+            <p className="letterInvitation">잘 정리된 글이 아니어도 괜찮습니다.<br />요즘 자꾸 떠오르는 장면이나 하지 못했던 말을<br className="letterDesktopBreak" /> 편한 마음으로 남겨주세요.</p>
+          </div>
         </div>
         {storyStatus === "sent" ? <div className="letterSuccess" role="status"><span>이야기가 전해졌어요.</span><h3>보내주신 마음,<br />천천히 읽어볼게요.</h3><p>쉽지 않은 이야기를 나눠주셔서 감사합니다.<br />보내주신 사연은 개인정보를 제외한 뒤 ‘외삼춘 상담소’에서 소개될 수 있습니다.</p></div> : (
           <form className="letterForm" onSubmit={submitStory}>

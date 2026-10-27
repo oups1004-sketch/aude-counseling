@@ -7,3 +7,20 @@
 @media(max-width:900px){.storyLetter.section{padding:80px 6vw 60px}.letterHeading{gap:30px}.letterDetails{grid-template-columns:1fr;gap:26px}.letterHeading h2{font-size:36px}.letterDesktopBreak{display:none}}
 @media(max-width:600px){.storyLetter.section{padding:65px 6vw 50px}.letterHeading{display:block;margin-bottom:28px}.letterHeading .sectionNumber{font-size:10px;margin-bottom:20px}.letterHeading h2{font-size:33px}.letterInvitation{margin-top:20px;font-size:13px}.letterWritingHeading{padding:20px 20px 0;gap:12px}.letterWritingHeading span{font-size:10px}.letterWritingHeading label{font-size:14px}.letterWriting textarea{padding:20px;min-height:300px;font-size:16px}.letterPublication{padding:14px 20px;font-size:11px}.letterDetails{padding:26px 0}.letterMeta{grid-template-columns:1fr 1fr;gap:20px}.letterMeta label:first-child{grid-column:1/-1}.letterDetails input,.letterDetails select{font-size:16px}.letterSubmitRow{flex-direction:column;align-items:stretch;gap:22px;padding-top:22px}.letterSend{width:100%}.letterFootnote{margin-top:22px}.letterSuccess{padding:32px 24px}}
 @media(prefers-reduced-motion:reduce){.letterWriting,.letterSend,.letterDetails input,.letterDetails select{transition:none}.letterSend:hover{transform:none}}
+
+/* A single paper card gives the writing space a gentle sense of depth. */
+.letterWelcome{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.letterSketch{width:106px;height:76px;color:#9b795a;transform:rotate(-6deg);margin-left:-6px}
+.letterForm{background:#fffcf6;border:1px solid #e1d8ca;border-radius:12px;padding:32px;box-shadow:0 2px 4px #58442b04,0 14px 32px -16px #58442b26,0 36px 65px -38px #58442b30,inset 0 1px 0 #fff}
+.letterWriting{background:#fffefb;border-color:#e6ded1;border-radius:7px;box-shadow:inset 0 1px 3px #58442b04}
+.letterWriting:focus-within{border-color:#ab805e;box-shadow:0 0 0 3px #a2673f0a}
+.letterPublication{background:#f7f3eb}
+.letterDetails{padding:30px 0;gap:36px}
+.letterSubmitRow{margin:0 -32px -32px;padding:25px 32px 28px;background:#f7f2e9;border-color:#e8dfd1;border-radius:0 0 12px 12px}
+.letterSend{background:linear-gradient(180deg,#a86e47,#98603c);border-color:#98603c;box-shadow:0 3px 6px #6c42241c,inset 0 1px 0 #ffffff26;transition:background .2s,transform .2s,box-shadow .2s}
+.letterSend:hover{background:linear-gradient(180deg,#9d623d,#88502f);box-shadow:0 5px 10px #6c422426,inset 0 1px 0 #ffffff20}
+.letterSend:active{transform:translateY(1px);box-shadow:inset 0 2px 4px #492a2426}
+.letterFootnote{text-align:center}
+@media(max-width:900px){.letterWelcome{gap:8px}.letterSketch{width:88px;height:63px}}
+@media(max-width:600px){.letterWelcome{position:relative;margin-top:20px;padding-right:66px}.letterInvitation{margin-top:0}.letterSketch{position:absolute;right:-3px;top:5px;width:64px;height:46px;margin:0}.letterForm{padding:16px;border-radius:10px;box-shadow:0 10px 26px -15px #58442b35}.letterWritingHeading{padding:18px 16px 0}.letterWriting textarea{padding:20px 16px}.letterPublication{padding:14px 16px}.letterDetails{padding:26px 4px;gap:24px}.letterSubmitRow{margin:0 -16px -16px;padding:22px 20px 24px;border-radius:0 0 10px 10px}.letterFootnote{text-align:left}}
+@media(prefers-reduced-motion:reduce){.letterSend{transition:none}.letterSend:hover,.letterSend:active{transform:none}}
