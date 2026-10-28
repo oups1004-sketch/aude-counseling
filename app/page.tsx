@@ -61,6 +61,10 @@ const singleAssessmentTests = [
 
 export default function Home() {
   const storyForm = useRef<HTMLFormElement | null>(null);
+  const storySuccess = useRef<HTMLHeadingElement | null>(null);
+  const storySending = useRef(false);
+  const storyRequestId = useRef<string | null>(null);
+  const [storyLength, setStoryLength] = useState(0);
   const [pendingStory, setPendingStory] = useState<Record<string, string | boolean> | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [storyError, setStoryError] = useState("");
@@ -76,6 +80,12 @@ export default function Home() {
   const [counselingOpen, setCounselingOpen] = useState(true);
   const [assessmentOpen, setAssessmentOpen] = useState(true);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (storyStatus !== "sent") return;
+    storySuccess.current?.focus({ preventScroll: true });
+    storySuccess.current?.scrollIntoView({ block: "center", behavior: "instant" });
+  }, [storyStatus]);
 
   useEffect(() => {
     void fetch("/api/visits", { method: "POST" }).catch(() => undefined);
@@ -127,42 +137,68 @@ export default function Home() {
   }
 
   async function sendSubmission(payload: Record<string, string | boolean>) {
-    const response = await fetch("/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      throw new Error(response.status < 500 && result.error ? result.error : "잠시 접수하지 못했습니다. 입력한 내용은 그대로 남아 있습니다. 잠시 후 다시 시도해 주세요.");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(response.status < 500 && result.error ? result.error : "접수 결과를 확인하지 못했습니다. 입력한 내용은 그대로 남아 있습니다. 잠시 후 같은 내용으로 다시 시도해 주세요.");
+      }
+      const result = await response.json().catch(() => null);
+      if (result?.ok !== true) throw new Error("접수 결과를 확인하지 못했습니다. 입력한 내용은 그대로 남아 있습니다. 같은 내용으로 다시 시도해 주세요.");
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error(payload.type === "story"
+        ? "접수 확인이 지연되고 있습니다. 이미 접수되었을 수도 있으니 같은 내용으로 다시 시도해 주세요. 같은 사연은 중복 저장하지 않습니다."
+        : "접수 확인이 지연되고 있습니다. 잠시 후 다시 확인해 주세요.");
+      throw error;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
   async function submitStory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
+    if (storySending.current || pendingStory) return;
     const data = new FormData(form);
     const nickname = String(data.get("nickname") || "익명");
     const ageGroup = String(data.get("ageGroup") || "");
     const gender = String(data.get("gender") || "");
     const story = String(data.get("story") || "");
     setStoryError("");
+    if (!story.trim()) {
+      setStoryError("사연 내용을 입력해 주세요. 공백만으로는 보낼 수 없습니다.");
+      setStoryStatus("error");
+      form.querySelector<HTMLTextAreaElement>("[name=story]")?.focus();
+      return;
+    }
     const email = String(data.get("email") || "").trim();
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setStoryError("이메일 주소를 확인해 주세요. 예: name@example.com. 답장을 원하지 않으면 비워두셔도 됩니다.");
       setStoryStatus("error");
+      form.querySelector<HTMLInputElement>("[name=email]")?.focus();
       return;
     }
     storyForm.current = form;
     setStoryStatus("idle");
+    storyRequestId.current ??= crypto.randomUUID();
     setPendingStory({
       type: "story", email, nickname, ageGroup, gender, story,
+      requestId: storyRequestId.current,
+      privacyConsent: data.get("privacyConsent") === "on",
       website: String(data.get("website") || ""),
     });
   }
 
   async function confirmStory() {
-    if (!pendingStory || storyStatus === "sending") return;
+    if (!pendingStory || storySending.current) return;
+    storySending.current = true;
     setStoryStatus("sending");
     setStoryError("");
     try {
@@ -173,6 +209,8 @@ export default function Home() {
     } catch (error) {
       setStoryError(error instanceof Error && error.message !== "Failed to fetch" ? error.message : "인터넷 연결을 확인해 주세요. 입력한 내용은 그대로 남아 있습니다.");
       setStoryStatus("error");
+    } finally {
+      storySending.current = false;
     }
   }
 
@@ -339,12 +377,13 @@ export default function Home() {
             <p className="letterInvitation">잘 정리된 글이 아니어도 괜찮습니다.<br />요즘 자꾸 떠오르는 장면이나 하지 못했던 말을<br className="letterDesktopBreak" /> 편한 마음으로 남겨주세요.</p>
           </div>
         </div>
-        {storyStatus === "sent" ? <div className="letterSuccess" role="status"><span>이야기가 전해졌어요.</span><h3>보내주신 마음,<br />천천히 읽어볼게요.</h3><p>쉽지 않은 이야기를 나눠주셔서 감사합니다.<br />보내주신 사연은 개인정보를 제외한 뒤 ‘외삼춘 상담소’에서 소개될 수 있습니다.</p></div> : (
+        {storyStatus !== "sent" && <p id="story-publication-note" className="letterBeforeWriting">사연은 개인정보를 제외한 뒤 ‘외삼춘 상담소’의 영상·콘텐츠에서 소개될 수 있습니다. 소개에 동의하시는 경우에만 접수할 수 있습니다.</p>}
+        {storyStatus === "sent" ? <div className="letterSuccess" role="status"><span>이야기가 전해졌어요.</span><h3 ref={storySuccess} tabIndex={-1}>보내주신 마음,<br />천천히 읽어볼게요.</h3><p>쉽지 않은 이야기를 나눠주셔서 감사합니다.<br />보내주신 사연은 개인정보를 제외한 뒤 ‘외삼춘 상담소’에서 소개될 수 있습니다.</p></div> : (
           <form className="letterForm" onSubmit={submitStory}>
             <div className="letterWriting">
               <div className="letterWritingHeading"><label htmlFor="story-message">당신의 이야기</label><span>외삼춘 상담소에 보내는 사연</span></div>
-              <textarea id="story-message" name="story" required maxLength={5000} rows={9} placeholder="어디서부터 이야기해 볼까요?" aria-describedby="story-publication-note" />
-              <p id="story-publication-note" className="letterPublication">사연은 ‘외삼춘 상담소’의 영상·콘텐츠에서 소개될 수 있습니다. 보내기 전 마지막 단계에서 동의를 확인합니다.</p>
+              <textarea id="story-message" name="story" required maxLength={5000} rows={9} placeholder="어디서부터 이야기해 볼까요?" aria-describedby="story-publication-note story-length story-form-error" onChange={event => setStoryLength(event.target.value.length)} />
+              <p id="story-length" className="letterPublication">{storyLength.toLocaleString()} / 5,000자{storyLength >= 5000 ? " · 최대 글자 수에 도달했습니다." : " · 보내기 전 내용을 다시 확인할 수 있습니다."}</p>
             </div>
             <div className="letterDetails">
               <div className="letterMeta">
@@ -355,11 +394,11 @@ export default function Home() {
               <label className="letterEmail">답장받을 이메일 <span>선택</span><input name="email" type="email" maxLength={254} autoComplete="email" placeholder="name@example.com" /><small>답장을 원하시면 이메일을 남겨주세요. 모든 사연에 답변을 드리기는 어렵습니다.</small></label>
             </div>
             <div className="letterSubmitRow">
-              <div><label className="letterCheck"><input type="checkbox" required /><span>사연 접수와 답변을 위한 <button type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label><p>이름·지역·직장 등 개인을 알아볼 수 있는 정보는 공개하지 않습니다.</p></div>
-              <button className="letterSend" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "사연 보내기"}<ArrowIcon /></button>
+              <div><label className="letterCheck"><input type="checkbox" name="privacyConsent" required /><span>사연 접수와 답변을 위한 <button type="button" onClick={() => setPrivacyModalOpen(true)}>개인정보 처리 안내</button>를 확인했습니다. (필수)</span></label><p>이름·지역·직장 등 개인을 알아볼 수 있는 정보는 공개하지 않습니다.</p></div>
+              <button className="letterSend" type="submit" disabled={storyStatus === "sending"}>{storyStatus === "sending" ? "보내는 중…" : "동의 확인 후 보내기"}<ArrowIcon /></button>
             </div>
             <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
-            {storyStatus === "error" && !pendingStory && <p className="formError" role="alert">{storyError}</p>}
+            <p id="story-form-error" className="formError" role="alert">{storyStatus === "error" && !pendingStory ? storyError : ""}</p>
           </form>
         )}
         <p className="letterFootnote">개인상담을 원하시면 <button type="button" onClick={openCounselingForm}>상담 신청하기 ↗</button>를 이용해 주세요. 사연 접수는 상담 신청과 별도로 운영됩니다.</p>
@@ -595,3 +634,4 @@ export default function Home() {
     </main>
   );
 }
+

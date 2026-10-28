@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { getApplicationStatus } from "../../lib/counseling-status";
 
 export const runtime = "nodejs";
@@ -33,10 +34,11 @@ function supabaseConfig() {
   return { url, publishableKey };
 }
 
-async function insertSubmission(table: "story_submissions" | "counseling_requests", data: Record<string, string | boolean>) {
+async function insertSubmission(table: "story_submissions" | "counseling_requests", data: Record<string, string | boolean>, id?: string) {
   const { url, publishableKey } = supabaseConfig();
   const response = await fetch(`${url}/rest/v1/${table}`, {
     method: "POST",
+    signal: AbortSignal.timeout(15000),
     cache: "no-store",
     headers: {
       apikey: publishableKey,
@@ -44,11 +46,19 @@ async function insertSubmission(table: "story_submissions" | "counseling_request
       "Content-Type": "application/json",
       Prefer: "return=minimal",
     },
-    body: JSON.stringify({ data }),
+    body: JSON.stringify({ ...(id ? { id } : {}), data }),
   });
 
   if (!response.ok) {
     const detail = await response.text();
+    // Only our content-bound story ID can turn a duplicate into success.
+    // Never update the existing row: it may already have an admin reply or note.
+    if (table === "story_submissions" && id && response.status === 409) {
+      try {
+        const failure = JSON.parse(detail);
+        if (failure.code === "23505" && /\bstory_submissions_pkey\b/.test(failure.message || "")) return;
+      } catch { /* Other failures remain errors. */ }
+    }
     throw new Error(`Supabase insert failed (${response.status}): ${detail.slice(0, 300)}`);
   }
 }
@@ -82,6 +92,18 @@ export async function POST(request: Request) {
       if (clean.contentConsent !== "동의") {
         return NextResponse.json({ error: "콘텐츠 활용 동의를 확인해 주세요." }, { status: 400 });
       }
+      if (input.privacyConsent !== true) {
+        return NextResponse.json({ error: "개인정보 처리 안내를 확인해 주세요." }, { status: 400 });
+      }
+      if (input.requestId !== undefined && (typeof input.requestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.requestId))) {
+        return NextResponse.json({ error: "접수 확인 정보를 다시 만들어 주세요. 작성 화면에서 다시 진행해 주세요." }, { status: 400 });
+      }
+
+      // Stable for retries, different for edited content. Hashing also prevents
+      // callers from choosing an existing record's raw ID to fake a receipt.
+      const fingerprint = JSON.stringify(["aude-story-v1", input.requestId, clean.nickname || "익명", email, clean.ageGroup, clean.gender, clean.story, "2026-10-27-oesamchun", "2026-10"]);
+      const hex = createHash("sha256").update(fingerprint).digest("hex");
+      const id = input.requestId ? `${hex.slice(0, 8)}-${hex.slice(8, 12)}-8${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}` : undefined;
 
       await insertSubmission("story_submissions", {
         type: "story",
@@ -95,8 +117,10 @@ export async function POST(request: Request) {
         contentConsent: true,
         contentConsentAt: new Date().toISOString(),
         contentConsentVersion: "2026-10-27-oesamchun",
+        privacyConsent: true,
+        privacyConsentAt: new Date().toISOString(),
         privacyVersion: "2026-10",
-      });
+      }, id);
     } else {
       if (!["개인상담", "심리검사·해석상담"].includes(clean.service)) {
         return NextResponse.json({ error: "신청 서비스를 확인해 주세요." }, { status: 400 });
@@ -133,4 +157,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unable to submit." }, { status: 500 });
   }
 }
+
 

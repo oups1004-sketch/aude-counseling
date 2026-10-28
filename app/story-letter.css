@@ -1,4 +1,6 @@
 /* A quiet, full-width writing surface, scoped away from the legacy split form. */
+.letterBeforeWriting{font-size:14px;line-height:1.8;color:#625a4e;margin:0 0 20px;max-width:760px;word-break:keep-all}
+.letterSuccess h3{scroll-margin-top:100px}.letterSuccess h3:focus-visible{outline:2px solid #80563c;outline-offset:6px}
 .storyLetter.section{max-width:1360px;margin:0 auto;padding:110px 7vw 80px;display:block}
 .letterHeading{display:grid;grid-template-columns:1.15fr 1fr;align-items:end;gap:60px;margin-bottom:44px}.letterHeading .sectionNumber{margin-bottom:25px}.letterHeading h2{font-size:clamp(36px,3.6vw,52px);line-height:1.28;letter-spacing:-.045em;font-weight:400;margin:0;word-break:keep-all}.letterInvitation{font-size:14px;line-height:1.95;color:#666157;margin:0 0 5px;word-break:keep-all}
 .letterForm{margin:0}.letterWriting{background:#faf8f2;border:1px solid #d9d0c2;border-radius:8px;overflow:hidden;transition:border-color .2s,box-shadow .2s}.letterWriting:focus-within{border-color:#a2673f;box-shadow:0 0 0 3px #a2673f0a}.letterWritingHeading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 30px 0}.letterWritingHeading label{font-size:15px;font-weight:600;color:#403a32}.letterWritingHeading span{font-size:12px;color:#85796a}.letterWriting textarea{display:block;width:100%;min-height:280px;padding:24px 30px;border:0;outline:none;background:transparent;resize:vertical;color:#34312b;font:inherit;font-size:16px;line-height:1.9;box-sizing:border-box}.letterWriting textarea::placeholder{color:#938a7d}.letterPublication{padding:16px 30px;margin:0;border-top:1px solid #e8e1d5;color:#756b5e;font-size:12px;line-height:1.8;background:#f5f1e8}
@@ -24,3 +26,14 @@
 @media(max-width:900px){.letterWelcome{gap:8px}.letterSketch{width:88px;height:63px}}
 @media(max-width:600px){.letterWelcome{position:relative;margin-top:20px;padding-right:66px}.letterInvitation{margin-top:0}.letterSketch{position:absolute;right:-3px;top:5px;width:64px;height:46px;margin:0}.letterForm{padding:16px;border-radius:10px;box-shadow:0 10px 26px -15px #58442b35}.letterWritingHeading{padding:18px 16px 0}.letterWriting textarea{padding:20px 16px}.letterPublication{padding:14px 16px}.letterDetails{padding:26px 4px;gap:24px}.letterSubmitRow{margin:0 -16px -16px;padding:22px 20px 24px;border-radius:0 0 10px 10px}.letterFootnote{text-align:left}}
 @media(prefers-reduced-motion:reduce){.letterSend{transition:none}.letterSend:hover,.letterSend:active{transform:none}}
+
+/* Keep consent and help text legible on the paper surface. */
+.letterPublication,.letterEmail small,.letterSubmitRow p,.letterFootnote{font-size:13px;color:#625a4e}
+.letterCheck{font-size:14px;min-height:44px;align-items:flex-start}
+.letterCheck input{width:20px;height:20px;margin-top:3px}
+.letterForm>.formError:empty{display:none}
+.letterForm>.formError:not(:empty){margin:48px 0 8px}
+.letterWritingHeading{flex-wrap:wrap;gap:6px 12px}
+@media(max-width:600px){.letterWelcome{padding-right:0}.letterSketch{display:none}.letterBeforeWriting{font-size:14px}.letterWritingHeading span{font-size:12px}.letterSend{min-width:0;gap:16px}.letterMeta{min-width:0}.letterMeta select{min-width:0}}
+@media(max-width:360px){.letterForm{padding:12px}.letterWriting textarea{padding:16px 12px}.letterWritingHeading{padding:16px 12px 0}.letterSubmitRow{margin:0 -12px -12px;padding:20px 16px}.letterMeta{grid-template-columns:1fr}}
+

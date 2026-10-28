@@ -39,6 +39,7 @@ function storyItem(row: DbRow) {
     preferred_time: null,
     message: stringValue(data.story),
     content_consent: Boolean(data.contentConsent),
+    adaptation_requested: data.adaptationRequested === true,
     admin_note: stringValue(data.adminNote) || null,
   };
 }
@@ -189,6 +190,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "삭제하지 못했습니다." }, { status: 500 });
   }
 }
+
 
 
 
