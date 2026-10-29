@@ -187,7 +187,17 @@ export default function Home() {
     }
     storyForm.current = form;
     setStoryStatus("idle");
-    storyRequestId.current ??= crypto.randomUUID();
+    if (!storyRequestId.current) {
+      // Keep only an opaque retry key, never the visitor's story or contact data.
+      // A reload after a lost response must reuse the same submission identity.
+      try {
+        const saved = sessionStorage.getItem("aude-story-request-v1");
+        storyRequestId.current = saved && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(saved) ? saved : crypto.randomUUID();
+        sessionStorage.setItem("aude-story-request-v1", storyRequestId.current);
+      } catch {
+        storyRequestId.current = crypto.randomUUID();
+      }
+    }
     setPendingStory({
       type: "story", email, nickname, ageGroup, gender, story,
       requestId: storyRequestId.current,
@@ -203,6 +213,8 @@ export default function Home() {
     setStoryError("");
     try {
       await sendSubmission({ ...pendingStory, contentConsent: "동의" });
+      try { sessionStorage.removeItem("aude-story-request-v1"); } catch { /* Storage may be unavailable. */ }
+      storyRequestId.current = null;
       storyForm.current?.reset();
       setPendingStory(null);
       setStoryStatus("sent");
