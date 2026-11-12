@@ -46,17 +46,17 @@ const testCategories = [
 ] as const;
 
 const singleAssessmentTests = [
-  ["TCI", "70,000원"],
-  ["MBTI", "70,000원"],
-  ["NEO-PI", "70,000원"],
-  ["MMPI-2", "70,000원"],
-  ["SCT", "70,000원"],
-  ["Strong", "70,000원"],
-  ["U&I", "70,000원"],
-  ["HTP", "70,000원"],
-  ["KFD", "70,000원"],
-  ["TAT", "100,000원"],
-  ["Rorschach", "100,000원"],
+  ["TCI", "60,000원"],
+  ["MBTI", "60,000원"],
+  ["NEO-PI", "60,000원"],
+  ["MMPI-2", "60,000원"],
+  ["SCT", "60,000원"],
+  ["Strong", "60,000원"],
+  ["U&I", "60,000원"],
+  ["HTP", "60,000원"],
+  ["KFD", "60,000원"],
+  ["TAT", "90,000원"],
+  ["Rorschach", "90,000원"],
 ] as const;
 
 export default function Home() {
@@ -482,10 +482,10 @@ export default function Home() {
                 {applicationType === "counseling" ? (
                   <>
                     <div className="requestPrices" aria-label="개인상담 비용">
-                      <article><span>개인상담</span><strong>100,000원</strong><small>온라인 · 60분</small></article>
-                      <article><span>대학생 개인상담</span><strong>80,000원</strong><small>재학증명서 인증 시 · 온라인 60분</small></article>
+                      <article><span>개인상담</span><strong>90,000원</strong><small>온라인 · 60분</small></article>
+                      <article><span>대학생·대학원생 개인상담</span><strong>70,000원</strong><small>재학증명서 인증 시 · 온라인 60분</small></article>
                     </div>
-                    <p className="requestPriceNote">3회기 이상 진행 시 심리검사비가 무료입니다. 대학생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
+                    <p className="requestPriceNote">3회기 이상 진행 시 심리검사비가 무료입니다. 대학생·대학원생 할인은 상담 시작 전 유효한 재학증명서를 확인한 경우 적용됩니다.</p>
                   </>
                 ) : null}
 
@@ -551,9 +551,9 @@ export default function Home() {
                     <fieldset className="packageChoices">
                       <legend>검사 패키지 선택 <small>필수</small></legend>
                       <div>
-                        <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 70,000원부터" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>70,000원부터</b><small>검사 1종 · 40분 해석상담 · 검사에 따라 70,000~100,000원</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 150,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b>150,000원</b><small>MMPI-2 + TCI + SCT · 80분 해석상담 · 개별 검사 대비 약 29% 할인</small></span></label>
-                        <label><input type="radio" name="assessmentPackage" value="맞춤형 심층 심리검사 · 220,000원" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤형 심층 심리검사</strong><b>220,000원</b><small>상담자가 검사 4~5종 맞춤 구성 · 80분 해석상담 · 개별 검사 대비 약 20% 이상 할인</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="단일 심리검사 · 60,000원부터" checked={selectedAssessmentPackage === "single"} onChange={() => setSelectedAssessmentPackage("single")} /><span><strong>단일 심리검사</strong><b>60,000원부터</b><small>검사 1종 · 40분 해석상담 · 검사에 따라 60,000~90,000원</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="기본 성격검사 · 140,000원" checked={selectedAssessmentPackage === "basic"} onChange={() => setSelectedAssessmentPackage("basic")} /><span><strong>기본 성격검사</strong><b>140,000원</b><small>MMPI-2 + TCI + SCT · 80분 해석상담</small></span></label>
+                        <label><input type="radio" name="assessmentPackage" value="맞춤형 검사 · 비용 별도 안내" checked={selectedAssessmentPackage === "deep"} onChange={() => setSelectedAssessmentPackage("deep")} /><span><strong>맞춤형 검사</strong><b>비용 별도 안내</b><small>신청 내용을 바탕으로 필요한 검사 구성 · 진행 전 비용 안내</small></span></label>
                       </div>
                     </fieldset>
                     {selectedAssessmentPackage === "single" && (
@@ -573,16 +573,16 @@ export default function Home() {
                         <p><strong>TCI</strong><span>타고난 기질과 성장하며 형성된 성격 특성을 이해합니다.</span></p>
                         <p><strong>SCT</strong><span>자신·관계·가족·미래에 관한 내면의 생각을 탐색합니다.</span></p>
                         <div>세 검사는 정서 상태, 성격의 구조, 말로 다 표현되지 않은 내면을 서로 보완적으로 이해하도록 구성했습니다.</div>
-                        <div className="packageFixedPrice"><strong>150,000원 패키지</strong><span>개별 검사 대비 약 29% 할인</span></div>
+                        <div className="packageFixedPrice"><strong>140,000원 패키지</strong><span>80분 해석상담 · 요약 해석본 포함</span></div>
                       </div>
                     )}
                     {selectedAssessmentPackage === "deep" && (
                       <div className="packageDetail deepPackageDetail">
-                        <input type="hidden" name="requestedTests" value="상담자 맞춤 구성 · 4~5종" />
-                        <strong>검사를 직접 고르느라 고민하지 않아도 괜찮습니다.</strong>
-                        <p>작성해 주신 신청 사유를 바탕으로 상담자가 객관검사와 투사검사 중 필요한 도구 4~5종을 적절히 구성합니다.</p>
+                        <input type="hidden" name="requestedTests" value="상담자 맞춤 구성 · 검사 종류와 비용 별도 안내" />
+                        <strong>어떤 검사를 받아야 할지 몰라도 괜찮습니다.</strong>
+                        <p>궁금한 점이나 현재의 어려움을 남겨주시면, 필요한 검사와 해석상담을 안내드립니다.</p>
                         <small>MMPI-2·TCI·SCT·MBTI 등의 객관검사와 HTP·KFD·TAT·Rorschach 등의 투사검사 가운데 목적에 맞는 검사를 안내합니다.</small>
-                        <div className="packageFixedPrice"><strong>220,000원 심층 패키지</strong><span>개별 검사 대비 약 20% 이상 할인 · 추가 비용 없음</span></div>
+                        <div className="packageFixedPrice"><strong>비용 별도 안내</strong><span>검사 종류와 비용은 진행 전 안내드립니다.</span></div>
                       </div>
                     )}
                     <label><span>심리검사를 신청하는 이유 <small>필수 · 500자 이내</small></span><textarea name="reason" required rows={4} maxLength={500} placeholder="현재 궁금한 점이나 검사를 통해 이해하고 싶은 부분을 적어주세요." /></label>

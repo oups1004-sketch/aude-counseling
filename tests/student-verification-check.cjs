@@ -21,7 +21,7 @@ const get=()=>new Request('https://test.invalid?clientId='+id);
  assert.equal((await api.POST(request('졸업생'))).status,400);assert.equal((await api.POST(request('대학생','<script>bad</script>'))).status,400);assert.equal(objects.size,0);
  publicBucket=true;assert.equal((await api.POST(request())).status,400);publicBucket=false;
  assert.equal((await api.POST(request())).status,200);assert.equal(data.studentVerification.kind,'대학생');assert.equal(objects.size,1);assert.equal(data.clientMemo,'보존');assert.equal(data.assessments[0].id,'keep');
- assert.equal(model.counselingFee(data.studentVerification,'개인상담'),80000);assert.equal(model.counselingFee(data.studentVerification,'해석상담'),100000);assert.equal(model.counselingFee(null,'개인상담'),100000);
+ assert.equal(model.counselingFee(data.studentVerification,'개인상담'),70000);assert.equal(model.counselingFee(data.studentVerification,'해석상담'),90000);assert.equal(model.counselingFee(null,'개인상담'),90000);
  const download=await api.GET(get());assert.equal(download.status,200);assert.equal(await download.text(),'%PDF-test');assert.equal(download.headers.get('cache-control'),'private, no-store');
  assert.equal((await api.POST(request('대학원생','%PDF-new','stale'))).status,400);assert.equal(objects.size,1);
  conflict=true;assert.equal((await api.POST(request('대학원생'))).status,400);assert.equal(objects.size,1);assert.equal(data.studentVerification.kind,'대학생');conflict=false;
