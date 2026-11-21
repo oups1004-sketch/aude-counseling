@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { supabaseAdminRequest } from './supabase';
-import { getOperation, newOperation, trustedOperation } from './operations';
+import { addPayment, getOperation, newOperation, trustedOperation } from './operations';
 import { Operation, OperationRow, chargeTotals, seoulDate } from './operations-model';
 
 // Stable across retries without collapsing UUIDs that differ only in their last digit.
@@ -9,7 +9,7 @@ function chargeIdFor(id: string) {
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
 }
 
-export async function saveAppointment(fields: Partial<Operation>, requestId: string, old?: OperationRow) {
+export async function saveAppointment(fields: Partial<Operation>, requestId: string, old?: OperationRow, prepayment?: { method: string; date: string }) {
   const charge = old?.data.chargeId ? await getOperation(old.data.chargeId) : undefined;
   if (charge && (charge.data.type !== 'aude-charge' || charge.data.clientId !== fields.clientId)) {
     throw new Error('연결된 수납 항목을 확인해 주세요.');
@@ -39,9 +39,17 @@ export async function saveAppointment(fields: Partial<Operation>, requestId: str
   const appointmentData = old
     ? { ...old.data, ...fields, chargeId, version: old.data.version + 1, updatedAt }
     : newOperation('aude-appointment', { ...fields, chargeId }, id);
-  const chargeData = charge
+  let chargeData = charge
     ? { ...charge.data, ...chargeFields, version: charge.data.version + 1, updatedAt }
     : newOperation('aude-charge', chargeFields, chargeId);
+
+  if (!old && prepayment && fields.status !== '취소') {
+    chargeData = addPayment(chargeData, {
+      paymentId: requestId, direction: 'receipt', amount: fields.amount,
+      method: prepayment.method, date: prepayment.date,
+      evidence: prepayment.method === '카드결제' ? '해당 없음' : '확인 필요',
+    });
+  }
 
   // A single PostgreSQL transaction checks both versions and commits both rows.
   // Deliberately no sequential-write fallback when the migration is unavailable.
